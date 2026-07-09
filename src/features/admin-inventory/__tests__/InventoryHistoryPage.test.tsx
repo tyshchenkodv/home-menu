@@ -171,15 +171,30 @@ describe('InventoryHistoryPage ready state entries', () => {
     expect(screen.getByText(/Звірка залишків/)).toBeInTheDocument();
   });
 
-  it('renders a positive quantity delta with a leading plus sign', () => {
+  it('renders a positive quantity delta with a leading plus sign, colored as an increase', () => {
     emitActive([buildIngredient()]);
     emitArchived([]);
     emitMovements([buildMovement({ type: 'restock', deltaQuantity: 500, balanceAfter: 2500, note: null })]);
 
     renderPage();
 
-    expect(screen.getByText('+500 г')).toBeInTheDocument();
+    const deltaText = screen.getByText('+500 г');
+    expect(deltaText).toBeInTheDocument();
+    expect(getComputedStyle(deltaText).color).toBe('var(--mui-palette-success-main)');
     expect(screen.getByText('2500 г')).toBeInTheDocument();
+  });
+
+  it('colors a negative quantity delta as a decrease (muted, not success)', () => {
+    emitActive([buildIngredient()]);
+    emitArchived([]);
+    emitMovements([buildMovement({ type: 'correction', deltaQuantity: -200, balanceAfter: 1800, note: null })]);
+
+    renderPage();
+
+    const deltaText = screen.getByText('-200 г');
+    expect(deltaText).toBeInTheDocument();
+    expect(getComputedStyle(deltaText).color).not.toBe('var(--mui-palette-success-main)');
+    expect(getComputedStyle(deltaText).color).toBe('var(--mui-palette-text-secondary)');
   });
 
   it('does not render a note row when note is null', () => {
@@ -212,6 +227,38 @@ describe('InventoryHistoryPage ready state entries', () => {
     renderPage();
 
     expect(screen.getByText('Відсутній → У наявності')).toBeInTheDocument();
+  });
+});
+
+describe('InventoryHistoryPage day grouping', () => {
+  it('groups movements under a localized day header for a non-recent day', () => {
+    emitActive([buildIngredient()]);
+    emitArchived([]);
+    emitMovements([buildMovement({ createdAt: { toMillis: () => Date.UTC(2026, 0, 15, 10, 30) } as never })]);
+
+    renderPage();
+
+    const expectedHeader = new Intl.DateTimeFormat('uk', { dateStyle: 'medium' }).format(
+      new Date(Date.UTC(2026, 0, 15)),
+    );
+    expect(screen.getByText(expectedHeader)).toBeInTheDocument();
+  });
+
+  it('groups movements from the same day under one header and different days under separate headers', () => {
+    emitActive([buildIngredient()]);
+    emitArchived([]);
+    emitMovements([
+      buildMovement({ id: 'movement-1', createdAt: { toMillis: () => Date.UTC(2026, 0, 15, 9, 0) } as never }),
+      buildMovement({ id: 'movement-2', createdAt: { toMillis: () => Date.UTC(2026, 0, 15, 18, 0) } as never }),
+      buildMovement({ id: 'movement-3', createdAt: { toMillis: () => Date.UTC(2026, 0, 10, 9, 0) } as never }),
+    ]);
+
+    renderPage();
+
+    const headerJan15 = new Intl.DateTimeFormat('uk', { dateStyle: 'medium' }).format(new Date(Date.UTC(2026, 0, 15)));
+    const headerJan10 = new Intl.DateTimeFormat('uk', { dateStyle: 'medium' }).format(new Date(Date.UTC(2026, 0, 10)));
+    expect(screen.getAllByText(headerJan15)).toHaveLength(1);
+    expect(screen.getByText(headerJan10)).toBeInTheDocument();
   });
 });
 

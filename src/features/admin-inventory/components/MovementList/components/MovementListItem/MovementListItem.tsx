@@ -33,6 +33,9 @@ export const MovementListItem = ({ movement, baseUnit }: MovementListItemProps) 
           to: t(movement.presenceAfter ? 'inventory.presence.present' : 'inventory.presence.absent'),
         });
 
+  const deltaColor =
+    movement.deltaQuantity === null ? undefined : movement.deltaQuantity > 0 ? 'success' : 'textSecondary';
+
   const balanceText =
     movement.balanceAfter !== null
       ? t('inventory.quantityWithUnit', { amount: movement.balanceAfter, unit: unitLabel })
@@ -52,7 +55,7 @@ export const MovementListItem = ({ movement, baseUnit }: MovementListItemProps) 
             </Typography>
             <Typography color="text.secondary">{t(`inventory.history.type.${movement.type}`)}</Typography>
           </Stack>
-          <Typography>{changeText}</Typography>
+          <Typography color={deltaColor}>{changeText}</Typography>
           {balanceText && <Typography color="text.secondary">{balanceText}</Typography>}
           {movement.note && (
             <Typography color="text.secondary">{t('inventory.history.noteLabel', { note: movement.note })}</Typography>

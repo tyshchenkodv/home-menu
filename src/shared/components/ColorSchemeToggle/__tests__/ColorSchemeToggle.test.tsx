@@ -28,9 +28,7 @@ describe('ColorSchemeToggle', () => {
   it('renders with the accessible name from translations', () => {
     renderToggle();
 
-    expect(
-      screen.getByRole('button', { name: i18n.t('common.toggleDarkMode') }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: i18n.t('common.toggleDarkMode') })).toBeInTheDocument();
   });
 
   it('flips the color scheme to dark on click and back to light on a second click', async () => {

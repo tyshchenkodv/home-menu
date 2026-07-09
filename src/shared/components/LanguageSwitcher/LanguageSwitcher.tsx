@@ -14,12 +14,7 @@ export const LanguageSwitcher = () => {
   };
 
   return (
-    <ToggleButtonGroup
-      value={i18n.language}
-      exclusive
-      onChange={handleChange}
-      aria-label={t('common.language')}
-    >
+    <ToggleButtonGroup value={i18n.language} exclusive onChange={handleChange} aria-label={t('common.language')}>
       <ToggleButton value="uk" aria-label={t('common.languageUk')}>
         {t('common.languageUk')}
       </ToggleButton>

@@ -3,6 +3,10 @@ coverage
 package-lock.json
 node_modules
 
+# Imported design artifacts (bundled Claude exports and reference sources);
+# not app source, must not be reformatted.
+design
+
 # Pre-existing hand-maintained docs and agent tooling, not part of the
 # app scaffold; left untouched to avoid modifying immutable specs/plans.
 .agents

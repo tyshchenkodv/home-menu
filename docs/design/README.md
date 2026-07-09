@@ -32,14 +32,20 @@ The **design system foundation** slice is implemented (see
 - A persistent `AppHeader` (`src/shared/components/AppHeader/`) renders the
   brand mascot, the `app.title` wordmark, a `LanguageSwitcher` (UK/EN), and a
   binary light↔dark `ColorSchemeToggle` (default light, persisted).
-- `CatArt` (`src/shared/components/CatArt/`) provides `content`, `confused`,
-  and `sleeping` variants. The header uses `content` as the logo mark.
+- `CatArt` (`src/shared/components/CatArt/`) provides the faithful multi-color
+  illustrations transcribed from `home-menu-kitchen-inventory-app/CatArt.dc.html`,
+  with variants `idle`, `empty`, `sleeping`, `confused`, and `logo`. The header
+  uses `logo`; loading/empty/error states use `sleeping`/`empty`/`confused` via
+  the shared `StatePlaceholder`.
+- The `admin-inventory` screens are retrofitted to the design (see
+  `admin-inventory-design-retrofit`): `IngredientCard` shows a `StatusChip`
+  (`src/shared/components/StatusChip/`) and a kebab action menu, the inventory
+  screen adds via a FAB, and the history screen groups movements by day with
+  signed, color-coded deltas.
 
-Not yet adopted (tracked follow-ups): restyling the `admin-inventory` screens,
-the responsive navigation shell, a Settings screen, and the richer full-body
-mascot illustrations plus an `empty` (bowl) variant for feature empty/error
-states. Until those land, `CatArt` is a simplified logo-mark-style face rather
-than the full illustrations shown below.
+Not yet adopted (tracked follow-ups): the responsive navigation shell, a
+Settings screen, and the not-yet-built feature screens (Batches, Cooking
+requests / Orders, Menu), each of which needs its own specification.
 
 ## Authoritative MUI theme (source of truth)
 
@@ -150,11 +156,12 @@ an icon):
 
 ## Illustration — `CatArt`
 
-The mockup defines a flat-pastel cat mascot as a reusable SVG component,
-addressed as `<CatArt variant size />`. Variants cover product moods (e.g. a
-neutral/happy mascot and a "confused" mascot for error / not-found states). The
-concrete component is not implemented yet; it belongs to the theme adoption
-work.
+The design defines a flat-pastel cat mascot ("Kotyk") as a reusable SVG
+component, addressed as `<CatArt variant size />`. The authoritative SVG source
+is `home-menu-kitchen-inventory-app/CatArt.dc.html`. Variants: `idle` (happy —
+headers/success), `empty` (empty states), `sleeping` (loading/skeleton),
+`confused` (error / not-found), and `logo` (the compact brand mark used in the
+`AppHeader`). Implemented at `src/shared/components/CatArt/`.
 
 ## Screen catalog (`05 Screens`)
 

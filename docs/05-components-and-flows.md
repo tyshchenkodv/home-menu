@@ -34,7 +34,9 @@ flowchart TD
 | `RequireAdmin` | Require the `admin` role |
 | `LanguageSwitcher` | Switch `uk`/`en` (UK/EN) and persist the local preference |
 | `ColorSchemeToggle` | Toggle binary light↔dark mode and persist it |
-| `CatArt` | Brand cat illustration (`content`/`confused`/`sleeping`, theme-aware) |
+| `CatArt` | Brand cat illustration (`idle`/`empty`/`sleeping`/`confused`/`logo`) |
+| `StatusChip` | Semantic status pill (`success`/`warning`/`default`) |
+| `StatePlaceholder` | Pairs a `CatArt` beat with a message for loading/empty/error |
 | `AsyncState` | Consistent loading, error, and empty states |
 | `ConfirmDialog` | Confirm destructive or accounting-sensitive operations |
 | `QuantityField` | Quantity, display unit, and canonical-unit conversion |

@@ -36,8 +36,6 @@ describe('AppHeader', () => {
   it('renders the dark mode toggle', () => {
     renderHeader();
 
-    expect(
-      screen.getByRole('button', { name: i18n.t('common.toggleDarkMode') }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: i18n.t('common.toggleDarkMode') })).toBeInTheDocument();
   });
 });

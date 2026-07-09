@@ -24,3 +24,4 @@ and link it with `Supersedes`.
 | [Admin inventory foundation](./admin-inventory-foundation/SPEC.md) | [PLAN](./admin-inventory-foundation/PLAN.md) | Implemented |
 | [Agent skill routing](./agent-skill-routing/SPEC.md) | [PLAN](./agent-skill-routing/PLAN.md) | Implemented |
 | [Design system foundation](./design-system-foundation/SPEC.md) | [PLAN](./design-system-foundation/PLAN.md) | Implemented |
+| [Admin inventory design retrofit](./admin-inventory-design-retrofit/SPEC.md) | [PLAN](./admin-inventory-design-retrofit/PLAN.md) | Implemented |

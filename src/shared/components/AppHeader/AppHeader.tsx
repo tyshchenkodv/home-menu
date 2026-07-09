@@ -17,7 +17,7 @@ export const AppHeader = () => {
       <Toolbar sx={styles.toolbar}>
         <Box sx={styles.brand}>
           <Box sx={styles.mark}>
-            <CatArt variant="content" size={32} />
+            <CatArt variant="logo" size={32} />
           </Box>
           <Typography variant="h6" component="span" sx={styles.wordmark}>
             {t('app.title')}

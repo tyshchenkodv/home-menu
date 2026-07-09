@@ -1,5 +1,5 @@
 import AddIcon from '@mui/icons-material/Add';
-import Button from '@mui/material/Button';
+import Fab from '@mui/material/Fab';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useState } from 'react';
@@ -114,20 +114,22 @@ export const InventoryPage = () => {
     <Stack spacing={2} sx={styles.page}>
       <Stack direction="row" sx={styles.header}>
         <Typography variant="h1">{t('nav.inventory')}</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => {
-            setDialogState({ mode: 'create' });
-          }}
-        >
-          {t('inventory.actions.create')}
-        </Button>
       </Stack>
 
       <InventoryTabs value={tab} onChange={setTab} />
 
-      {renderContent()}
+      <Stack sx={styles.content}>{renderContent()}</Stack>
+
+      <Fab
+        color="primary"
+        aria-label={t('inventory.actions.create')}
+        sx={styles.fab}
+        onClick={() => {
+          setDialogState({ mode: 'create' });
+        }}
+      >
+        <AddIcon />
+      </Fab>
 
       {dialogState && (
         <IngredientFormDialog

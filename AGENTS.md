@@ -20,8 +20,11 @@ For substantial work, follow this sequence without skipping gates:
 7. Stop until the user explicitly approves the PLAN.
 8. Implement with the applicable Superpowers execution, TDD, review, and
    verification skills.
-9. Update the current project documentation and mark the index entry
-   implemented.
+9. Run the project verification gate `npm run verify` (typecheck, lint with
+   Prettier, format check, test, build) and confirm it passes; fix style with
+   the unified `npm run fix`.
+10. Update the current project documentation and mark the index entry
+    implemented only after the gate passes.
 
 Substantial work includes new features or workflows, behavior or business-rule
 changes, architecture decisions, Firebase schema/Rules/index/transaction

@@ -60,11 +60,16 @@
       "correctFor": "Correct \"{{name}}\"",
       "markPresentFor": "Mark \"{{name}}\" present",
       "markAbsentFor": "Mark \"{{name}}\" absent",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "moreFor": "More actions for \"{{name}}\""
     },
     "presence": {
       "present": "In stock",
       "absent": "Out of stock"
+    },
+    "status": {
+      "inStock": "In stock",
+      "out": "Out"
     },
     "units": {
       "gram": "g",
@@ -131,6 +136,10 @@
       "empty": "No history yet",
       "transition": "{{from}} → {{to}}",
       "noteLabel": "Note: {{note}}",
+      "day": {
+        "today": "Today",
+        "yesterday": "Yesterday"
+      },
       "filter": {
         "label": "Filter by ingredient",
         "all": "All ingredients"

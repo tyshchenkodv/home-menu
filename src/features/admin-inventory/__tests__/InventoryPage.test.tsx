@@ -111,6 +111,12 @@ const emitArchived = (ingredients: IngredientWithId[]) => {
   });
 };
 
+/** Opens an ingredient card's overflow menu so its action items become queryable. */
+const openCardMenu = async (user: ReturnType<typeof userEvent.setup>, name: string) => {
+  await user.click(await screen.findByRole('button', { name: `Більше дій для «${name}»` }));
+  return screen.findByRole('menu');
+};
+
 beforeEach(() => {
   vi.resetAllMocks();
   void i18n.changeLanguage('uk');
@@ -132,9 +138,10 @@ beforeEach(() => {
 
 describe('InventoryPage states', () => {
   it('shows a loading state before the active subscription emits', () => {
-    renderPage();
+    const { container } = renderPage();
 
     expect(screen.getByText('Завантаження інгредієнтів…')).toBeInTheDocument();
+    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
   it('shows an error state when the active subscription fails', () => {
@@ -143,17 +150,19 @@ describe('InventoryPage states', () => {
       return vi.fn();
     });
 
-    renderPage();
+    const { container } = renderPage();
 
     expect(screen.getByText('Не вдалося завантажити інгредієнти')).toBeInTheDocument();
+    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
   it('shows an empty state when there are no active ingredients', () => {
     emitActive([]);
 
-    renderPage();
+    const { container } = renderPage();
 
     expect(screen.getByText('Активних інгредієнтів ще немає')).toBeInTheDocument();
+    expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
   it('renders the ready list of active ingredients', () => {
@@ -297,7 +306,8 @@ describe('InventoryPage edit dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Редагувати «Борошно»' }));
+    const menu = await openCardMenu(user, 'Борошно');
+    await user.click(within(menu).getByRole('menuitem', { name: 'Редагувати «Борошно»' }));
 
     const nameInput = screen.getByLabelText('Назва');
     await user.clear(nameInput);
@@ -329,7 +339,8 @@ describe('InventoryPage archive and restore', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Архівувати «Борошно»' }));
+    const menu = await openCardMenu(user, 'Борошно');
+    await user.click(within(menu).getByRole('menuitem', { name: 'Архівувати «Борошно»' }));
 
     expect(mockedArchiveIngredient).not.toHaveBeenCalled();
     const dialog = await screen.findByRole('dialog');
@@ -352,7 +363,8 @@ describe('InventoryPage archive and restore', () => {
     renderPage();
 
     await user2.click(screen.getByRole('tab', { name: 'Архівні' }));
-    await user2.click(await screen.findByRole('button', { name: 'Відновити «Сіль»' }));
+    const menu = await openCardMenu(user2, 'Сіль');
+    await user2.click(within(menu).getByRole('menuitem', { name: 'Відновити «Сіль»' }));
 
     await waitFor(() => {
       expect(mockedRestoreIngredient).toHaveBeenCalledWith('restore-1', ADMIN_UID);
@@ -361,18 +373,21 @@ describe('InventoryPage archive and restore', () => {
 });
 
 describe('InventoryPage stock/presence action availability', () => {
-  it('shows restock and correction actions (and not presence actions) for a quantity ingredient', () => {
+  it('shows restock and correction actions (and not presence actions) for a quantity ingredient', async () => {
+    const user = userEvent.setup();
     emitActive([buildIngredient({ id: 'q-1', name: 'Борошно', trackingMode: 'quantity', baseUnit: 'gram' })]);
 
     renderPage();
+    const menu = await openCardMenu(user, 'Борошно');
 
-    expect(screen.getByRole('button', { name: 'Поповнити «Борошно»' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Скоригувати «Борошно»' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Позначити наявним «Борошно»' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Позначити відсутнім «Борошно»' })).not.toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Поповнити «Борошно»' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Скоригувати «Борошно»' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Позначити наявним «Борошно»' })).not.toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Позначити відсутнім «Борошно»' })).not.toBeInTheDocument();
   });
 
-  it('shows mark-present and mark-absent actions (and not restock/correction) for a presence ingredient', () => {
+  it('shows mark-present and mark-absent actions (and not restock/correction) for a presence ingredient', async () => {
+    const user = userEvent.setup();
     emitActive([
       buildIngredient({
         id: 'p-1',
@@ -385,11 +400,12 @@ describe('InventoryPage stock/presence action availability', () => {
     ]);
 
     renderPage();
+    const menu = await openCardMenu(user, 'Сіль');
 
-    expect(screen.getByRole('button', { name: 'Позначити наявним «Сіль»' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Позначити відсутнім «Сіль»' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Поповнити «Сіль»' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Скоригувати «Сіль»' })).not.toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Позначити наявним «Сіль»' })).toBeInTheDocument();
+    expect(within(menu).getByRole('menuitem', { name: 'Позначити відсутнім «Сіль»' })).toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Поповнити «Сіль»' })).not.toBeInTheDocument();
+    expect(within(menu).queryByRole('menuitem', { name: 'Скоригувати «Сіль»' })).not.toBeInTheDocument();
   });
 });
 
@@ -400,7 +416,8 @@ describe('InventoryPage restock dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Поповнити «Борошно»' }));
+    const cardMenu = await openCardMenu(user, 'Борошно');
+    await user.click(within(cardMenu).getByRole('menuitem', { name: 'Поповнити «Борошно»' }));
 
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('Кількість'), '1.5');
@@ -428,7 +445,8 @@ describe('InventoryPage restock dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Поповнити «Борошно»' }));
+    const cardMenu = await openCardMenu(user, 'Борошно');
+    await user.click(within(cardMenu).getByRole('menuitem', { name: 'Поповнити «Борошно»' }));
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('Кількість'), '1');
 
@@ -447,7 +465,8 @@ describe('InventoryPage correction dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Скоригувати «Борошно»' }));
+    const cardMenu = await openCardMenu(user, 'Борошно');
+    await user.click(within(cardMenu).getByRole('menuitem', { name: 'Скоригувати «Борошно»' }));
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('Фактична кількість'), '1.5');
     await user.click(within(dialog).getByRole('button', { name: 'Зберегти коригування' }));
@@ -462,7 +481,8 @@ describe('InventoryPage correction dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Скоригувати «Борошно»' }));
+    const cardMenu = await openCardMenu(user, 'Борошно');
+    await user.click(within(cardMenu).getByRole('menuitem', { name: 'Скоригувати «Борошно»' }));
     const dialog = await screen.findByRole('dialog');
     await user.type(within(dialog).getByLabelText('Фактична кількість'), '1.5');
     await user.selectOptions(within(dialog).getByLabelText('Одиниця'), 'kg');
@@ -492,7 +512,8 @@ describe('InventoryPage presence actions', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Позначити відсутнім «Сіль»' }));
+    const cardMenu = await openCardMenu(user, 'Сіль');
+    await user.click(within(cardMenu).getByRole('menuitem', { name: 'Позначити відсутнім «Сіль»' }));
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => {
@@ -515,7 +536,8 @@ describe('InventoryPage presence actions', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Позначити наявним «Сіль»' }));
+    const cardMenu = await openCardMenu(user, 'Сіль');
+    await user.click(within(cardMenu).getByRole('menuitem', { name: 'Позначити наявним «Сіль»' }));
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     await waitFor(() => {

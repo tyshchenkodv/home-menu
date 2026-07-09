@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import vitest from '@vitest/eslint-plugin';
 import importX from 'eslint-plugin-import-x';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
+import prettierRecommended from 'eslint-plugin-prettier/recommended';
 import reactDom from 'eslint-plugin-react-dom';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
@@ -10,7 +11,7 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist', '.agents', '.claude', '.idea'] },
+  { ignores: ['dist', '.agents', '.claude', '.idea', 'design'] },
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -72,4 +73,8 @@ export default tseslint.config(
       'import-x/no-default-export': 'off',
     },
   },
+  // Keep last: turns off ESLint stylistic rules that fight Prettier and runs
+  // Prettier as a lint rule, so `eslint` reports formatting and `eslint --fix`
+  // fixes it together with other lint issues.
+  prettierRecommended,
 );

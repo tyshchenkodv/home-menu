@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<meta name="design_doc_mode" content="canvas">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{background:#FDF2F6;font-family:'Nunito Sans',system-ui,-apple-system,sans-serif;color:#3A2E34;-webkit-font-smoothing:antialiased;}
+  a{color:#E36397;text-decoration:none;}
+  a:hover{color:#B8446F;text-decoration:underline;}
+  ::selection{background:#FBD5E5;color:#3A2E34;}
+</style>
+</helmet>
+
+<section data-screen-label="Cover" style="max-width:1180px;margin:0 auto;padding:56px 32px 12px;">
+  <div style="position:relative;background:linear-gradient(135deg,#FFF1F6 0%,#F6EEFB 100%);border:1px solid #F3DDE5;border-radius:32px;padding:44px 48px;overflow:hidden;box-shadow:0 20px 60px rgba(184,68,111,0.10);">
+    <div style="position:absolute;top:-10px;right:180px;width:52px;height:52px;color:#F7C6DA;opacity:0.7;transform:rotate(-18deg);"><dc-import name="CatArt" variant="paw" hint-size="52px,52px" style="width:52px;height:52px;"></dc-import></div>
+    <div style="position:absolute;bottom:26px;right:250px;width:34px;height:34px;color:#D9CDF3;opacity:0.8;transform:rotate(12deg);"><dc-import name="CatArt" variant="paw" hint-size="34px,34px" style="width:34px;height:34px;"></dc-import></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap;position:relative;">
+      <div style="max-width:620px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+          <div style="width:46px;height:46px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="46px,46px" style="width:46px;height:46px;"></dc-import></div>
+          <span style="font:800 20px Nunito;color:#B8446F;">Home Menu</span>
+          <span style="font:700 13px 'Nunito Sans';color:#9B8CDB;background:#EEE9FB;padding:4px 10px;border-radius:999px;">Хатнє меню</span>
+        </div>
+        <h1 style="font:900 40px/1.08 Nunito;margin:0 0 14px;color:#3A2E34;letter-spacing:-0.5px;">Mobile UI design system<br>&amp; screen set</h1>
+        <p style="font:400 16px/1.6 'Nunito Sans';color:#7A6B72;margin:0 0 22px;max-width:520px;">A pastel, cat-friendly kitchen-inventory &amp; meal-ordering app for households. Foundations, tokens, reusable illustrations, MUI component specimens, and every mobile screen — with a <code style="font:600 13px ui-monospace,monospace;background:#FFE7F0;color:#B8446F;padding:1px 6px;border-radius:6px;">createTheme()</code> mapping.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <span style="font:700 12px 'Nunito Sans';background:#FFFFFF;color:#B8446F;border:1px solid #F3DDE5;padding:7px 13px;border-radius:999px;">Nunito · Nunito Sans</span>
+          <span style="font:700 12px 'Nunito Sans';background:#FFFFFF;color:#2A8A66;border:1px solid #CDEFE0;padding:7px 13px;border-radius:999px;">MUI v5/v6 · cssVariables</span>
+          <span style="font:700 12px 'Nunito Sans';background:#FFFFFF;color:#6F5FB3;border:1px solid #E1DBF7;padding:7px 13px;border-radius:999px;">Light + Dark</span>
+          <span style="font:700 12px 'Nunito Sans';background:#FFFFFF;color:#9A6E12;border:1px solid #FBEEC8;padding:7px 13px;border-radius:999px;">UA / EN i18n-ready</span>
+        </div>
+      </div>
+      <div style="width:210px;height:190px;flex:none;filter:drop-shadow(0 14px 22px rgba(184,68,111,0.18));"><dc-import name="CatArt" variant="idle" hint-size="210px,190px" style="width:210px;height:190px;"></dc-import></div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;font:600 12.5px 'Nunito Sans';color:#7A6B72;">
+    <span style="color:#B8446F;font-weight:800;">Contents:</span>
+    <span>01 Color</span><span>·</span><span>02 Type &amp; tokens</span><span>·</span><span>03 Cat art</span><span>·</span><span>04 Components</span><span>·</span><span>05 Screens</span><span>·</span><span>06 Dark theme</span><span>·</span><span>07 MUI theme mapping</span>
+  </div>
+</section>
+
+<section data-screen-label="01 Color palette" style="max-width:1180px;margin:0 auto;padding:40px 32px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;">
+    <span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">01 / Foundations</span>
+  </div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Color palette · light</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 26px;max-width:640px;">Pastel-forward, led by rose. Every value maps to a MUI palette slot so it drops straight into <code style="font:600 12.5px ui-monospace,monospace;background:#FFE7F0;color:#B8446F;padding:1px 5px;border-radius:5px;">createTheme({ palette })</code>.</p>
+
+  <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">Brand · primary &amp; secondary</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px;margin-bottom:32px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#E36397;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Rose</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#E36397</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#FFF1F6;color:#B8446F;padding:3px 8px;border-radius:999px;">primary.main</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#FBD5E5;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Rose light</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#FBD5E5</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#FFF1F6;color:#B8446F;padding:3px 8px;border-radius:999px;">primary.light</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#B8446F;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Rose dark</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#B8446F</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#FFF1F6;color:#B8446F;padding:3px 8px;border-radius:999px;">primary.dark</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#9B8CDB;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Lavender</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#9B8CDB</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#EEE9FB;color:#6F5FB3;padding:3px 8px;border-radius:999px;">secondary.main</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#E1DBF7;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Lavender light</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#E1DBF7</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#EEE9FB;color:#6F5FB3;padding:3px 8px;border-radius:999px;">secondary.light</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#6F5FB3;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Lavender dark</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#6F5FB3</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#EEE9FB;color:#6F5FB3;padding:3px 8px;border-radius:999px;">secondary.dark</div></div></div>
+  </div>
+
+  <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">Neutrals · surfaces &amp; text</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px;margin-bottom:32px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#FDF2F6;border-bottom:1px solid #F3DDE5;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Canvas</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#FDF2F6</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#F3EDF0;color:#7A6B72;padding:3px 8px;border-radius:999px;">background.default</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#FFFFFF;border-bottom:1px solid #F3DDE5;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Surface</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#FFFFFF</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#F3EDF0;color:#7A6B72;padding:3px 8px;border-radius:999px;">background.paper</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#FFF1F6;border-bottom:1px solid #F3DDE5;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Surface alt</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#FFF1F6</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#F3EDF0;color:#7A6B72;padding:3px 8px;border-radius:999px;">action.hover</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#F3DDE5;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Divider</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#F3DDE5</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#F3EDF0;color:#7A6B72;padding:3px 8px;border-radius:999px;">divider</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#3A2E34;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Ink</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#3A2E34</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#F3EDF0;color:#7A6B72;padding:3px 8px;border-radius:999px;">text.primary</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#7A6B72;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Muted</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#7A6B72</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#F3EDF0;color:#7A6B72;padding:3px 8px;border-radius:999px;">text.secondary</div></div></div>
+  </div>
+
+  <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">Semantic · status</h3>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px;margin-bottom:32px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#3FB98C;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Mint</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#3FB98C</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#E4F6EE;color:#2A8A66;padding:3px 8px;border-radius:999px;">success · Ready now</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#E0A93B;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Butter</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#E0A93B</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#FBF1D6;color:#9A6E12;padding:3px 8px;border-radius:999px;">warning · Can cook</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#E45D5D;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Coral</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#E45D5D</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#FBE0E0;color:#B83B3B;padding:3px 8px;border-radius:999px;">error · destructive</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><div style="height:72px;background:#5AA9E6;"></div><div style="padding:11px 13px;"><div style="font:800 14px Nunito;">Sky</div><div style="font:600 12px 'Nunito Sans';color:#7A6B72;margin-top:1px;">#5AA9E6</div><div style="margin-top:8px;display:inline-block;font:700 10.5px ui-monospace,monospace;background:#E1EFFB;color:#2F82C4;padding:3px 8px;border-radius:999px;">info</div></div></div>
+  </div>
+
+  <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">Pastel accent tints · category tags &amp; chip fills</h3>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:120px;background:#FFD9C2;border-radius:14px;padding:16px 14px;"><div style="font:800 13px Nunito;color:#8A4B22;">Peach</div><div style="font:600 11.5px ui-monospace,monospace;color:#A9633A;margin-top:2px;">#FFD9C2</div></div>
+    <div style="flex:1;min-width:120px;background:#CDEFE0;border-radius:14px;padding:16px 14px;"><div style="font:800 13px Nunito;color:#2A8A66;">Mint</div><div style="font:600 11.5px ui-monospace,monospace;color:#37A277;margin-top:2px;">#CDEFE0</div></div>
+    <div style="flex:1;min-width:120px;background:#E1DBF7;border-radius:14px;padding:16px 14px;"><div style="font:800 13px Nunito;color:#6F5FB3;">Lavender</div><div style="font:600 11.5px ui-monospace,monospace;color:#8071C5;margin-top:2px;">#E1DBF7</div></div>
+    <div style="flex:1;min-width:120px;background:#FBEEC8;border-radius:14px;padding:16px 14px;"><div style="font:800 13px Nunito;color:#9A6E12;">Butter</div><div style="font:600 11.5px ui-monospace,monospace;color:#B5831F;margin-top:2px;">#FBEEC8</div></div>
+    <div style="flex:1;min-width:120px;background:#D2E9F9;border-radius:14px;padding:16px 14px;"><div style="font:800 13px Nunito;color:#2F82C4;">Sky</div><div style="font:600 11.5px ui-monospace,monospace;color:#4593D2;margin-top:2px;">#D2E9F9</div></div>
+    <div style="flex:1;min-width:120px;background:#FBD5E5;border-radius:14px;padding:16px 14px;"><div style="font:800 13px Nunito;color:#B8446F;">Rose</div><div style="font:600 11.5px ui-monospace,monospace;color:#C85E8A;margin-top:2px;">#FBD5E5</div></div>
+  </div>
+</section>
+
+<section data-screen-label="01 Color palette · dark" style="max-width:1180px;margin:0 auto;padding:12px 32px 40px;">
+  <div style="background:#1E1A1D;border-radius:24px;padding:32px 30px;box-shadow:0 20px 50px rgba(30,26,29,0.35);">
+    <h3 style="font:800 14px Nunito;color:#F49CBF;margin:0 0 4px;text-transform:uppercase;letter-spacing:1px;">Dark theme mapping</h3>
+    <p style="font:400 13.5px/1.5 'Nunito Sans';color:#C6B2BC;margin:0 0 22px;max-width:600px;">Same slots, re-toned. Brand colors lighten so contained buttons keep contrast on dark surfaces; illustrations use flat pastels that stay legible either way.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#F49CBF;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Rose</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#F49CBF</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#F49CBF;">primary.main</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#B7A9EC;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Lavender</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#B7A9EC</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#B7A9EC;">secondary.main</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#1E1A1D;border-bottom:1px solid #3C333A;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Canvas</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#1E1A1D</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#C6B2BC;">background.default</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#2A2329;border-bottom:1px solid #3C333A;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Surface</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#2A2329</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#C6B2BC;">background.paper</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#6FD0A6;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Mint</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#6FD0A6</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#6FD0A6;">success</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#EFC46A;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Butter</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#EFC46A</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#EFC46A;">warning</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#F08A8A;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Coral</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#F08A8A</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#F08A8A;">error</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#86C4F0;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Sky</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#86C4F0</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#86C4F0;">info</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#F6E9EF;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Ink</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#F6E9EF</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#C6B2BC;">text.primary</div></div></div>
+      <div style="background:#2A2329;border:1px solid #3C333A;border-radius:14px;overflow:hidden;"><div style="height:56px;background:#C6B2BC;"></div><div style="padding:10px 12px;"><div style="font:800 13px Nunito;color:#F6E9EF;">Muted</div><div style="font:600 11px ui-monospace,monospace;color:#9A8791;margin-top:1px;">#C6B2BC</div><div style="margin-top:6px;font:700 10px ui-monospace,monospace;color:#C6B2BC;">text.secondary</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="02 Typography" style="max-width:1180px;margin:0 auto;padding:40px 32px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;">
+    <span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">02 / Foundations</span>
+  </div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Typography</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 26px;max-width:640px;"><b>Nunito</b> (700–900) for headings &amp; buttons, <b>Nunito Sans</b> (400–700) for body. Both carry full Cyrillic — mobile-tuned scale, no all-caps buttons.</p>
+  <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:8px 26px;box-shadow:0 2px 12px rgba(184,68,111,0.06);">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:900 32px/1.1 Nunito;color:#3A2E34;">Ready to cook · Готуємо</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">h1 · 900 · 32/34</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:800 24px/1.15 Nunito;color:#3A2E34;">Today's menu · Меню на сьогодні</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">h2 · 800 · 24/28</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:800 20px/1.2 Nunito;color:#3A2E34;">Creamy mushroom risotto</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">h3 · 800 · 20/24</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:700 16px/1.3 Nunito;color:#3A2E34;">Section heading · Розділ</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">h5 · 700 · 16/21</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:600 15px/1.4 'Nunito Sans';color:#3A2E34;">Subtitle — portions ready to reserve</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">subtitle1 · 600 · 15</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:400 15px/1.5 'Nunito Sans';color:#3A2E34;max-width:560px;">Body 1 — A warm bowl of arborio rice slow-cooked with mushrooms. Тепла страва з рису та грибів.</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">body1 · 400 · 15/22</div></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:400 13px/1.5 'Nunito Sans';color:#7A6B72;">Body 2 — secondary description &amp; helper text.</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">body2 · 400 · 13/20</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;border-bottom:1px solid #F3DDE5;"><div style="font:700 14px Nunito;color:#B8446F;text-transform:none;">Reserve portion</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">button · 700 · 14 · none</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 0;"><div style="font:700 11px 'Nunito Sans';letter-spacing:1.2px;text-transform:uppercase;color:#7A6B72;">Overline · label</div><div style="font:600 11.5px ui-monospace,monospace;color:#9B8CDB;white-space:nowrap;">overline · 700 · 11 · +1.2</div></div>
+  </div>
+</section>
+
+<section data-screen-label="02 Tokens" style="max-width:1180px;margin:0 auto;padding:16px 32px 40px;">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:22px 24px;box-shadow:0 2px 12px rgba(184,68,111,0.06);">
+      <h3 style="font:800 15px Nunito;color:#B8446F;margin:0 0 4px;">Spacing</h3>
+      <p style="font:400 12.5px 'Nunito Sans';color:#7A6B72;margin:0 0 16px;">8px base · <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">theme.spacing(1)=8</code></p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:12px;"><div style="width:4px;height:16px;background:#E36397;border-radius:3px;"></div><span style="font:700 12.5px 'Nunito Sans';">4 · 0.5</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="width:8px;height:16px;background:#E36397;border-radius:3px;"></div><span style="font:700 12.5px 'Nunito Sans';">8 · 1</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="width:12px;height:16px;background:#E36397;border-radius:3px;"></div><span style="font:700 12.5px 'Nunito Sans';">12 · 1.5</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="width:16px;height:16px;background:#E36397;border-radius:3px;"></div><span style="font:700 12.5px 'Nunito Sans';">16 · 2</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="width:24px;height:16px;background:#E36397;border-radius:3px;"></div><span style="font:700 12.5px 'Nunito Sans';">24 · 3</span></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div style="width:32px;height:16px;background:#E36397;border-radius:3px;"></div><span style="font:700 12.5px 'Nunito Sans';">32 · 4</span></div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:22px 24px;box-shadow:0 2px 12px rgba(184,68,111,0.06);">
+      <h3 style="font:800 15px Nunito;color:#B8446F;margin:0 0 4px;">Radius</h3>
+      <p style="font:400 12.5px 'Nunito Sans';color:#7A6B72;margin:0 0 16px;"><code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">shape.borderRadius: 14</code></p>
+      <div style="display:flex;flex-wrap:wrap;gap:14px;">
+        <div style="text-align:center;"><div style="width:56px;height:44px;background:#FBD5E5;border-radius:10px;"></div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:6px;">10 · input</div></div>
+        <div style="text-align:center;"><div style="width:56px;height:44px;background:#FBD5E5;border-radius:14px;"></div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:6px;">14 · button</div></div>
+        <div style="text-align:center;"><div style="width:56px;height:44px;background:#FBD5E5;border-radius:20px;"></div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:6px;">20 · card</div></div>
+        <div style="text-align:center;"><div style="width:56px;height:44px;background:#FBD5E5;border-radius:24px;"></div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:6px;">24 · sheet</div></div>
+        <div style="text-align:center;"><div style="width:56px;height:44px;background:#FBD5E5;border-radius:999px;"></div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:6px;">999 · chip</div></div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:22px 24px;box-shadow:0 2px 12px rgba(184,68,111,0.06);">
+      <h3 style="font:800 15px Nunito;color:#B8446F;margin:0 0 4px;">Elevation</h3>
+      <p style="font:400 12.5px 'Nunito Sans';color:#7A6B72;margin:0 0 20px;">Soft, rose-tinted — no harsh greys.</p>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-end;">
+        <div style="text-align:center;"><div style="width:64px;height:48px;background:#fff;border-radius:14px;box-shadow:0 2px 8px rgba(184,68,111,0.10);"></div><div style="font:600 10px ui-monospace,monospace;color:#7A6B72;margin-top:8px;max-width:64px;">e1 · cards</div></div>
+        <div style="text-align:center;"><div style="width:64px;height:48px;background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(184,68,111,0.14);"></div><div style="font:600 10px ui-monospace,monospace;color:#7A6B72;margin-top:8px;max-width:64px;">e3 · menus</div></div>
+        <div style="text-align:center;"><div style="width:64px;height:48px;background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(184,68,111,0.22);"></div><div style="font:600 10px ui-monospace,monospace;color:#7A6B72;margin-top:8px;max-width:64px;">e8 · dialogs</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="03 Cat art" style="max-width:1180px;margin:0 auto;padding:40px 32px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;">
+    <span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">03 / Illustration</span>
+  </div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Kotyk — the mascot</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 26px;max-width:660px;">Flat, geometric, text-free SVG — reusable at empty-state (small) and hero (large) sizes. One component, <code style="font:600 12.5px ui-monospace,monospace;background:#FFE7F0;color:#B8446F;padding:1px 5px;border-radius:5px;">variant</code> prop. Never bakes in copy, so i18n stays external.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-bottom:22px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:14px;box-shadow:0 2px 12px rgba(184,68,111,0.06);"><div style="background:#FFF1F6;border-radius:14px;height:180px;display:flex;align-items:center;justify-content:center;"><div style="width:170px;height:154px;"><dc-import name="CatArt" variant="idle" hint-size="170px,154px" style="width:170px;height:154px;"></dc-import></div></div><div style="font:800 14px Nunito;margin-top:12px;">Idle / happy</div><div style="font:400 12px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Onboarding, success toasts, headers.</div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:14px;box-shadow:0 2px 12px rgba(184,68,111,0.06);"><div style="background:#F6EEFB;border-radius:14px;height:180px;display:flex;align-items:center;justify-content:center;"><div style="width:170px;height:154px;"><dc-import name="CatArt" variant="empty" hint-size="170px,154px" style="width:170px;height:154px;"></dc-import></div></div><div style="font:800 14px Nunito;margin-top:12px;">Empty bowl</div><div style="font:400 12px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Empty states — no dishes, no orders.</div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:14px;box-shadow:0 2px 12px rgba(184,68,111,0.06);"><div style="background:#EDF6F1;border-radius:14px;height:180px;display:flex;align-items:center;justify-content:center;"><div style="width:170px;height:154px;"><dc-import name="CatArt" variant="sleep" hint-size="170px,154px" style="width:170px;height:154px;"></dc-import></div></div><div style="font:800 14px Nunito;margin-top:12px;">Sleeping</div><div style="font:400 12px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Loading &amp; skeleton screens.</div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:14px;box-shadow:0 2px 12px rgba(184,68,111,0.06);"><div style="background:#FBEFEF;border-radius:14px;height:180px;display:flex;align-items:center;justify-content:center;"><div style="width:170px;height:154px;"><dc-import name="CatArt" variant="confused" hint-size="170px,154px" style="width:170px;height:154px;"></dc-import></div></div><div style="font:800 14px Nunito;margin-top:12px;">Confused</div><div style="font:400 12px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Error &amp; not-found states.</div></div>
+  </div>
+  <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">Decorative motifs &amp; logo mark</h3>
+  <div style="display:flex;gap:18px;flex-wrap:wrap;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:20px 26px;display:flex;align-items:center;gap:18px;box-shadow:0 2px 12px rgba(184,68,111,0.06);"><div style="width:44px;height:44px;color:#F2A0BE;"><dc-import name="CatArt" variant="paw" hint-size="44px,44px" style="width:44px;height:44px;"></dc-import></div><div><div style="font:800 13px Nunito;">Paw print</div><div style="font:400 11.5px 'Nunito Sans';color:#7A6B72;">currentColor · bg accent</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:20px 26px;display:flex;align-items:center;gap:18px;box-shadow:0 2px 12px rgba(184,68,111,0.06);"><div style="width:78px;height:40px;color:#C9BEF0;"><dc-import name="CatArt" variant="whisker" hint-size="78px,40px" style="width:78px;height:40px;"></dc-import></div><div><div style="font:800 13px Nunito;">Whiskers</div><div style="font:400 11.5px 'Nunito Sans';color:#7A6B72;">divider &amp; header flourish</div></div></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:20px 26px;display:flex;align-items:center;gap:18px;box-shadow:0 2px 12px rgba(184,68,111,0.06);"><div style="width:44px;height:44px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="44px,44px" style="width:44px;height:44px;"></dc-import></div><div><div style="font:800 13px Nunito;">Logo mark</div><div style="font:400 11.5px 'Nunito Sans';color:#7A6B72;">app icon · AppBar</div></div></div>
+    <div style="background:#1E1A1D;border:1px solid #3C333A;border-radius:18px;padding:20px 26px;display:flex;align-items:center;gap:18px;"><div style="width:44px;height:44px;color:#F49CBF;"><dc-import name="CatArt" variant="logo" hint-size="44px,44px" style="width:44px;height:44px;"></dc-import></div><div><div style="font:800 13px Nunito;color:#F6E9EF;">On dark</div><div style="font:400 11.5px 'Nunito Sans';color:#C6B2BC;">stays legible</div></div></div>
+  </div>
+</section>
+
+<section data-screen-label="04 Components" style="max-width:1180px;margin:0 auto;padding:40px 32px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;">
+    <span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">04 / MUI components</span>
+  </div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Component specimens</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 26px;max-width:660px;">Tokens applied to the MUI parts used throughout — Buttons, Chips, Cards, Tabs, BottomNavigation, Dialog.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:22px 24px;box-shadow:0 2px 12px rgba(184,68,111,0.06);">
+      <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 16px;text-transform:uppercase;letter-spacing:1px;">Buttons</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;">
+        <button style="border:none;background:#E36397;color:#fff;font:700 14px Nunito;padding:10px 20px;border-radius:14px;box-shadow:0 4px 12px rgba(227,99,151,0.30);cursor:pointer;">Reserve portion</button>
+        <button style="border:none;background:#9B8CDB;color:#fff;font:700 14px Nunito;padding:10px 20px;border-radius:14px;box-shadow:0 4px 12px rgba(155,140,219,0.28);cursor:pointer;">Request cooking</button>
+        <button style="background:transparent;border:1.5px solid #E7A6C2;color:#B8446F;font:700 14px Nunito;padding:9px 18px;border-radius:14px;cursor:pointer;">Outlined</button>
+        <button style="background:transparent;border:none;color:#B8446F;font:700 14px Nunito;padding:10px 12px;border-radius:14px;cursor:pointer;">Text</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:12px;">
+        <button style="border:none;background:#E45D5D;color:#fff;font:700 14px Nunito;padding:10px 20px;border-radius:14px;box-shadow:0 4px 12px rgba(228,93,93,0.28);cursor:pointer;">Cancel order</button>
+        <button style="border:none;background:#F3EDF0;color:#B7A9AF;font:700 14px Nunito;padding:10px 20px;border-radius:14px;cursor:not-allowed;">Disabled</button>
+        <button style="border:none;background:#E36397;color:#fff;width:48px;height:48px;border-radius:50%;font:700 22px Nunito;box-shadow:0 6px 16px rgba(227,99,151,0.34);cursor:pointer;line-height:0;">+</button>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:22px 24px;box-shadow:0 2px 12px rgba(184,68,111,0.06);">
+      <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 6px;text-transform:uppercase;letter-spacing:1px;">StatusChip · availability</h3>
+      <p style="font:400 12px 'Nunito Sans';color:#7A6B72;margin:0 0 16px;">The four states shown app-wide.</p>
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
+        <span style="display:inline-flex;align-items:center;gap:7px;background:#E4F6EE;color:#2A8A66;font:700 12.5px 'Nunito Sans';padding:6px 13px;border-radius:999px;"><span style="width:8px;height:8px;border-radius:50%;background:#3FB98C;"></span>Ready now · Готово</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:#FBF1D6;color:#9A6E12;font:700 12.5px 'Nunito Sans';padding:6px 13px;border-radius:999px;"><span style="width:8px;height:8px;border-radius:50%;background:#E0A93B;"></span>Can be cooked · Можна приготувати</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:#EFE7EA;color:#8A7A82;font:700 12.5px 'Nunito Sans';padding:6px 13px;border-radius:999px;"><span style="width:8px;height:8px;border-radius:50%;background:#B7A9AF;"></span>Unavailable · Недоступно</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;background:#EEE9FB;color:#6F5FB3;font:700 12.5px 'Nunito Sans';padding:6px 13px;border-radius:999px;"><span style="width:8px;height:8px;border-radius:50%;background:#9B8CDB;"></span>Not configured · Не налаштовано</span>
+      </div>
+      <h3 style="font:800 14px Nunito;color:#B8446F;margin:20px 0 12px;text-transform:uppercase;letter-spacing:1px;">Category tags</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span style="background:#FFD9C2;color:#8A4B22;font:700 12px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Breakfast</span>
+        <span style="background:#CDEFE0;color:#2A8A66;font:700 12px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Lunch</span>
+        <span style="background:#E1DBF7;color:#6F5FB3;font:700 12px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Dinner</span>
+        <span style="background:#D2E9F9;color:#2F82C4;font:700 12px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Soup</span>
+        <span style="background:#FBEEC8;color:#9A6E12;font:700 12px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Dessert</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;margin-top:20px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:22px 24px;box-shadow:0 2px 12px rgba(184,68,111,0.06);">
+      <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 16px;text-transform:uppercase;letter-spacing:1px;">DishCard</h3>
+      <div style="border:1px solid #F3DDE5;border-radius:18px;overflow:hidden;box-shadow:0 2px 10px rgba(184,68,111,0.08);">
+        <div style="height:96px;background:repeating-linear-gradient(135deg,#FFF1F6,#FFF1F6 10px,#FDE7F0 10px,#FDE7F0 20px);position:relative;display:flex;align-items:flex-end;justify-content:flex-end;padding:10px;"><span style="font:600 10px ui-monospace,monospace;color:#C98BA6;position:absolute;top:10px;left:12px;">dish photo</span><span style="display:inline-flex;align-items:center;gap:6px;background:#E4F6EE;color:#2A8A66;font:700 11.5px 'Nunito Sans';padding:5px 11px;border-radius:999px;"><span style="width:7px;height:7px;border-radius:50%;background:#3FB98C;"></span>Ready now</span></div>
+        <div style="padding:14px 16px;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;"><h4 style="font:800 16px Nunito;margin:0;color:#3A2E34;">Mushroom risotto</h4><span style="background:#E1DBF7;color:#6F5FB3;font:700 11px 'Nunito Sans';padding:3px 9px;border-radius:999px;">Dinner</span></div>
+          <p style="font:400 12.5px/1.45 'Nunito Sans';color:#7A6B72;margin:6px 0 12px;">Creamy arborio rice slow-cooked with mushrooms &amp; thyme.</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <span style="font:700 12.5px 'Nunito Sans';color:#B8446F;">4 portions ready</span>
+            <button style="border:none;background:#E36397;color:#fff;font:700 13px Nunito;padding:9px 16px;border-radius:12px;box-shadow:0 3px 10px rgba(227,99,151,0.28);cursor:pointer;">Reserve</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:20px;padding:22px 24px;box-shadow:0 2px 12px rgba(184,68,111,0.06);display:flex;flex-direction:column;gap:22px;">
+      <div>
+        <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">Tabs</h3>
+        <div style="display:inline-flex;background:#FFF1F6;border-radius:12px;padding:4px;gap:2px;">
+          <span style="font:700 13px Nunito;color:#fff;background:#E36397;padding:8px 16px;border-radius:9px;box-shadow:0 2px 6px rgba(227,99,151,0.3);">Active</span>
+          <span style="font:700 13px Nunito;color:#7A6B72;padding:8px 16px;border-radius:9px;">History</span>
+        </div>
+        <div style="display:flex;gap:24px;margin-top:16px;border-bottom:1px solid #F3DDE5;">
+          <span style="font:700 13px Nunito;color:#B8446F;padding:0 0 10px;border-bottom:2.5px solid #E36397;">Breakfast</span>
+          <span style="font:700 13px Nunito;color:#7A6B72;padding:0 0 10px;">Lunch</span>
+          <span style="font:700 13px Nunito;color:#7A6B72;padding:0 0 10px;">Dinner</span>
+        </div>
+      </div>
+      <div>
+        <h3 style="font:800 14px Nunito;color:#B8446F;margin:0 0 12px;text-transform:uppercase;letter-spacing:1px;">BottomNavigation</h3>
+        <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;box-shadow:0 -2px 14px rgba(184,68,111,0.08);display:flex;justify-content:space-around;padding:10px 8px 8px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#E36397;"><div style="width:22px;height:22px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="22px,22px" style="width:22px;height:22px;"></dc-import></div><span style="font:700 10.5px 'Nunito Sans';">Menu</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#B7A9AF;"><div style="width:20px;height:20px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:600 10.5px 'Nunito Sans';">Orders</span></div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;color:#B7A9AF;"><div style="width:20px;height:20px;border:2px solid #B7A9AF;border-radius:50%;"></div><span style="font:600 10.5px 'Nunito Sans';">Admin</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="05 Screens · Member" style="max-width:1400px;margin:0 auto;padding:40px 32px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;">
+    <span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">05 / Screens</span>
+  </div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Household member</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 30px;max-width:660px;">The core loop — sign in, browse what's cookable today, reserve or request, track orders. Login shown in Ukrainian (default) with the language switcher.</p>
+  <div style="display:flex;gap:44px;flex-wrap:wrap;">
+
+    <!-- LOGIN (UA) -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Login" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:linear-gradient(180deg,#FFF1F6 0%,#F6EEFB 100%);border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="position:absolute;top:60px;left:-14px;width:60px;height:60px;color:#F7C6DA;opacity:0.6;transform:rotate(-20deg);"><dc-import name="CatArt" variant="paw" hint-size="60px,60px" style="width:60px;height:60px;"></dc-import></div>
+          <div style="position:absolute;bottom:120px;right:-10px;width:44px;height:44px;color:#D9CDF3;opacity:0.7;transform:rotate(16deg);"><dc-import name="CatArt" variant="paw" hint-size="44px,44px" style="width:44px;height:44px;"></dc-import></div>
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="display:flex;justify-content:flex-end;padding:10px 20px 0;"><div style="display:inline-flex;background:#fff;border:1px solid #F3DDE5;border-radius:999px;padding:3px;font:700 11px 'Nunito Sans';"><span style="background:#E36397;color:#fff;padding:4px 11px;border-radius:999px;">UA</span><span style="color:#7A6B72;padding:4px 11px;">EN</span></div></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 30px;position:relative;">
+            <div style="width:150px;height:136px;filter:drop-shadow(0 12px 20px rgba(184,68,111,0.18));"><dc-import name="CatArt" variant="idle" hint-size="150px,136px" style="width:150px;height:136px;"></dc-import></div>
+            <div style="display:flex;align-items:center;gap:9px;margin:14px 0 4px;"><div style="width:30px;height:30px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="30px,30px" style="width:30px;height:30px;"></dc-import></div><span style="font:900 24px Nunito;color:#B8446F;">Хатнє меню</span></div>
+            <p style="font:400 13.5px/1.4 'Nunito Sans';color:#7A6B72;text-align:center;margin:0 0 22px;">Що вдома їстівного — і що можна приготувати</p>
+            <div style="width:100%;">
+              <label style="font:700 12px 'Nunito Sans';color:#7A6B72;display:block;margin-bottom:5px;">Ел. пошта</label>
+              <div style="background:#fff;border:1.5px solid #EAD7E0;border-radius:12px;padding:12px 14px;font:400 14px 'Nunito Sans';color:#3A2E34;margin-bottom:14px;">olena@dim.ua</div>
+              <label style="font:700 12px 'Nunito Sans';color:#7A6B72;display:block;margin-bottom:5px;">Пароль</label>
+              <div style="background:#fff;border:1.5px solid #E36397;border-radius:12px;padding:12px 14px;font:400 14px 'Nunito Sans';color:#3A2E34;margin-bottom:20px;display:flex;justify-content:space-between;">••••••••<span style="color:#B08096;">◑</span></div>
+              <button style="width:100%;border:none;background:#E36397;color:#fff;font:700 15px Nunito;padding:13px;border-radius:14px;box-shadow:0 6px 16px rgba(227,99,151,0.32);cursor:pointer;">Увійти</button>
+              <p style="font:400 12px 'Nunito Sans';color:#9B8CDB;text-align:center;margin:16px 0 0;">Немає доступу? Зверніться до адміністратора</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Login · UA default</div>
+    </div>
+
+    <!-- MENU (app shell) -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Menu" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:10px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #F3DDE5;flex:none;">
+            <div style="display:flex;align-items:center;gap:9px;"><div style="width:26px;height:26px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="26px,26px" style="width:26px;height:26px;"></dc-import></div><span style="font:800 17px Nunito;color:#B8446F;">Home Menu</span></div>
+            <div style="display:inline-flex;background:#FFF1F6;border-radius:999px;padding:2px;font:700 10.5px 'Nunito Sans';"><span style="color:#7A6B72;padding:3px 8px;">UA</span><span style="background:#E36397;color:#fff;padding:3px 8px;border-radius:999px;">EN</span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px 0;">
+            <div style="display:flex;gap:8px;overflow:hidden;margin-bottom:12px;">
+              <div style="flex:none;text-align:center;background:#E36397;color:#fff;border-radius:14px;padding:8px 12px;box-shadow:0 4px 10px rgba(227,99,151,0.3);"><div style="font:700 10px 'Nunito Sans';opacity:.85;">WED</div><div style="font:800 16px Nunito;">9</div></div>
+              <div style="flex:none;text-align:center;background:#fff;color:#7A6B72;border:1px solid #F3DDE5;border-radius:14px;padding:8px 12px;"><div style="font:700 10px 'Nunito Sans';">THU</div><div style="font:800 16px Nunito;color:#3A2E34;">10</div></div>
+              <div style="flex:none;text-align:center;background:#fff;color:#7A6B72;border:1px solid #F3DDE5;border-radius:14px;padding:8px 12px;"><div style="font:700 10px 'Nunito Sans';">FRI</div><div style="font:800 16px Nunito;color:#3A2E34;">11</div></div>
+              <div style="flex:none;text-align:center;background:#fff;color:#7A6B72;border:1px solid #F3DDE5;border-radius:14px;padding:8px 12px;"><div style="font:700 10px 'Nunito Sans';">SAT</div><div style="font:800 16px Nunito;color:#3A2E34;">12</div></div>
+            </div>
+            <div style="display:flex;gap:20px;border-bottom:1px solid #F3DDE5;margin-bottom:14px;">
+              <span style="font:700 13px Nunito;color:#7A6B72;padding-bottom:9px;">Breakfast</span>
+              <span style="font:700 13px Nunito;color:#B8446F;padding-bottom:9px;border-bottom:2.5px solid #E36397;">Lunch</span>
+              <span style="font:700 13px Nunito;color:#7A6B72;padding-bottom:9px;">Dinner</span>
+            </div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;overflow:hidden;box-shadow:0 3px 12px rgba(184,68,111,0.08);margin-bottom:12px;">
+              <div style="height:80px;background:repeating-linear-gradient(135deg,#FFF1F6,#FFF1F6 10px,#FDE7F0 10px,#FDE7F0 20px);position:relative;display:flex;align-items:flex-start;justify-content:flex-end;padding:9px;"><span style="font:600 9px ui-monospace,monospace;color:#C98BA6;position:absolute;top:9px;left:11px;">photo</span><span style="display:inline-flex;align-items:center;gap:5px;background:#E4F6EE;color:#2A8A66;font:700 10.5px 'Nunito Sans';padding:4px 9px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#3FB98C;"></span>Ready now</span></div>
+              <div style="padding:11px 13px;">
+                <h4 style="font:800 15px Nunito;margin:0 0 4px;">Mushroom risotto</h4>
+                <p style="font:400 11.5px/1.4 'Nunito Sans';color:#7A6B72;margin:0 0 10px;">Creamy arborio rice with mushrooms.</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:700 12px 'Nunito Sans';color:#B8446F;">4 ready</span><button style="border:none;background:#E36397;color:#fff;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:pointer;">Reserve</button></div>
+              </div>
+            </div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:13px;box-shadow:0 3px 12px rgba(184,68,111,0.08);">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;"><h4 style="font:800 15px Nunito;margin:0;">Tomato soup</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#FBF1D6;color:#9A6E12;font:700 10.5px 'Nunito Sans';padding:4px 9px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#E0A93B;"></span>Can cook</span></div>
+              <p style="font:400 11.5px/1.4 'Nunito Sans';color:#7A6B72;margin:6px 0 10px;">All ingredients in stock · ~30 min</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font:700 12px 'Nunito Sans';color:#7A6B72;">0 ready</span><button style="border:none;background:#9B8CDB;color:#fff;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:pointer;">Request</button></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-top:1px solid #F3DDE5;box-shadow:0 -3px 14px rgba(184,68,111,0.07);display:flex;justify-content:space-around;padding:9px 6px;flex:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#E36397;"><div style="width:22px;height:22px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="22px,22px" style="width:22px;height:22px;"></dc-import></div><span style="font:700 10px 'Nunito Sans';">Menu</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:19px;height:19px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Menu · date/meal selector + BottomNav</div>
+    </div>
+
+    <!-- ORDER DIALOG -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Order dialog" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="filter:blur(2px);opacity:0.5;flex:1;display:flex;flex-direction:column;">
+            <div style="height:32px;padding:9px 22px 0;font:700 12px 'Nunito Sans';">9:41</div>
+            <div style="background:#fff;padding:14px 18px;border-bottom:1px solid #F3DDE5;font:800 17px Nunito;color:#B8446F;">Home Menu</div>
+            <div style="padding:16px;"><div style="background:#fff;border-radius:18px;height:120px;border:1px solid #F3DDE5;"></div></div>
+          </div>
+          <div style="position:absolute;inset:0;background:rgba(58,30,42,0.42);"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:26px 26px 28px 28px;padding:22px 22px 26px;box-shadow:0 -12px 40px rgba(58,30,42,0.28);">
+            <div style="width:38px;height:4px;background:#EAD7E0;border-radius:999px;margin:0 auto 16px;"></div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;"><h3 style="font:800 19px Nunito;margin:0;">Reserve</h3><span style="background:#E1DBF7;color:#6F5FB3;font:700 11px 'Nunito Sans';padding:3px 9px;border-radius:999px;">Lunch</span></div>
+            <p style="font:400 13px 'Nunito Sans';color:#7A6B72;margin:0 0 18px;">Mushroom risotto · Wed 9 · 4 portions ready</p>
+            <div style="font:700 12px 'Nunito Sans';color:#7A6B72;margin-bottom:7px;">Portions</div>
+            <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">
+              <button style="width:40px;height:40px;border-radius:12px;border:1.5px solid #EAD7E0;background:#fff;font:800 20px Nunito;color:#B8446F;cursor:pointer;line-height:0;">−</button>
+              <span style="font:900 24px Nunito;color:#3A2E34;">2</span>
+              <button style="width:40px;height:40px;border-radius:12px;border:none;background:#E36397;color:#fff;font:800 20px Nunito;cursor:pointer;line-height:0;">+</button>
+              <span style="font:400 12px 'Nunito Sans';color:#9B8CDB;margin-left:auto;">2 of 4 left</span>
+            </div>
+            <div style="font:700 12px 'Nunito Sans';color:#7A6B72;margin-bottom:6px;">Note (optional)</div>
+            <div style="background:#FFF7FA;border:1.5px solid #EAD7E0;border-radius:12px;padding:11px 13px;font:400 13px 'Nunito Sans';color:#B08096;margin-bottom:20px;">Less salt, please 🐾</div>
+            <div style="display:flex;gap:10px;"><button style="flex:1;border:1.5px solid #EAD7E0;background:#fff;color:#7A6B72;font:700 14px Nunito;padding:12px;border-radius:14px;cursor:pointer;">Cancel</button><button style="flex:2;border:none;background:#E36397;color:#fff;font:700 14px Nunito;padding:12px;border-radius:14px;box-shadow:0 6px 16px rgba(227,99,151,0.32);cursor:pointer;">Confirm reservation</button></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Order dialog · bottom sheet</div>
+    </div>
+
+    <!-- MY ORDERS -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="My Orders" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px 0;border-bottom:1px solid #F3DDE5;flex:none;">
+            <h1 style="font:800 20px Nunito;margin:0 0 12px;">My Orders</h1>
+            <div style="display:flex;gap:20px;"><span style="font:700 13px Nunito;color:#B8446F;padding-bottom:10px;border-bottom:2.5px solid #E36397;">Active</span><span style="font:700 13px Nunito;color:#7A6B72;padding-bottom:10px;">History</span></div>
+          </div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:14px;box-shadow:0 3px 12px rgba(184,68,111,0.08);margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div><h4 style="font:800 15px Nunito;margin:0;">Mushroom risotto</h4><p style="font:400 11.5px 'Nunito Sans';color:#7A6B72;margin:3px 0 0;">Reserved · 2 portions · Wed 9, Lunch</p></div><span style="background:#E4F6EE;color:#2A8A66;font:700 10.5px 'Nunito Sans';padding:4px 9px;border-radius:999px;">Ready</span></div>
+              <button style="width:100%;border:1.5px solid #F0C4C4;background:#fff;color:#B83B3B;font:700 12.5px Nunito;padding:9px;border-radius:11px;cursor:pointer;">Cancel order</button>
+            </div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:14px;box-shadow:0 3px 12px rgba(184,68,111,0.08);margin-bottom:20px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;"><div><h4 style="font:800 15px Nunito;margin:0;">Tomato soup</h4><p style="font:400 11.5px 'Nunito Sans';color:#7A6B72;margin:3px 0 0;">Cooking request · 1 portion · Thu 10</p></div><span style="background:#FBF1D6;color:#9A6E12;font:700 10.5px 'Nunito Sans';padding:4px 9px;border-radius:999px;">Cooking</span></div>
+              <button style="width:100%;border:1.5px solid #EAD7E0;background:#fff;color:#B7A9AF;font:700 12.5px Nunito;padding:9px;border-radius:11px;cursor:not-allowed;">Cancel not allowed</button>
+            </div>
+            <div style="font:700 11px 'Nunito Sans';letter-spacing:1px;text-transform:uppercase;color:#B08096;margin-bottom:10px;">Earlier</div>
+            <div style="background:#FBF6F8;border:1px solid #F3DDE5;border-radius:16px;padding:13px;opacity:0.9;"><div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font:800 14px Nunito;margin:0;color:#7A6B72;">Pancakes</h4><p style="font:400 11px 'Nunito Sans';color:#B08096;margin:2px 0 0;">Mon 7, Breakfast</p></div><span style="background:#EFE7EA;color:#8A7A82;font:700 10px 'Nunito Sans';padding:4px 9px;border-radius:999px;">Completed</span></div></div>
+          </div>
+          <div style="background:#fff;border-top:1px solid #F3DDE5;box-shadow:0 -3px 14px rgba(184,68,111,0.07);display:flex;justify-content:space-around;padding:9px 6px;flex:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:22px;height:22px;color:#B7A9AF;"><dc-import name="CatArt" variant="logo" hint-size="22px,22px" style="width:22px;height:22px;"></dc-import></div><span style="font:600 10px 'Nunito Sans';">Menu</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#E36397;"><div style="width:19px;height:19px;border:2px solid #E36397;border-radius:5px;"></div><span style="font:700 10px 'Nunito Sans';">Orders</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">My Orders · active + history, cancel</div>
+    </div>
+
+  </div>
+</section>
+
+<section data-screen-label="05 Screens · Admin A" style="max-width:1400px;margin:0 auto;padding:16px 32px 40px;">
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Administrator</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 30px;max-width:660px;">Dishes, recipes, ingredient stock, an append-only movement log, cooking requests, prepared batches, and default meal times.</p>
+  <div style="display:flex;gap:44px;flex-wrap:wrap;">
+
+    <!-- DASHBOARD -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Admin dashboard" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;display:flex;align-items:center;justify-content:space-between;"><div><div style="font:700 11px 'Nunito Sans';color:#9B8CDB;">Admin</div><h1 style="font:800 20px Nunito;margin:2px 0 0;">Dashboard</h1></div><div style="width:34px;height:31px;color:#F2A0BE;"><dc-import name="CatArt" variant="idle" hint-size="34px,31px" style="width:34px;height:31px;"></dc-import></div></div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;">
+              <div style="background:#fff;border:1px solid #FBD5E5;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="font:900 28px Nunito;color:#E36397;">3</div><div style="font:700 11.5px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Pending requests</div></div>
+              <div style="background:#fff;border:1px solid #FBEEC8;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="font:900 28px Nunito;color:#B5831F;">2</div><div style="font:700 11.5px 'Nunito Sans';color:#7A6B72;margin-top:2px;">In progress</div></div>
+              <div style="background:#fff;border:1px solid #F0C4C4;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="font:900 28px Nunito;color:#B83B3B;">5</div><div style="font:700 11.5px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Low-stock items</div></div>
+              <div style="background:#fff;border:1px solid #F0C4C4;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="display:flex;align-items:baseline;gap:6px;"><div style="font:900 28px Nunito;color:#B83B3B;">1</div><span style="font:800 14px Nunito;">⚠</span></div><div style="font:700 11.5px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Expired batch</div></div>
+            </div>
+            <div style="background:linear-gradient(135deg,#E4F6EE,#CDEFE0);border-radius:16px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 3px 10px rgba(63,185,140,0.14);"><div><div style="font:900 30px Nunito;color:#2A8A66;">18</div><div style="font:700 12px 'Nunito Sans';color:#37855F;">Portions ready to reserve</div></div><div style="width:44px;height:40px;"><dc-import name="CatArt" variant="idle" hint-size="44px,40px" style="width:44px;height:40px;"></dc-import></div></div>
+            <div style="font:700 11px 'Nunito Sans';letter-spacing:1px;text-transform:uppercase;color:#B08096;margin:18px 0 10px;">Quick actions</div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <div style="background:#fff;border:1px solid #F3DDE5;border-radius:13px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;"><span style="font:700 13px 'Nunito Sans';">Review cooking requests</span><span style="background:#FBD5E5;color:#B8446F;font:800 11px 'Nunito Sans';padding:3px 9px;border-radius:999px;">3</span></div>
+              <div style="background:#fff;border:1px solid #F3DDE5;border-radius:13px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;"><span style="font:700 13px 'Nunito Sans';">Restock ingredients</span><span style="color:#B08096;font:800 14px Nunito;">›</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-top:1px solid #F3DDE5;box-shadow:0 -3px 14px rgba(184,68,111,0.07);display:flex;justify-content:space-around;padding:9px 6px;flex:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:20px;height:20px;color:#B7A9AF;"><dc-import name="CatArt" variant="logo" hint-size="20px,20px" style="width:20px;height:20px;"></dc-import></div><span style="font:600 10px 'Nunito Sans';">Menu</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:18px;height:18px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#E36397;"><div style="width:18px;height:18px;border:2px solid #E36397;border-radius:50%;"></div><span style="font:700 10px 'Nunito Sans';">Admin</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Admin dashboard · summary tiles</div>
+    </div>
+
+    <!-- DISHES -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Dishes" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px 0;border-bottom:1px solid #F3DDE5;flex:none;"><h1 style="font:800 20px Nunito;margin:0 0 12px;">Dishes</h1><div style="display:flex;gap:20px;"><span style="font:700 13px Nunito;color:#B8446F;padding-bottom:10px;border-bottom:2.5px solid #E36397;">Active</span><span style="font:700 13px Nunito;color:#7A6B72;padding-bottom:10px;">Archived</span></div></div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:15px;padding:13px;box-shadow:0 3px 10px rgba(184,68,111,0.07);margin-bottom:11px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;"><h4 style="font:800 15px Nunito;margin:0;">Mushroom risotto</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#E4F6EE;color:#2A8A66;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#3FB98C;"></span>Ready</span></div>
+              <div style="display:flex;gap:6px;margin:8px 0 10px;"><span style="background:#E1DBF7;color:#6F5FB3;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;">Dinner</span><span style="background:#CDEFE0;color:#2A8A66;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;">Lunch</span></div>
+              <div style="display:flex;gap:8px;"><button style="flex:1;border:1.5px solid #E7A6C2;background:#fff;color:#B8446F;font:700 12px Nunito;padding:7px;border-radius:10px;cursor:pointer;">Edit</button><button style="flex:1;border:1.5px solid #EAD7E0;background:#fff;color:#7A6B72;font:700 12px Nunito;padding:7px;border-radius:10px;cursor:pointer;">Archive</button></div>
+            </div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:15px;padding:13px;box-shadow:0 3px 10px rgba(184,68,111,0.07);margin-bottom:11px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;"><h4 style="font:800 15px Nunito;margin:0;">Tomato soup</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#FBF1D6;color:#9A6E12;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#E0A93B;"></span>Can cook</span></div>
+              <div style="display:flex;gap:6px;margin:8px 0 10px;"><span style="background:#FFD9C2;color:#8A4B22;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;">Lunch</span><span style="background:#D2E9F9;color:#2F82C4;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;">Soup</span></div>
+              <div style="display:flex;gap:8px;"><button style="flex:1;border:1.5px solid #E7A6C2;background:#fff;color:#B8446F;font:700 12px Nunito;padding:7px;border-radius:10px;cursor:pointer;">Edit</button><button style="flex:1;border:1.5px solid #EAD7E0;background:#fff;color:#7A6B72;font:700 12px Nunito;padding:7px;border-radius:10px;cursor:pointer;">Archive</button></div>
+            </div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:15px;padding:13px;box-shadow:0 3px 10px rgba(184,68,111,0.07);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;"><h4 style="font:800 15px Nunito;margin:0;">Baked salmon</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#EFE7EA;color:#8A7A82;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#B7A9AF;"></span>Unavailable</span></div>
+              <div style="display:flex;gap:6px;margin:8px 0 0;"><span style="background:#E1DBF7;color:#6F5FB3;font:700 10px 'Nunito Sans';padding:3px 8px;border-radius:999px;">Dinner</span></div>
+            </div>
+          </div>
+          <div style="position:absolute;right:18px;bottom:74px;width:52px;height:52px;border-radius:50%;background:#E36397;color:#fff;font:400 26px Nunito;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(227,99,151,0.4);">+</div>
+          <div style="background:#fff;border-top:1px solid #F3DDE5;box-shadow:0 -3px 14px rgba(184,68,111,0.07);display:flex;justify-content:space-around;padding:9px 6px;flex:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:20px;height:20px;color:#B7A9AF;"><dc-import name="CatArt" variant="logo" hint-size="20px,20px" style="width:20px;height:20px;"></dc-import></div><span style="font:600 10px 'Nunito Sans';">Menu</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:18px;height:18px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#E36397;"><div style="width:18px;height:18px;border:2px solid #E36397;border-radius:50%;"></div><span style="font:700 10px 'Nunito Sans';">Admin</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Dishes · active/archived + archive</div>
+    </div>
+
+    <!-- DISH FORM + RECIPE EDITOR -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Dish form" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#fff;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;display:flex;align-items:center;gap:12px;"><span style="font:800 20px Nunito;color:#B08096;">✕</span><h1 style="font:800 18px Nunito;margin:0;">Edit dish</h1></div>
+          <div style="flex:1;overflow:hidden;padding:16px;">
+            <label style="font:700 12px 'Nunito Sans';color:#7A6B72;display:block;margin-bottom:5px;">Name</label>
+            <div style="background:#fff;border:1.5px solid #E36397;border-radius:12px;padding:11px 13px;font:600 14px 'Nunito Sans';margin-bottom:14px;">Mushroom risotto</div>
+            <label style="font:700 12px 'Nunito Sans';color:#7A6B72;display:block;margin-bottom:5px;">Description</label>
+            <div style="background:#FFF7FA;border:1.5px solid #EAD7E0;border-radius:12px;padding:11px 13px;font:400 13px/1.4 'Nunito Sans';color:#7A6B72;margin-bottom:14px;">Creamy arborio rice with mushrooms.</div>
+            <label style="font:700 12px 'Nunito Sans';color:#7A6B72;display:block;margin-bottom:7px;">Meal types</label>
+            <div style="display:flex;gap:7px;margin-bottom:16px;"><span style="background:#EFE7EA;color:#8A7A82;font:700 11px 'Nunito Sans';padding:6px 12px;border-radius:999px;">Breakfast</span><span style="background:#E36397;color:#fff;font:700 11px 'Nunito Sans';padding:6px 12px;border-radius:999px;">✓ Lunch</span><span style="background:#E36397;color:#fff;font:700 11px 'Nunito Sans';padding:6px 12px;border-radius:999px;">✓ Dinner</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><label style="font:800 13px Nunito;color:#B8446F;">Recipe</label><span style="font:700 11px 'Nunito Sans';color:#9B8CDB;">+ Add ingredient</span></div>
+            <div style="background:#FFF7FA;border:1px solid #F3DDE5;border-radius:12px;overflow:hidden;">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid #F3DDE5;"><span style="font:600 13px 'Nunito Sans';">Arborio rice</span><span style="font:700 12px 'Nunito Sans';color:#7A6B72;">300 g</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-bottom:1px solid #F3DDE5;"><span style="font:600 13px 'Nunito Sans';">Mushrooms</span><span style="font:700 12px 'Nunito Sans';color:#7A6B72;">250 g</span></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 13px;"><span style="font:600 13px 'Nunito Sans';">Parmesan</span><span style="font:700 12px 'Nunito Sans';color:#7A6B72;">60 g</span></div>
+            </div>
+          </div>
+          <div style="padding:14px 16px;border-top:1px solid #F3DDE5;display:flex;gap:10px;flex:none;"><button style="flex:1;border:1.5px solid #EAD7E0;background:#fff;color:#7A6B72;font:700 14px Nunito;padding:12px;border-radius:14px;cursor:pointer;">Archive</button><button style="flex:2;border:none;background:#E36397;color:#fff;font:700 14px Nunito;padding:12px;border-radius:14px;box-shadow:0 6px 16px rgba(227,99,151,0.3);cursor:pointer;">Save dish</button></div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Dish form · recipe + meal-type multi-select</div>
+    </div>
+
+    <!-- INVENTORY -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Inventory" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;display:flex;align-items:center;justify-content:space-between;"><h1 style="font:800 20px Nunito;margin:0;">Inventory</h1><span style="font:700 12px 'Nunito Sans';color:#B8446F;">History ›</span></div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="background:#fff;border:1px solid #F0C4C4;border-radius:15px;padding:13px 14px;box-shadow:0 3px 10px rgba(184,68,111,0.07);margin-bottom:11px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font:800 15px Nunito;margin:0;">Mushrooms</h4><div style="font:700 13px 'Nunito Sans';color:#7A6B72;margin-top:3px;">120 g <span style="color:#B08096;font-weight:400;">left</span></div></div><span style="background:#FBE0E0;color:#B83B3B;font:700 10.5px 'Nunito Sans';padding:4px 10px;border-radius:999px;">Low stock</span></div>
+              <div style="display:flex;gap:8px;margin-top:11px;"><button style="flex:1;border:none;background:#E36397;color:#fff;font:700 12px Nunito;padding:8px;border-radius:10px;cursor:pointer;">Restock</button><button style="flex:1;border:1.5px solid #EAD7E0;background:#fff;color:#7A6B72;font:700 12px Nunito;padding:8px;border-radius:10px;cursor:pointer;">Correct</button></div>
+            </div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:15px;padding:13px 14px;box-shadow:0 3px 10px rgba(184,68,111,0.07);margin-bottom:11px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font:800 15px Nunito;margin:0;">Arborio rice</h4><div style="font:700 13px 'Nunito Sans';color:#7A6B72;margin-top:3px;">2.4 kg <span style="color:#B08096;font-weight:400;">left</span></div></div><span style="background:#E4F6EE;color:#2A8A66;font:700 10.5px 'Nunito Sans';padding:4px 10px;border-radius:999px;">In stock</span></div>
+            </div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:15px;padding:13px 14px;box-shadow:0 3px 10px rgba(184,68,111,0.07);">
+              <div style="display:flex;justify-content:space-between;align-items:center;"><div><h4 style="font:800 15px Nunito;margin:0;">Fresh basil</h4><div style="font:700 13px 'Nunito Sans';color:#7A6B72;margin-top:3px;">Tracked by presence</div></div><span style="background:#EFE7EA;color:#8A7A82;font:700 10.5px 'Nunito Sans';padding:4px 10px;border-radius:999px;">Out</span></div>
+            </div>
+          </div>
+          <div style="position:absolute;right:18px;bottom:74px;width:52px;height:52px;border-radius:50%;background:#E36397;color:#fff;font:400 26px Nunito;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(227,99,151,0.4);">+</div>
+          <div style="background:#fff;border-top:1px solid #F3DDE5;box-shadow:0 -3px 14px rgba(184,68,111,0.07);display:flex;justify-content:space-around;padding:9px 6px;flex:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:20px;height:20px;color:#B7A9AF;"><dc-import name="CatArt" variant="logo" hint-size="20px,20px" style="width:20px;height:20px;"></dc-import></div><span style="font:600 10px 'Nunito Sans';">Menu</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:18px;height:18px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#E36397;"><div style="width:18px;height:18px;border:2px solid #E36397;border-radius:50%;"></div><span style="font:700 10px 'Nunito Sans';">Admin</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Inventory · stock + low-stock chips</div>
+    </div>
+
+    <!-- CORRECTION DIALOG -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Correction dialog" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="filter:blur(2px);opacity:0.5;flex:1;"><div style="height:32px;padding:9px 22px 0;font:700 12px 'Nunito Sans';">9:41</div><div style="background:#fff;padding:14px 18px;border-bottom:1px solid #F3DDE5;font:800 18px Nunito;">Inventory</div></div>
+          <div style="position:absolute;inset:0;background:rgba(58,30,42,0.42);display:flex;align-items:center;justify-content:center;padding:20px;">
+            <div style="background:#fff;border-radius:22px;padding:22px;width:100%;box-shadow:0 16px 44px rgba(58,30,42,0.3);">
+              <h3 style="font:800 18px Nunito;margin:0 0 3px;">Stock correction</h3>
+              <p style="font:400 12.5px 'Nunito Sans';color:#7A6B72;margin:0 0 18px;">Mushrooms · current 120 g</p>
+              <label style="font:700 12px 'Nunito Sans';color:#7A6B72;display:block;margin-bottom:5px;">New quantity</label>
+              <div style="background:#fff;border:1.5px solid #E36397;border-radius:12px;padding:11px 13px;font:600 15px 'Nunito Sans';margin-bottom:14px;">80 g</div>
+              <label style="font:700 12px 'Nunito Sans';color:#B83B3B;display:block;margin-bottom:5px;">Reason <span style="color:#E45D5D;">*</span> required</label>
+              <div style="background:#FFF7FA;border:1.5px solid #F0C4C4;border-radius:12px;padding:11px 13px;font:400 13px/1.4 'Nunito Sans';color:#7A6B72;margin-bottom:6px;min-height:52px;">Spoiled — discarded 40 g</div>
+              <p style="font:400 11px 'Nunito Sans';color:#B08096;margin:0 0 18px;">Logged to the append-only movement history.</p>
+              <div style="display:flex;gap:10px;"><button style="flex:1;border:1.5px solid #EAD7E0;background:#fff;color:#7A6B72;font:700 14px Nunito;padding:11px;border-radius:13px;cursor:pointer;">Cancel</button><button style="flex:1;border:none;background:#E36397;color:#fff;font:700 14px Nunito;padding:11px;border-radius:13px;box-shadow:0 5px 14px rgba(227,99,151,0.3);cursor:pointer;">Save</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Correction dialog · required reason</div>
+    </div>
+
+    <!-- INVENTORY HISTORY -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Inventory history" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;display:flex;align-items:center;gap:12px;"><span style="font:800 18px Nunito;color:#B08096;">‹</span><h1 style="font:800 18px Nunito;margin:0;">Movement log</h1></div>
+          <div style="padding:12px 16px 0;flex:none;display:flex;gap:7px;overflow:hidden;"><span style="background:#E36397;color:#fff;font:700 11px 'Nunito Sans';padding:5px 12px;border-radius:999px;">All</span><span style="background:#fff;border:1px solid #F3DDE5;color:#7A6B72;font:700 11px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Restock</span><span style="background:#fff;border:1px solid #F3DDE5;color:#7A6B72;font:700 11px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Correction</span><span style="background:#fff;border:1px solid #F3DDE5;color:#7A6B72;font:700 11px 'Nunito Sans';padding:5px 12px;border-radius:999px;">Consumed</span></div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="font:700 10.5px 'Nunito Sans';letter-spacing:.6px;text-transform:uppercase;color:#B08096;margin-bottom:9px;">Today</div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:14px;overflow:hidden;box-shadow:0 3px 10px rgba(184,68,111,0.06);margin-bottom:14px;">
+              <div style="padding:11px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #F3DDE5;"><div><div style="font:700 13px 'Nunito Sans';">Mushrooms</div><div style="font:400 11px 'Nunito Sans';color:#B08096;">Correction · Olena · 14:20</div></div><span style="font:800 14px Nunito;color:#B83B3B;">−40 g</span></div>
+              <div style="padding:11px 13px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #F3DDE5;"><div><div style="font:700 13px 'Nunito Sans';">Arborio rice</div><div style="font:400 11px 'Nunito Sans';color:#B08096;">Restock · Ihor · 09:05</div></div><span style="font:800 14px Nunito;color:#2A8A66;">+2 kg</span></div>
+              <div style="padding:11px 13px;display:flex;justify-content:space-between;align-items:center;"><div><div style="font:700 13px 'Nunito Sans';">Parmesan</div><div style="font:400 11px 'Nunito Sans';color:#B08096;">Consumed · risotto ×4 · 08:40</div></div><span style="font:800 14px Nunito;color:#8A7A82;">−240 g</span></div>
+            </div>
+            <div style="font:700 10.5px 'Nunito Sans';letter-spacing:.6px;text-transform:uppercase;color:#B08096;margin-bottom:9px;">Yesterday</div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:14px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(184,68,111,0.06);"><div><div style="font:700 13px 'Nunito Sans';">Fresh basil</div><div style="font:400 11px 'Nunito Sans';color:#B08096;">Presence → Out · Ihor</div></div><span style="font:800 12px Nunito;color:#8A7A82;">set out</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Inventory history · read-only, filterable</div>
+    </div>
+
+  </div>
+</section>
+
+<section data-screen-label="05 Screens · Admin B" style="max-width:1400px;margin:0 auto;padding:16px 32px 40px;">
+  <div style="display:flex;gap:44px;flex-wrap:wrap;">
+
+    <!-- BATCHES -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Batches" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;"><h1 style="font:800 20px Nunito;margin:0;">Prepared batches</h1></div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(184,68,111,0.07);margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;"><div><h4 style="font:800 15px Nunito;margin:0;">Mushroom risotto</h4><div style="font:400 11px 'Nunito Sans';color:#B08096;margin-top:2px;">Cooked Wed 9 · 10:30</div></div><span style="background:#E4F6EE;color:#2A8A66;font:700 10px 'Nunito Sans';padding:4px 9px;border-radius:999px;">Fresh</span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center;">
+                <div style="background:#E4F6EE;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#2A8A66;">4</div><div style="font:700 8.5px 'Nunito Sans';color:#37855F;">AVAIL</div></div>
+                <div style="background:#FFF1F6;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#B8446F;">2</div><div style="font:700 8.5px 'Nunito Sans';color:#B8446F;">RESV</div></div>
+                <div style="background:#F3EDF0;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#8A7A82;">6</div><div style="font:700 8.5px 'Nunito Sans';color:#8A7A82;">USED</div></div>
+                <div style="background:#F3EDF0;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#8A7A82;">0</div><div style="font:700 8.5px 'Nunito Sans';color:#8A7A82;">DISC</div></div>
+              </div>
+            </div>
+            <div style="background:#FFFBF0;border:1.5px solid #F0DFA8;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(224,169,59,0.12);margin-bottom:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div><h4 style="font:800 15px Nunito;margin:0;">Tomato soup</h4><div style="font:400 11px 'Nunito Sans';color:#B08096;margin-top:2px;">Cooked Tue 8 · 18:00</div></div><span style="background:#FBF1D6;color:#9A6E12;font:700 10px 'Nunito Sans';padding:4px 9px;border-radius:999px;">⏳ Expires in 4h</span></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px;text-align:center;">
+                <div style="background:#E4F6EE;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#2A8A66;">2</div><div style="font:700 8.5px 'Nunito Sans';color:#37855F;">AVAIL</div></div>
+                <div style="background:#FFF1F6;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#B8446F;">0</div><div style="font:700 8.5px 'Nunito Sans';color:#B8446F;">RESV</div></div>
+                <div style="background:#F3EDF0;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#8A7A82;">3</div><div style="font:700 8.5px 'Nunito Sans';color:#8A7A82;">USED</div></div>
+                <div style="background:#F3EDF0;border-radius:10px;padding:8px 2px;"><div style="font:900 17px Nunito;color:#8A7A82;">0</div><div style="font:700 8.5px 'Nunito Sans';color:#8A7A82;">DISC</div></div>
+              </div>
+            </div>
+            <div style="background:#FDF0F0;border:1.5px solid #F0C4C4;border-radius:16px;padding:14px;box-shadow:0 3px 10px rgba(228,93,93,0.1);">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div><h4 style="font:800 15px Nunito;margin:0;color:#B83B3B;">Baked salmon</h4><div style="font:400 11px 'Nunito Sans';color:#C77;margin-top:2px;">Cooked Mon 7 · expired</div></div><span style="background:#FBE0E0;color:#B83B3B;font:700 10px 'Nunito Sans';padding:4px 9px;border-radius:999px;">⚠ Expired</span></div>
+              <button style="width:100%;border:none;background:#E45D5D;color:#fff;font:700 12.5px Nunito;padding:9px;border-radius:11px;cursor:pointer;">Discard 3 portions</button>
+            </div>
+          </div>
+          <div style="background:#fff;border-top:1px solid #F3DDE5;box-shadow:0 -3px 14px rgba(184,68,111,0.07);display:flex;justify-content:space-around;padding:9px 6px;flex:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:20px;height:20px;color:#B7A9AF;"><dc-import name="CatArt" variant="logo" hint-size="20px,20px" style="width:20px;height:20px;"></dc-import></div><span style="font:600 10px 'Nunito Sans';">Menu</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:18px;height:18px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#E36397;"><div style="width:18px;height:18px;border:2px solid #E36397;border-radius:50%;"></div><span style="font:700 10px 'Nunito Sans';">Admin</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Batches · counters + expiration warnings</div>
+    </div>
+
+    <!-- ADMIN ORDERS KANBAN -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Admin orders" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;"><h1 style="font:800 20px Nunito;margin:0;">Cooking requests</h1></div>
+          <div style="flex:1;overflow:hidden;padding:14px 0 14px 16px;display:flex;gap:11px;">
+            <div style="flex:none;width:186px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;"><span style="width:9px;height:9px;border-radius:50%;background:#E36397;"></span><span style="font:800 12px Nunito;color:#B8446F;">Pending</span><span style="font:800 11px Nunito;color:#B08096;">3</span></div>
+              <div style="background:#fff;border:1px solid #F3DDE5;border-radius:14px;padding:12px;box-shadow:0 3px 10px rgba(184,68,111,0.07);margin-bottom:10px;"><h4 style="font:800 14px Nunito;margin:0 0 3px;">Tomato soup</h4><p style="font:400 11px 'Nunito Sans';color:#7A6B72;margin:0 0 10px;">Olena · 1 portion · Thu 10</p><button style="width:100%;border:none;background:#E36397;color:#fff;font:700 11.5px Nunito;padding:8px;border-radius:9px;cursor:pointer;">Approve</button></div>
+              <div style="background:#fff;border:1px solid #F3DDE5;border-radius:14px;padding:12px;box-shadow:0 3px 10px rgba(184,68,111,0.07);"><h4 style="font:800 14px Nunito;margin:0 0 3px;">Pancakes</h4><p style="font:400 11px 'Nunito Sans';color:#7A6B72;margin:0 0 10px;">Ihor · 3 · Fri 11</p><button style="width:100%;border:none;background:#E36397;color:#fff;font:700 11.5px Nunito;padding:8px;border-radius:9px;cursor:pointer;">Approve</button></div>
+            </div>
+            <div style="flex:none;width:186px;">
+              <div style="display:flex;align-items:center;gap:7px;margin-bottom:10px;"><span style="width:9px;height:9px;border-radius:50%;background:#E0A93B;"></span><span style="font:800 12px Nunito;color:#9A6E12;">Cooking</span><span style="font:800 11px Nunito;color:#B08096;">1</span></div>
+              <div style="background:#fff;border:1px solid #F0DFA8;border-radius:14px;padding:12px;box-shadow:0 3px 10px rgba(224,169,59,0.1);"><h4 style="font:800 14px Nunito;margin:0 0 3px;">Risotto</h4><p style="font:400 11px 'Nunito Sans';color:#7A6B72;margin:0 0 10px;">Olena · 2 · Wed 9</p><button style="width:100%;border:none;background:#3FB98C;color:#fff;font:700 11.5px Nunito;padding:8px;border-radius:9px;cursor:pointer;">Mark prepared</button></div>
+              <div style="margin-top:14px;display:flex;align-items:center;gap:7px;margin-bottom:10px;"><span style="width:9px;height:9px;border-radius:50%;background:#3FB98C;"></span><span style="font:800 12px Nunito;color:#2A8A66;">Prepared</span></div>
+              <div style="background:#F6FBF8;border:1px solid #CDEFE0;border-radius:14px;padding:12px;"><h4 style="font:800 13px Nunito;margin:0 0 2px;color:#2A8A66;">Omelette</h4><p style="font:400 10.5px 'Nunito Sans';color:#37855F;margin:0;">Ready · batch #12</p></div>
+            </div>
+          </div>
+          <div style="background:#fff;border-top:1px solid #F3DDE5;box-shadow:0 -3px 14px rgba(184,68,111,0.07);display:flex;justify-content:space-around;padding:9px 6px;flex:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:20px;height:20px;color:#B7A9AF;"><dc-import name="CatArt" variant="logo" hint-size="20px,20px" style="width:20px;height:20px;"></dc-import></div><span style="font:600 10px 'Nunito Sans';">Menu</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#B7A9AF;"><div style="width:18px;height:18px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#E36397;"><div style="width:18px;height:18px;border:2px solid #E36397;border-radius:50%;"></div><span style="font:700 10px 'Nunito Sans';">Admin</span></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Admin orders · Kanban, contextual actions</div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Settings" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;"><h1 style="font:800 20px Nunito;margin:0;">Settings</h1></div>
+          <div style="flex:1;overflow:hidden;padding:16px;">
+            <div style="font:700 11px 'Nunito Sans';letter-spacing:1px;text-transform:uppercase;color:#B08096;margin-bottom:12px;">Default meal times</div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;overflow:hidden;box-shadow:0 3px 10px rgba(184,68,111,0.07);margin-bottom:20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid #F3DDE5;"><div style="display:flex;align-items:center;gap:10px;"><span style="background:#FFD9C2;color:#8A4B22;font:700 11px 'Nunito Sans';padding:4px 10px;border-radius:999px;">Breakfast</span></div><div style="display:flex;align-items:center;gap:10px;"><button style="width:30px;height:30px;border-radius:9px;border:1.5px solid #EAD7E0;background:#fff;color:#B8446F;font:800 16px Nunito;line-height:0;">−</button><span style="font:800 16px Nunito;width:52px;text-align:center;">08:00</span><button style="width:30px;height:30px;border-radius:9px;border:none;background:#E36397;color:#fff;font:800 16px Nunito;line-height:0;">+</button></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;border-bottom:1px solid #F3DDE5;"><div style="display:flex;align-items:center;gap:10px;"><span style="background:#CDEFE0;color:#2A8A66;font:700 11px 'Nunito Sans';padding:4px 10px;border-radius:999px;">Lunch</span></div><div style="display:flex;align-items:center;gap:10px;"><button style="width:30px;height:30px;border-radius:9px;border:1.5px solid #EAD7E0;background:#fff;color:#B8446F;font:800 16px Nunito;line-height:0;">−</button><span style="font:800 16px Nunito;width:52px;text-align:center;">13:00</span><button style="width:30px;height:30px;border-radius:9px;border:none;background:#E36397;color:#fff;font:800 16px Nunito;line-height:0;">+</button></div></div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;"><div style="display:flex;align-items:center;gap:10px;"><span style="background:#E1DBF7;color:#6F5FB3;font:700 11px 'Nunito Sans';padding:4px 10px;border-radius:999px;">Dinner</span></div><div style="display:flex;align-items:center;gap:10px;"><button style="width:30px;height:30px;border-radius:9px;border:1.5px solid #EAD7E0;background:#fff;color:#B8446F;font:800 16px Nunito;line-height:0;">−</button><span style="font:800 16px Nunito;width:52px;text-align:center;">19:00</span><button style="width:30px;height:30px;border-radius:9px;border:none;background:#E36397;color:#fff;font:800 16px Nunito;line-height:0;">+</button></div></div>
+            </div>
+            <div style="font:700 11px 'Nunito Sans';letter-spacing:1px;text-transform:uppercase;color:#B08096;margin-bottom:12px;">Language</div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:14px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 3px 10px rgba(184,68,111,0.07);"><span style="font:700 13px 'Nunito Sans';">App language</span><div style="display:inline-flex;background:#FFF1F6;border-radius:999px;padding:3px;font:700 12px 'Nunito Sans';"><span style="background:#E36397;color:#fff;padding:5px 13px;border-radius:999px;">UA</span><span style="color:#7A6B72;padding:5px 13px;">EN</span></div></div>
+          </div>
+          <div style="padding:14px 16px;border-top:1px solid #F3DDE5;flex:none;"><button style="width:100%;border:none;background:#E36397;color:#fff;font:700 14px Nunito;padding:13px;border-radius:14px;box-shadow:0 6px 16px rgba(227,99,151,0.3);cursor:pointer;">Save changes</button></div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Settings · default meal times</div>
+    </div>
+
+  </div>
+</section>
+
+<section data-screen-label="05 Screens · Shared states" style="max-width:1400px;margin:0 auto;padding:16px 32px 40px;">
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Shared states</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 30px;max-width:660px;">Loading, empty, error, and destructive-confirm — Kotyk carries the emotional beats; copy stays i18n-external.</p>
+  <div style="display:flex;gap:44px;flex-wrap:wrap;">
+
+    <!-- LOADING -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Loading" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="padding:20px 16px 0;flex:1;">
+            <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:26px;"><div style="width:120px;height:108px;opacity:.9;"><dc-import name="CatArt" variant="sleep" hint-size="120px,108px" style="width:120px;height:108px;"></dc-import></div><span style="font:700 13px 'Nunito Sans';color:#B08096;margin-top:6px;">Loading menu…</span></div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:14px;margin-bottom:12px;"><div style="height:72px;background:#F3EDF0;border-radius:12px;margin-bottom:11px;"></div><div style="height:13px;width:60%;background:#F3EDF0;border-radius:6px;margin-bottom:8px;"></div><div style="height:11px;width:85%;background:#F6EEF1;border-radius:6px;"></div></div>
+            <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:14px;"><div style="height:72px;background:#F3EDF0;border-radius:12px;margin-bottom:11px;"></div><div style="height:13px;width:50%;background:#F3EDF0;border-radius:6px;"></div></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Loading · sleeping cat + skeletons</div>
+    </div>
+
+    <!-- EMPTY -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Empty" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="background:#fff;padding:12px 18px;border-bottom:1px solid #F3DDE5;flex:none;"><h1 style="font:800 20px Nunito;margin:0;">My Orders</h1></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;text-align:center;"><div style="width:150px;height:136px;"><dc-import name="CatArt" variant="empty" hint-size="150px,136px" style="width:150px;height:136px;"></dc-import></div><h3 style="font:800 18px Nunito;margin:16px 0 6px;">Nothing here yet</h3><p style="font:400 13.5px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 22px;">Kotyk's bowl is empty. Browse today's menu to reserve a dish.</p><button style="border:none;background:#E36397;color:#fff;font:700 14px Nunito;padding:12px 24px;border-radius:14px;box-shadow:0 6px 16px rgba(227,99,151,0.3);cursor:pointer;">Browse menu</button></div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Empty · empty-bowl mascot</div>
+    </div>
+
+    <!-- ERROR -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Error" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#3A2E34;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #3A2E34;border-radius:3px;"></span></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 40px;text-align:center;"><div style="width:150px;height:136px;"><dc-import name="CatArt" variant="confused" hint-size="150px,136px" style="width:150px;height:136px;"></dc-import></div><h3 style="font:800 18px Nunito;margin:16px 0 6px;">Something went wrong</h3><p style="font:400 13.5px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 22px;">We couldn't load the menu. Check your connection and try again.</p><button style="border:1.5px solid #E7A6C2;background:#fff;color:#B8446F;font:700 14px Nunito;padding:11px 24px;border-radius:14px;cursor:pointer;">Retry</button></div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Error · confused mascot</div>
+    </div>
+
+    <!-- CONFIRM DESTRUCTIVE -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Confirm dialog" style="background:#fff;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(184,68,111,0.18);border:1px solid #F3DDE5;">
+        <div style="background:#FDF2F6;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="filter:blur(2px);opacity:0.5;flex:1;"><div style="height:32px;padding:9px 22px 0;font:700 12px 'Nunito Sans';">9:41</div><div style="background:#fff;padding:14px 18px;border-bottom:1px solid #F3DDE5;font:800 18px Nunito;">My Orders</div></div>
+          <div style="position:absolute;inset:0;background:rgba(58,30,42,0.42);display:flex;align-items:center;justify-content:center;padding:24px;">
+            <div style="background:#fff;border-radius:22px;padding:24px 22px;width:100%;text-align:center;box-shadow:0 16px 44px rgba(58,30,42,0.3);">
+              <div style="width:44px;height:44px;border-radius:50%;background:#FBE0E0;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font:800 22px Nunito;color:#B83B3B;">!</div>
+              <h3 style="font:800 18px Nunito;margin:0 0 6px;">Cancel this order?</h3>
+              <p style="font:400 13px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 20px;">Your reserved portions of Mushroom risotto will be released back to the household.</p>
+              <div style="display:flex;gap:10px;"><button style="flex:1;border:1.5px solid #EAD7E0;background:#fff;color:#7A6B72;font:700 14px Nunito;padding:12px;border-radius:13px;cursor:pointer;">Keep</button><button style="flex:1;border:none;background:#E45D5D;color:#fff;font:700 14px Nunito;padding:12px;border-radius:13px;box-shadow:0 5px 14px rgba(228,93,93,0.3);cursor:pointer;">Cancel order</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Confirm · destructive action</div>
+    </div>
+
+  </div>
+</section>
+
+<section data-screen-label="06 Dark theme" style="max-width:1400px;margin:0 auto;padding:40px 32px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;"><span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">06 / Dark theme</span></div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Same system, dark</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 30px;max-width:660px;">Brand colors lighten, tints become translucent, illustrations stay flat &amp; legible. Delivered as a second <code style="font:600 12.5px ui-monospace,monospace;background:#FFE7F0;color:#B8446F;padding:1px 5px;border-radius:5px;">colorScheme</code>.</p>
+  <div style="display:flex;gap:44px;flex-wrap:wrap;">
+
+    <!-- DARK MENU -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Menu dark" style="background:#141115;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(0,0,0,0.4);border:1px solid #3C333A;">
+        <div style="background:#1E1A1D;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#F6E9EF;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #F6E9EF;border-radius:3px;"></span></div>
+          <div style="background:#2A2329;padding:10px 18px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #3C333A;flex:none;"><div style="display:flex;align-items:center;gap:9px;"><div style="width:26px;height:26px;color:#F49CBF;"><dc-import name="CatArt" variant="logo" hint-size="26px,26px" style="width:26px;height:26px;"></dc-import></div><span style="font:800 17px Nunito;color:#F49CBF;">Home Menu</span></div><div style="display:inline-flex;background:#342B31;border-radius:999px;padding:2px;font:700 10.5px 'Nunito Sans';"><span style="color:#C6B2BC;padding:3px 8px;">UA</span><span style="background:#F49CBF;color:#3A1E2A;padding:3px 8px;border-radius:999px;">EN</span></div></div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="display:flex;gap:8px;overflow:hidden;margin-bottom:14px;">
+              <div style="flex:none;text-align:center;background:#F49CBF;color:#3A1E2A;border-radius:14px;padding:8px 12px;"><div style="font:700 10px 'Nunito Sans';opacity:.8;">WED</div><div style="font:800 16px Nunito;">9</div></div>
+              <div style="flex:none;text-align:center;background:#2A2329;color:#C6B2BC;border:1px solid #3C333A;border-radius:14px;padding:8px 12px;"><div style="font:700 10px 'Nunito Sans';">THU</div><div style="font:800 16px Nunito;color:#F6E9EF;">10</div></div>
+              <div style="flex:none;text-align:center;background:#2A2329;color:#C6B2BC;border:1px solid #3C333A;border-radius:14px;padding:8px 12px;"><div style="font:700 10px 'Nunito Sans';">FRI</div><div style="font:800 16px Nunito;color:#F6E9EF;">11</div></div>
+            </div>
+            <div style="background:#2A2329;border:1px solid #3C333A;border-radius:18px;overflow:hidden;margin-bottom:12px;">
+              <div style="height:78px;background:repeating-linear-gradient(135deg,#342B31,#342B31 10px,#2E262C 10px,#2E262C 20px);position:relative;display:flex;align-items:flex-start;justify-content:flex-end;padding:9px;"><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(111,208,166,0.18);color:#6FD0A6;font:700 10.5px 'Nunito Sans';padding:4px 9px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#6FD0A6;"></span>Ready now</span></div>
+              <div style="padding:11px 13px;"><h4 style="font:800 15px Nunito;margin:0 0 4px;color:#F6E9EF;">Mushroom risotto</h4><p style="font:400 11.5px/1.4 'Nunito Sans';color:#C6B2BC;margin:0 0 10px;">Creamy arborio rice with mushrooms.</p><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:700 12px 'Nunito Sans';color:#F49CBF;">4 ready</span><button style="border:none;background:#F49CBF;color:#3A1E2A;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:pointer;">Reserve</button></div></div>
+            </div>
+            <div style="background:#2A2329;border:1px solid #3C333A;border-radius:18px;padding:13px;">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;"><h4 style="font:800 15px Nunito;margin:0;color:#F6E9EF;">Tomato soup</h4><span style="display:inline-flex;align-items:center;gap:5px;background:rgba(239,196,106,0.18);color:#EFC46A;font:700 10.5px 'Nunito Sans';padding:4px 9px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#EFC46A;"></span>Can cook</span></div>
+              <p style="font:400 11.5px/1.4 'Nunito Sans';color:#C6B2BC;margin:6px 0 10px;">All ingredients in stock · ~30 min</p>
+              <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font:700 12px 'Nunito Sans';color:#C6B2BC;">0 ready</span><button style="border:none;background:#B7A9EC;color:#241E33;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:pointer;">Request</button></div>
+            </div>
+          </div>
+          <div style="background:#2A2329;border-top:1px solid #3C333A;display:flex;justify-content:space-around;padding:9px 6px;flex:none;"><div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#F49CBF;"><div style="width:22px;height:22px;color:#F49CBF;"><dc-import name="CatArt" variant="logo" hint-size="22px,22px" style="width:22px;height:22px;"></dc-import></div><span style="font:700 10px 'Nunito Sans';">Menu</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#7C6C74;"><div style="width:19px;height:19px;border:2px solid #7C6C74;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div></div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Menu · dark</div>
+    </div>
+
+    <!-- DARK DASHBOARD -->
+    <div style="width:344px;flex:none;">
+      <div data-screen-label="Dashboard dark" style="background:#141115;border-radius:36px;padding:9px;box-shadow:0 22px 55px rgba(0,0,0,0.4);border:1px solid #3C333A;">
+        <div style="background:#1E1A1D;border-radius:28px;overflow:hidden;height:712px;display:flex;flex-direction:column;position:relative;">
+          <div style="height:32px;display:flex;align-items:center;justify-content:space-between;padding:9px 22px 0;font:700 12px 'Nunito Sans';color:#F6E9EF;flex:none;"><span>9:41</span><span style="width:17px;height:10px;border:1.5px solid #F6E9EF;border-radius:3px;"></span></div>
+          <div style="background:#2A2329;padding:12px 18px;border-bottom:1px solid #3C333A;flex:none;display:flex;align-items:center;justify-content:space-between;"><div><div style="font:700 11px 'Nunito Sans';color:#B7A9EC;">Admin</div><h1 style="font:800 20px Nunito;margin:2px 0 0;color:#F6E9EF;">Dashboard</h1></div><div style="width:34px;height:31px;"><dc-import name="CatArt" variant="idle" hint-size="34px,31px" style="width:34px;height:31px;"></dc-import></div></div>
+          <div style="flex:1;overflow:hidden;padding:14px 16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;">
+              <div style="background:#2A2329;border:1px solid #4A2E3B;border-radius:16px;padding:14px;"><div style="font:900 28px Nunito;color:#F49CBF;">3</div><div style="font:700 11.5px 'Nunito Sans';color:#C6B2BC;margin-top:2px;">Pending requests</div></div>
+              <div style="background:#2A2329;border:1px solid #4A3F26;border-radius:16px;padding:14px;"><div style="font:900 28px Nunito;color:#EFC46A;">2</div><div style="font:700 11.5px 'Nunito Sans';color:#C6B2BC;margin-top:2px;">In progress</div></div>
+              <div style="background:#2A2329;border:1px solid #4A2E2E;border-radius:16px;padding:14px;"><div style="font:900 28px Nunito;color:#F08A8A;">5</div><div style="font:700 11.5px 'Nunito Sans';color:#C6B2BC;margin-top:2px;">Low-stock items</div></div>
+              <div style="background:#2A2329;border:1px solid #4A2E2E;border-radius:16px;padding:14px;"><div style="font:900 28px Nunito;color:#F08A8A;">1</div><div style="font:700 11.5px 'Nunito Sans';color:#C6B2BC;margin-top:2px;">Expired batch</div></div>
+            </div>
+            <div style="background:rgba(111,208,166,0.12);border:1px solid #2E5544;border-radius:16px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font:900 30px Nunito;color:#6FD0A6;">18</div><div style="font:700 12px 'Nunito Sans';color:#8FD9BB;">Portions ready to reserve</div></div><div style="width:44px;height:40px;"><dc-import name="CatArt" variant="idle" hint-size="44px,40px" style="width:44px;height:40px;"></dc-import></div></div>
+            <div style="font:700 11px 'Nunito Sans';letter-spacing:1px;text-transform:uppercase;color:#8A7A82;margin:18px 0 10px;">Quick actions</div>
+            <div style="background:#2A2329;border:1px solid #3C333A;border-radius:13px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;"><span style="font:700 13px 'Nunito Sans';color:#F6E9EF;">Review cooking requests</span><span style="background:#4A2E3B;color:#F49CBF;font:800 11px 'Nunito Sans';padding:3px 9px;border-radius:999px;">3</span></div>
+          </div>
+          <div style="background:#2A2329;border-top:1px solid #3C333A;display:flex;justify-content:space-around;padding:9px 6px;flex:none;"><div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#7C6C74;"><div style="width:20px;height:20px;color:#7C6C74;"><dc-import name="CatArt" variant="logo" hint-size="20px,20px" style="width:20px;height:20px;"></dc-import></div><span style="font:600 10px 'Nunito Sans';">Menu</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#7C6C74;"><div style="width:18px;height:18px;border:2px solid #7C6C74;border-radius:5px;"></div><span style="font:600 10px 'Nunito Sans';">Orders</span></div><div style="display:flex;flex-direction:column;align-items:center;gap:3px;color:#F49CBF;"><div style="width:18px;height:18px;border:2px solid #F49CBF;border-radius:50%;"></div><span style="font:700 10px 'Nunito Sans';">Admin</span></div></div>
+        </div>
+      </div>
+      <div style="text-align:center;font:600 11.5px ui-monospace,monospace;color:#B08096;margin-top:12px;">Dashboard · dark</div>
+    </div>
+
+  </div>
+</section>
+
+<section data-screen-label="06b Desktop" style="max-width:1400px;margin:0 auto;padding:40px 32px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;"><span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">06b / Responsive</span></div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Desktop &amp; tablet</h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 30px;max-width:680px;">Still mobile-first — at <code style="font:600 12.5px ui-monospace,monospace;background:#FFE7F0;color:#B8446F;padding:1px 5px;border-radius:5px;">md+</code> the BottomNavigation becomes a persistent left Drawer, cards flow into a responsive grid, and the same tokens keep it from breaking.</p>
+
+  <!-- DESKTOP MENU (member) -->
+  <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;overflow:hidden;box-shadow:0 20px 55px rgba(184,68,111,0.16);margin-bottom:40px;">
+    <div style="background:#FFF1F6;border-bottom:1px solid #F3DDE5;padding:11px 16px;display:flex;align-items:center;gap:8px;"><span style="width:11px;height:11px;border-radius:50%;background:#F0A9BE;"></span><span style="width:11px;height:11px;border-radius:50%;background:#F3D4A0;"></span><span style="width:11px;height:11px;border-radius:50%;background:#B7DEC5;"></span><span style="margin-left:14px;font:600 11.5px ui-monospace,monospace;color:#B08096;">home-menu.app / menu</span></div>
+    <div style="display:flex;height:560px;">
+      <div style="width:236px;flex:none;background:#FFFAFC;border-right:1px solid #F3DDE5;padding:22px 16px;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:26px;padding:0 6px;"><div style="width:30px;height:30px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="30px,30px" style="width:30px;height:30px;"></dc-import></div><span style="font:800 18px Nunito;color:#B8446F;">Home Menu</span></div>
+        <div style="display:flex;align-items:center;gap:11px;background:#E36397;color:#fff;border-radius:12px;padding:11px 14px;margin-bottom:6px;box-shadow:0 4px 12px rgba(227,99,151,0.28);"><div style="width:19px;height:19px;color:#fff;"><dc-import name="CatArt" variant="logo" hint-size="19px,19px" style="width:19px;height:19px;"></dc-import></div><span style="font:700 14px Nunito;">Menu</span></div>
+        <div style="display:flex;align-items:center;gap:11px;color:#7A6B72;border-radius:12px;padding:11px 14px;margin-bottom:6px;"><div style="width:17px;height:17px;border:2px solid #B7A9AF;border-radius:5px;"></div><span style="font:700 14px Nunito;">My Orders</span></div>
+        <div style="margin-top:auto;display:flex;align-items:center;justify-content:space-between;padding:0 6px;"><span style="font:700 12px 'Nunito Sans';color:#B08096;">Olena</span><div style="display:inline-flex;background:#FFF1F6;border:1px solid #F3DDE5;border-radius:999px;padding:2px;font:700 10.5px 'Nunito Sans';"><span style="color:#7A6B72;padding:3px 8px;">UA</span><span style="background:#E36397;color:#fff;padding:3px 8px;border-radius:999px;">EN</span></div></div>
+      </div>
+      <div style="flex:1;overflow:hidden;background:#FDF2F6;padding:26px 30px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;"><h1 style="font:800 24px Nunito;margin:0;">Today's menu</h1><div style="display:flex;gap:8px;"><div style="text-align:center;background:#E36397;color:#fff;border-radius:13px;padding:7px 13px;box-shadow:0 4px 10px rgba(227,99,151,0.3);"><div style="font:700 9.5px 'Nunito Sans';opacity:.85;">WED</div><div style="font:800 15px Nunito;">9</div></div><div style="text-align:center;background:#fff;border:1px solid #F3DDE5;border-radius:13px;padding:7px 13px;"><div style="font:700 9.5px 'Nunito Sans';color:#7A6B72;">THU</div><div style="font:800 15px Nunito;">10</div></div><div style="text-align:center;background:#fff;border:1px solid #F3DDE5;border-radius:13px;padding:7px 13px;"><div style="font:700 9.5px 'Nunito Sans';color:#7A6B72;">FRI</div><div style="font:800 15px Nunito;">11</div></div></div></div>
+        <div style="display:flex;gap:24px;border-bottom:1px solid #F3DDE5;margin-bottom:20px;"><span style="font:700 14px Nunito;color:#7A6B72;padding-bottom:11px;">Breakfast</span><span style="font:700 14px Nunito;color:#B8446F;padding-bottom:11px;border-bottom:2.5px solid #E36397;">Lunch</span><span style="font:700 14px Nunito;color:#7A6B72;padding-bottom:11px;">Dinner</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;overflow:hidden;box-shadow:0 3px 12px rgba(184,68,111,0.08);"><div style="height:82px;background:repeating-linear-gradient(135deg,#FFF1F6,#FFF1F6 10px,#FDE7F0 10px,#FDE7F0 20px);display:flex;align-items:flex-start;justify-content:flex-end;padding:9px;"><span style="display:inline-flex;align-items:center;gap:5px;background:#E4F6EE;color:#2A8A66;font:700 10px 'Nunito Sans';padding:4px 9px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#3FB98C;"></span>Ready now</span></div><div style="padding:12px 14px;"><h4 style="font:800 15px Nunito;margin:0 0 4px;">Mushroom risotto</h4><p style="font:400 11.5px/1.4 'Nunito Sans';color:#7A6B72;margin:0 0 12px;">Creamy arborio rice with mushrooms.</p><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:700 12px 'Nunito Sans';color:#B8446F;">4 ready</span><button style="border:none;background:#E36397;color:#fff;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:pointer;">Reserve</button></div></div></div>
+          <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:14px;box-shadow:0 3px 12px rgba(184,68,111,0.08);"><div style="display:flex;justify-content:space-between;align-items:baseline;"><h4 style="font:800 15px Nunito;margin:0;">Tomato soup</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#FBF1D6;color:#9A6E12;font:700 10px 'Nunito Sans';padding:4px 8px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#E0A93B;"></span>Can cook</span></div><p style="font:400 11.5px/1.4 'Nunito Sans';color:#7A6B72;margin:8px 0 12px;">All ingredients in stock · ~30 min</p><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:700 12px 'Nunito Sans';color:#7A6B72;">0 ready</span><button style="border:none;background:#9B8CDB;color:#fff;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:pointer;">Request</button></div></div>
+          <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:14px;box-shadow:0 3px 12px rgba(184,68,111,0.08);"><div style="display:flex;justify-content:space-between;align-items:baseline;"><h4 style="font:800 15px Nunito;margin:0;">Baked salmon</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#EFE7EA;color:#8A7A82;font:700 10px 'Nunito Sans';padding:4px 8px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#B7A9AF;"></span>Unavailable</span></div><p style="font:400 11.5px/1.4 'Nunito Sans';color:#7A6B72;margin:8px 0 12px;">Missing salmon fillet &amp; dill.</p><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:700 12px 'Nunito Sans';color:#B7A9AF;">—</span><button style="border:none;background:#F3EDF0;color:#B7A9AF;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:not-allowed;">Request</button></div></div>
+          <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:14px;box-shadow:0 3px 12px rgba(184,68,111,0.08);"><div style="display:flex;justify-content:space-between;align-items:baseline;"><h4 style="font:800 15px Nunito;margin:0;">Pancakes</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#E4F6EE;color:#2A8A66;font:700 10px 'Nunito Sans';padding:4px 8px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#3FB98C;"></span>Ready now</span></div><p style="font:400 11.5px/1.4 'Nunito Sans';color:#7A6B72;margin:8px 0 12px;">Fluffy stack with berries.</p><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:700 12px 'Nunito Sans';color:#B8446F;">6 ready</span><button style="border:none;background:#E36397;color:#fff;font:700 12px Nunito;padding:8px 15px;border-radius:11px;cursor:pointer;">Reserve</button></div></div>
+          <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;padding:14px;box-shadow:0 3px 12px rgba(184,68,111,0.08);"><div style="display:flex;justify-content:space-between;align-items:baseline;"><h4 style="font:800 15px Nunito;margin:0;">Veg curry</h4><span style="display:inline-flex;align-items:center;gap:5px;background:#EEE9FB;color:#6F5FB3;font:700 10px 'Nunito Sans';padding:4px 8px;border-radius:999px;"><span style="width:6px;height:6px;border-radius:50%;background:#9B8CDB;"></span>Not set</span></div><p style="font:400 11.5px/1.4 'Nunito Sans';color:#7A6B72;margin:8px 0 12px;">Recipe not configured yet.</p><div style="display:flex;align-items:center;justify-content:space-between;"><span style="font:700 12px 'Nunito Sans';color:#B7A9AF;">—</span><button style="border:1.5px solid #EAD7E0;background:#fff;color:#B7A9AF;font:700 12px Nunito;padding:7px 14px;border-radius:11px;cursor:not-allowed;">—</button></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESKTOP ADMIN DASHBOARD -->
+  <div style="background:#fff;border:1px solid #F3DDE5;border-radius:18px;overflow:hidden;box-shadow:0 20px 55px rgba(184,68,111,0.16);">
+    <div style="background:#FFF1F6;border-bottom:1px solid #F3DDE5;padding:11px 16px;display:flex;align-items:center;gap:8px;"><span style="width:11px;height:11px;border-radius:50%;background:#F0A9BE;"></span><span style="width:11px;height:11px;border-radius:50%;background:#F3D4A0;"></span><span style="width:11px;height:11px;border-radius:50%;background:#B7DEC5;"></span><span style="margin-left:14px;font:600 11.5px ui-monospace,monospace;color:#B08096;">home-menu.app / admin</span></div>
+    <div style="display:flex;height:560px;">
+      <div style="width:236px;flex:none;background:#FFFAFC;border-right:1px solid #F3DDE5;padding:22px 16px;display:flex;flex-direction:column;gap:5px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;padding:0 6px;"><div style="width:30px;height:30px;color:#E36397;"><dc-import name="CatArt" variant="logo" hint-size="30px,30px" style="width:30px;height:30px;"></dc-import></div><span style="font:800 18px Nunito;color:#B8446F;">Home Menu</span></div>
+        <div style="font:700 10px 'Nunito Sans';letter-spacing:1px;text-transform:uppercase;color:#C29BAC;padding:0 8px 4px;">Admin</div>
+        <div style="display:flex;align-items:center;gap:11px;background:#E36397;color:#fff;border-radius:12px;padding:10px 14px;box-shadow:0 4px 12px rgba(227,99,151,0.28);"><span style="width:16px;height:16px;border:2px solid #fff;border-radius:5px;"></span><span style="font:700 13.5px Nunito;">Dashboard</span></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;color:#7A6B72;border-radius:12px;padding:10px 14px;"><span style="font:700 13.5px Nunito;">Cooking requests</span><span style="background:#FBD5E5;color:#B8446F;font:800 10px 'Nunito Sans';padding:2px 8px;border-radius:999px;">3</span></div>
+        <div style="color:#7A6B72;border-radius:12px;padding:10px 14px;font:700 13.5px Nunito;">Dishes</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;color:#7A6B72;border-radius:12px;padding:10px 14px;"><span style="font:700 13.5px Nunito;">Inventory</span><span style="background:#FBE0E0;color:#B83B3B;font:800 10px 'Nunito Sans';padding:2px 8px;border-radius:999px;">5</span></div>
+        <div style="color:#7A6B72;border-radius:12px;padding:10px 14px;font:700 13.5px Nunito;">Batches</div>
+        <div style="color:#7A6B72;border-radius:12px;padding:10px 14px;font:700 13.5px Nunito;">Settings</div>
+      </div>
+      <div style="flex:1;overflow:hidden;background:#FDF2F6;padding:26px 30px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;"><h1 style="font:800 24px Nunito;margin:0;">Dashboard</h1><div style="width:40px;height:36px;color:#F2A0BE;"><dc-import name="CatArt" variant="idle" hint-size="40px,36px" style="width:40px;height:36px;"></dc-import></div></div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:22px;">
+          <div style="background:#fff;border:1px solid #FBD5E5;border-radius:16px;padding:16px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="font:900 30px Nunito;color:#E36397;">3</div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Pending</div></div>
+          <div style="background:#fff;border:1px solid #FBEEC8;border-radius:16px;padding:16px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="font:900 30px Nunito;color:#B5831F;">2</div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:2px;">In progress</div></div>
+          <div style="background:#fff;border:1px solid #F0C4C4;border-radius:16px;padding:16px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="font:900 30px Nunito;color:#B83B3B;">5</div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Low stock</div></div>
+          <div style="background:#fff;border:1px solid #F0C4C4;border-radius:16px;padding:16px;box-shadow:0 3px 10px rgba(184,68,111,0.08);"><div style="font:900 30px Nunito;color:#B83B3B;">1</div><div style="font:700 11px 'Nunito Sans';color:#7A6B72;margin-top:2px;">Expired</div></div>
+          <div style="background:linear-gradient(135deg,#E4F6EE,#CDEFE0);border:1px solid #CDEFE0;border-radius:16px;padding:16px;box-shadow:0 3px 10px rgba(63,185,140,0.14);"><div style="font:900 30px Nunito;color:#2A8A66;">18</div><div style="font:700 11px 'Nunito Sans';color:#37855F;margin-top:2px;">Ready portions</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:18px;">
+          <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:18px 20px;box-shadow:0 3px 10px rgba(184,68,111,0.07);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><h4 style="font:800 15px Nunito;margin:0;">Pending cooking requests</h4><span style="font:700 12px 'Nunito Sans';color:#B8446F;">View all ›</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid #F3DDE5;"><div><div style="font:700 13.5px 'Nunito Sans';">Tomato soup</div><div style="font:400 11px 'Nunito Sans';color:#B08096;">Olena · 1 portion · Thu 10</div></div><button style="border:none;background:#E36397;color:#fff;font:700 11.5px Nunito;padding:7px 14px;border-radius:10px;cursor:pointer;">Approve</button></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 0;"><div><div style="font:700 13.5px 'Nunito Sans';">Pancakes</div><div style="font:400 11px 'Nunito Sans';color:#B08096;">Ihor · 3 portions · Fri 11</div></div><button style="border:none;background:#E36397;color:#fff;font:700 11.5px Nunito;padding:7px 14px;border-radius:10px;cursor:pointer;">Approve</button></div>
+          </div>
+          <div style="background:#FDF0F0;border:1.5px solid #F0C4C4;border-radius:16px;padding:18px 20px;box-shadow:0 3px 10px rgba(228,93,93,0.1);">
+            <h4 style="font:800 15px Nunito;margin:0 0 12px;color:#B83B3B;">⚠ Needs attention</h4>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #F4D3D3;"><span style="font:700 13px 'Nunito Sans';color:#3A2E34;">Baked salmon batch</span><span style="font:700 11.5px 'Nunito Sans';color:#B83B3B;">Expired</span></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;"><span style="font:700 13px 'Nunito Sans';color:#3A2E34;">Mushrooms</span><span style="font:700 11.5px 'Nunito Sans';color:#B83B3B;">120 g low</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="07 MUI theme mapping" style="max-width:1180px;margin:0 auto;padding:40px 32px 80px;">
+  <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:8px;"><span style="font:800 13px Nunito;letter-spacing:1.6px;text-transform:uppercase;color:#E36397;">07 / Handoff</span></div>
+  <h2 style="font:800 28px Nunito;color:#3A2E34;margin:0 0 4px;">Drop into <code style="font:800 22px ui-monospace,monospace;color:#B8446F;">src/app/theme.ts</code></h2>
+  <p style="font:400 15px/1.5 'Nunito Sans';color:#7A6B72;margin:0 0 24px;max-width:680px;">Every token above maps to a MUI v5/v6 <code style="font:600 12.5px ui-monospace,monospace;background:#FFE7F0;color:#B8446F;padding:1px 5px;border-radius:5px;">createTheme()</code> config with <code style="font:600 12.5px ui-monospace,monospace;background:#FFE7F0;color:#B8446F;padding:1px 5px;border-radius:5px;">cssVariables:true</code> and both color schemes.</p>
+  <div style="background:#241C21;border-radius:20px;padding:24px 26px;overflow:auto;box-shadow:0 12px 40px rgba(58,30,42,0.28);">
+<pre style="margin:0;font:500 12.5px/1.7 ui-monospace,'SF Mono',Menlo,monospace;color:#E7D6DE;white-space:pre;">import { createTheme } from '@mui/material/styles';
+
+export const theme = createTheme({
+  cssVariables: { colorSchemeSelector: 'class' },
+  colorSchemes: {
+    <span style="color:#F49CBF;">light</span>: { palette: {
+      primary:   { main: '#E36397', light: '#FBD5E5', dark: '#B8446F', contrastText: '#FFFFFF' },
+      secondary: { main: '#9B8CDB', light: '#E1DBF7', dark: '#6F5FB3', contrastText: '#FFFFFF' },
+      success:   { main: '#3FB98C', light: '#CDEFE0', contrastText: '#FFFFFF' }, <span style="color:#8FB8A5;">// Ready now</span>
+      warning:   { main: '#E0A93B', light: '#FBEEC8', contrastText: '#3A2E34' }, <span style="color:#8FB8A5;">// Can be cooked / expiring</span>
+      error:     { main: '#E45D5D', light: '#F9D2D2', contrastText: '#FFFFFF' }, <span style="color:#8FB8A5;">// destructive / expired</span>
+      info:      { main: '#5AA9E6', light: '#D2E9F9', contrastText: '#FFFFFF' },
+      background:{ default: '#FDF2F6', paper: '#FFFFFF' },
+      text:      { primary: '#3A2E34', secondary: '#7A6B72', disabled: '#B7A9AF' },
+      divider:   '#F3DDE5',
+      action:    { hover: '#FFF1F6', selected: '#FBD5E5' },
+    }},
+    <span style="color:#F49CBF;">dark</span>: { palette: {
+      primary:   { main: '#F49CBF', light: '#FBD5E5', dark: '#C86D91', contrastText: '#3A1E2A' },
+      secondary: { main: '#B7A9EC', contrastText: '#241E33' },
+      success:   { main: '#6FD0A6' }, warning: { main: '#EFC46A' },
+      error:     { main: '#F08A8A' }, info: { main: '#86C4F0' },
+      background:{ default: '#1E1A1D', paper: '#2A2329' },
+      text:      { primary: '#F6E9EF', secondary: '#C6B2BC', disabled: '#7C6C74' },
+      divider:   'rgba(255,255,255,0.09)',
+    }},
+  },
+
+  shape: { borderRadius: <span style="color:#F0B87A;">14</span> },              <span style="color:#8FB8A5;">// input 10 · button 14 · card 20 · sheet 24 · chip 999</span>
+  spacing: <span style="color:#F0B87A;">8</span>,                          <span style="color:#8FB8A5;">// 0.5/1/1.5/2/3/4 → 4 8 12 16 24 32</span>
+
+  typography: {
+    fontFamily: '"Nunito Sans", system-ui, sans-serif',
+    h1: { fontFamily: 'Nunito', fontWeight: 900, fontSize: '2rem',    lineHeight: 1.1 },
+    h2: { fontFamily: 'Nunito', fontWeight: 800, fontSize: '1.5rem',  lineHeight: 1.15 },
+    h3: { fontFamily: 'Nunito', fontWeight: 800, fontSize: '1.25rem' },
+    h5: { fontFamily: 'Nunito', fontWeight: 700, fontSize: '1rem' },
+    subtitle1: { fontWeight: 600, fontSize: '0.9375rem' },
+    body1: { fontSize: '0.9375rem', lineHeight: 1.5 },
+    body2: { fontSize: '0.8125rem', lineHeight: 1.55 },
+    button: { fontFamily: 'Nunito', fontWeight: 700, textTransform: 'none' },
+    overline: { fontWeight: 700, letterSpacing: '0.1em' },
+  },
+
+  components: {
+    MuiButton: { defaultProps: { disableElevation: true },
+      styleOverrides: { root: { borderRadius: 14, paddingInline: 20 },
+        contained: { boxShadow: '0 4px 12px rgba(227,99,151,0.30)' } } },
+    MuiCard:   { styleOverrides: { root: { borderRadius: 20,
+        border: '1px solid #F3DDE5', boxShadow: '0 2px 12px rgba(184,68,111,0.08)' } } },
+    MuiChip:   { styleOverrides: { root: { borderRadius: 999, fontWeight: 700 } } },
+    MuiDialog: { styleOverrides: { paper: { borderRadius: 24,
+        boxShadow: '0 16px 44px rgba(58,30,42,0.30)' } } },
+    MuiPaper:  { styleOverrides: { root: { backgroundImage: 'none' } } },
+    MuiBottomNavigation: { styleOverrides: { root: { borderTop: '1px solid #F3DDE5' } } },
+  },
+});</pre>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-top:22px;">
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:16px 18px;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><h4 style="font:800 14px Nunito;color:#B8446F;margin:0 0 6px;">StatusChip mapping</h4><p style="font:400 12.5px/1.6 'Nunito Sans';color:#7A6B72;margin:0;">Ready now → <b>success</b> · Can be cooked → <b>warning</b> · Unavailable → <b>default/grey</b> · Not configured → <b>secondary</b>. Build as a <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">&lt;Chip color size="small"&gt;</code> with a leading dot via <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">icon</code>.</p></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:16px 18px;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><h4 style="font:800 14px Nunito;color:#B8446F;margin:0 0 6px;">Illustrations</h4><p style="font:400 12.5px/1.6 'Nunito Sans';color:#7A6B72;margin:0;">Ship Kotyk as one <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">&lt;CatArt variant size /&gt;</code> SVG component. Flat pastels + <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">currentColor</code> motifs work in both schemes — no gradients to break.</p></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:16px 18px;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><h4 style="font:800 14px Nunito;color:#B8446F;margin:0 0 6px;">Fonts &amp; i18n</h4><p style="font:400 12.5px/1.6 'Nunito Sans';color:#7A6B72;margin:0;">Nunito + Nunito Sans both carry Cyrillic — load latin + cyrillic subsets. No copy is baked into art, so <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">i18next</code> (UA default, EN fallback) drives all strings.</p></div>
+    <div style="background:#fff;border:1px solid #F3DDE5;border-radius:16px;padding:16px 18px;box-shadow:0 2px 10px rgba(184,68,111,0.06);"><h4 style="font:800 14px Nunito;color:#B8446F;margin:0 0 6px;">Responsive</h4><p style="font:400 12.5px/1.6 'Nunito Sans';color:#7A6B72;margin:0;">Mobile-first: BottomNavigation ≤ <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">md</code>; a persistent Drawer + multi-column grids at <code style="font:600 11.5px ui-monospace,monospace;color:#B8446F;">md+</code>. Dialogs become centered modals; the Kanban gains full columns.</p></div>
+  </div>
+</section>
+</x-dc>
+</body>
+</html>

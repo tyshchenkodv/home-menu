@@ -60,11 +60,16 @@
       "correctFor": "Скоригувати «{{name}}»",
       "markPresentFor": "Позначити наявним «{{name}}»",
       "markAbsentFor": "Позначити відсутнім «{{name}}»",
-      "cancel": "Скасувати"
+      "cancel": "Скасувати",
+      "moreFor": "Більше дій для «{{name}}»"
     },
     "presence": {
       "present": "У наявності",
       "absent": "Відсутній"
+    },
+    "status": {
+      "inStock": "У наявності",
+      "out": "Немає"
     },
     "units": {
       "gram": "г",
@@ -131,6 +136,10 @@
       "empty": "Історія порожня",
       "transition": "{{from}} → {{to}}",
       "noteLabel": "Примітка: {{note}}",
+      "day": {
+        "today": "Сьогодні",
+        "yesterday": "Вчора"
+      },
       "filter": {
         "label": "Фільтр за інгредієнтом",
         "all": "Усі інгредієнти"

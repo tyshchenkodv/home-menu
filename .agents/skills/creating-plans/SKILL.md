@@ -83,6 +83,11 @@ For each behavior change, plan:
 Configuration or documentation-only tasks use reproducible structural checks
 and behavioral evaluation scenarios instead of artificial unit tests.
 
+The plan's final verification task must run the project gate `npm run verify`
+(typecheck, lint with Prettier, format check, test, build) and require it green
+before the specification is marked `Implemented`. Style fixes use the unified
+`npm run fix`; never hand-format what the tool applies.
+
 ## Persistence and approval
 
 1. Write the full plan to `docs/specifications/<slug>/PLAN.md`.
