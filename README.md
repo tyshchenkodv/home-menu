@@ -16,8 +16,11 @@ Firestore provide the backend on the Firebase Spark plan.
 
 ## Status
 
-This repository currently contains the agreed technical specification and
-project-local agent tooling. Application code has not been scaffolded yet.
+The React single-page application is scaffolded, and the admin inventory
+workflow (authentication guard, ingredient CRUD, restock/correction/presence
+transactions, and movement history) is implemented. Firestore security-rule
+tests are written but not yet run in this environment; see
+[Local development](#local-development) for the Java prerequisite.
 
 ## Planned stack
 
@@ -46,29 +49,36 @@ project-local agent tooling. Application code has not been scaffolded yet.
 
 ### Prerequisites
 
-- Node.js version defined by the future `.nvmrc`
+- Node.js version pinned in `.nvmrc` (currently 26; `firebase-tools` officially
+  supports Node 20, 22, and 24, so the emulator CLI may warn on 26)
 - npm
-- Java 21 or another version supported by the Firebase Emulator Suite
+- Docker, for the containerized Firebase Emulator Suite (no local Java
+  needed); alternatively Java 21+ if you prefer running the emulators
+  directly via `npm run test:rules`
 - A Firebase project for manual cloud testing, or the local Emulator Suite
 
 ### Install and run
-
-After the React application is scaffolded:
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Expected quality commands:
+Verified quality commands:
 
 ```bash
-npm run format:check
-npm run lint
-npm run typecheck
-npm test
-npm run test:rules
-npm run build
+npm run dev          # start the local dev server
+npm run build        # type-check and produce a production build
+npm run format:check # Prettier check
+npm run format       # Prettier write
+npm run lint         # ESLint, zero warnings allowed
+npm run typecheck    # tsc -b --noEmit
+npm test             # Vitest unit and component tests
+npm run test:rules   # Firestore emulator Rules tests, requires local Java 21+
+npm run emulators    # start Dockerized Firestore + Auth emulators
+npm run test:rules:docker # Rules tests against the Docker emulators
+npm run seed:admin   # promote emulator accounts to active admins
+npm run emulators:stop    # stop the Docker emulators
 ```
 
 ### Firebase configuration
@@ -77,10 +87,10 @@ Do not commit local environment files or Firebase credentials. Create an
 ignored `.env.local` on your machine with your own Firebase Web App values:
 
 ```text
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_APP_ID=your-app-id
 ```
 
 Firebase web configuration identifies a project and is not an administrative
@@ -90,6 +100,44 @@ emails, and real UIDs must never enter Git history.
 
 For most development and all security-rule tests, prefer the Firebase Emulator
 Suite.
+
+### Fully local development with Docker emulators
+
+No real Firebase project is required. Start the containerized emulators and
+point the app at them with an ignored `.env.local` (the `demo-` project id
+keeps everything offline):
+
+```text
+VITE_FIREBASE_API_KEY=demo-api-key
+VITE_FIREBASE_AUTH_DOMAIN=localhost
+VITE_FIREBASE_PROJECT_ID=demo-home-menu
+VITE_FIREBASE_APP_ID=demo-app-id
+VITE_USE_EMULATORS=true
+```
+
+```bash
+npm run emulators   # Firestore :8080, Auth :9099, Emulator UI :4000
+npm run dev
+```
+
+Sign in with a fake emulator Google account (you will land on the
+access-denied screen — expected for an unprovisioned user), then run
+`npm run seed:admin` and reload. See `docker/firebase-emulators/README.md`.
+
+### Provisioning an admin user
+
+The application does not self-provision roles. After a user signs in once
+with Google, manually create their `users/{uid}` document in the Firebase
+Console (or the Emulator UI) with placeholder-shaped values, for example:
+
+```text
+users/<uid>
+  role: "admin"
+  active: true
+```
+
+Use your own project's real `uid`; never commit a real `uid` or email to this
+repository.
 
 ## Create your own deployment
 
