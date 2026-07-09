@@ -121,6 +121,19 @@ review.
 When principles compete, preserve correctness and clear ownership first, then
 prefer the simpler implementation.
 
+## Code style
+
+Follow the instructions in `@.agents/skills/jsinfo-style/SKILL.md` verbatim —
+that file is the single source of truth.
+
+Additional repository conventions:
+
+- Never use `export default` in application code; always use named exports
+  (`export const LoginPage = ...`). Tool config files that require a default
+  export (e.g. `vite.config.ts`) are the only exception.
+- Dependency versions in `package.json` are exact (no `^`/`~` ranges) and new
+  dependencies start at their latest published versions.
+
 ## Review checklist
 
 - Does each file have one clear responsibility and each `.tsx` one component?
@@ -130,3 +143,4 @@ prefer the simpler implementation.
 - Are all visible and accessible strings translated in both locales?
 - Are async, responsive, theme, accessibility, and test states covered?
 - Is every abstraction justified by current behavior or consumers?
+- Is every file follow code style rules?
