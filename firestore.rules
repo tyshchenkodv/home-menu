@@ -1,0 +1,152 @@
+rules_version = '2';
+
+// See docs/06-auth-and-security.md ("Security Rules concepts",
+// "Permission matrix") and docs/03-data-model.md for the shapes and
+// invariants this file enforces. Deny by default; every collection below
+// grants access explicitly and the trailing catch-all denies everything
+// else.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function activeUser() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && profile().active == true;
+    }
+
+    function isAdmin() {
+      return activeUser() && profile().role == 'admin';
+    }
+
+    // ---------------------------------------------------------------------
+    // users/{uid}
+    //
+    // Documents are provisioned manually (docs/06 "Initial provisioning").
+    // Clients never create a profile or change a role: there is no create,
+    // update, or delete path for anyone, including admins.
+    // ---------------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // ingredients/{ingredientId}
+    //
+    // Any active user may read. Only active admins may create or update,
+    // subject to a field allowlist and the quantity/presence invariants from
+    // docs/03-data-model.md. Ingredients are never physically deleted
+    // (archiving is a field update, not a delete).
+    // ---------------------------------------------------------------------
+    function hasOnlyIngredientFields(data) {
+      return data.keys().hasOnly([
+        'name', 'trackingMode', 'baseUnit', 'quantity', 'isPresent',
+        'lowStockThreshold', 'archivedAt', 'createdAt', 'createdBy',
+        'updatedAt', 'updatedBy'
+      ]);
+    }
+
+    function hasRequiredIngredientTypes(data) {
+      return data.name is string && data.name.size() > 0
+        && data.trackingMode is string
+        && data.baseUnit is string
+        && (data.quantity == null || data.quantity is number)
+        && (data.isPresent == null || data.isPresent is bool)
+        && (data.lowStockThreshold == null || data.lowStockThreshold is number)
+        && (data.archivedAt == null || data.archivedAt is timestamp)
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.updatedAt is timestamp
+        && data.updatedBy is string;
+    }
+
+    function hasValidTrackingModeShape(data) {
+      return (
+        data.trackingMode == 'quantity'
+        && data.baseUnit in ['piece', 'gram', 'milliliter']
+        && data.quantity >= 0
+        && data.isPresent == null
+        && (data.lowStockThreshold == null || data.lowStockThreshold >= 0)
+      ) || (
+        data.trackingMode == 'presence'
+        && data.baseUnit == 'presence'
+        && data.quantity == null
+        && data.isPresent is bool
+        && data.lowStockThreshold == null
+      );
+    }
+
+    function isValidIngredientPayload(data) {
+      return hasOnlyIngredientFields(data)
+        && hasRequiredIngredientTypes(data)
+        && hasValidTrackingModeShape(data);
+    }
+
+    match /ingredients/{ingredientId} {
+      allow read: if activeUser();
+
+      allow create: if isAdmin()
+        && isValidIngredientPayload(request.resource.data)
+        && request.resource.data.archivedAt == null
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow update: if isAdmin()
+        && isValidIngredientPayload(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // inventoryMovements/{movementId}
+    //
+    // Append-only audit trail. Only active admins may read or create; there
+    // is no update or delete path for anyone. Client-issued creates are
+    // restricted to the movement types this SPEC slice produces (`restock`,
+    // `correction`); `cooking` and `archive_adjustment` stay reserved for
+    // future backend-issued writes.
+    // ---------------------------------------------------------------------
+    function isValidMovementPayload(data) {
+      return data.keys().hasOnly([
+        'ingredientId', 'ingredientName', 'type', 'deltaQuantity',
+        'presenceBefore', 'presenceAfter', 'balanceAfter',
+        'cookingRequestId', 'preparedBatchId', 'note', 'createdAt', 'createdBy'
+      ])
+        && data.ingredientId is string && data.ingredientId.size() > 0
+        && data.ingredientName is string && data.ingredientName.size() > 0
+        && data.type in ['restock', 'correction']
+        && (data.deltaQuantity == null || data.deltaQuantity is number)
+        && (data.presenceBefore == null || data.presenceBefore is bool)
+        && (data.presenceAfter == null || data.presenceAfter is bool)
+        && (data.balanceAfter == null || data.balanceAfter is number)
+        && data.cookingRequestId == null
+        && data.preparedBatchId == null
+        && (data.note == null || data.note is string)
+        && data.createdAt is timestamp
+        && data.createdBy == request.auth.uid;
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow read: if isAdmin();
+
+      allow create: if isAdmin()
+        && isValidMovementPayload(request.resource.data)
+        && exists(/databases/$(database)/documents/ingredients/$(request.resource.data.ingredientId));
+
+      allow update, delete: if false;
+    }
+
+    // Deny everything not explicitly allowed above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

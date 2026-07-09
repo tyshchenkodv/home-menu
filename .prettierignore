@@ -1,0 +1,12 @@
+dist
+coverage
+package-lock.json
+node_modules
+
+# Pre-existing hand-maintained docs and agent tooling, not part of the
+# app scaffold; left untouched to avoid modifying immutable specs/plans.
+.agents
+docs
+AGENTS.md
+CLAUDE.md
+README.md

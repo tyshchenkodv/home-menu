@@ -1,0 +1,142 @@
+{
+  "app": {
+    "title": "Домашнє меню"
+  },
+  "nav": {
+    "login": "Вхід",
+    "admin": "Адміністрування",
+    "inventory": "Запаси",
+    "history": "Історія"
+  },
+  "common": {
+    "loading": "Завантаження...",
+    "error": "Сталася помилка",
+    "empty": "Немає даних"
+  },
+  "auth": {
+    "login": {
+      "title": "Вхід до системи",
+      "googleButton": "Увійти через Google",
+      "signingIn": "Виконується вхід...",
+      "error": "Не вдалося увійти. Спробуйте ще раз."
+    },
+    "accessDenied": {
+      "title": "Доступ заборонено",
+      "description": "У вашого облікового запису немає активного доступу адміністратора до цієї сторінки."
+    },
+    "signOut": "Вийти"
+  },
+  "adminHome": {
+    "description": "Керуйте інгредієнтами та переглядайте історію запасів.",
+    "inventoryCardTitle": "Запаси",
+    "inventoryCardDescription": "Переглядайте, додавайте та архівуйте інгредієнти.",
+    "historyCardTitle": "Історія",
+    "historyCardDescription": "Переглядайте журнал руху запасів."
+  },
+  "inventory": {
+    "loading": "Завантаження інгредієнтів…",
+    "error": "Не вдалося завантажити інгредієнти",
+    "quantityWithUnit": "{{amount}} {{unit}}",
+    "empty": {
+      "active": "Активних інгредієнтів ще немає",
+      "archived": "Архівних інгредієнтів немає"
+    },
+    "tabs": {
+      "ariaLabel": "Вкладки запасів",
+      "active": "Активні",
+      "archived": "Архівні"
+    },
+    "actions": {
+      "create": "Додати інгредієнт",
+      "editFor": "Редагувати «{{name}}»",
+      "archiveFor": "Архівувати «{{name}}»",
+      "restoreFor": "Відновити «{{name}}»",
+      "historyFor": "Історія для «{{name}}»",
+      "restockFor": "Поповнити «{{name}}»",
+      "correctFor": "Скоригувати «{{name}}»",
+      "markPresentFor": "Позначити наявним «{{name}}»",
+      "markAbsentFor": "Позначити відсутнім «{{name}}»",
+      "cancel": "Скасувати"
+    },
+    "presence": {
+      "present": "У наявності",
+      "absent": "Відсутній"
+    },
+    "units": {
+      "gram": "г",
+      "kilogram": "кг",
+      "milliliter": "мл",
+      "liter": "л",
+      "piece": "шт"
+    },
+    "lowStock": {
+      "label": "Низький запас"
+    },
+    "form": {
+      "createTitle": "Новий інгредієнт",
+      "editTitle": "Редагувати інгредієнт",
+      "nameLabel": "Назва",
+      "trackingModeLabel": "Тип обліку",
+      "trackingModeQuantity": "Кількість",
+      "trackingModePresence": "Наявність",
+      "amountLabel": "Кількість",
+      "unitLabel": "Одиниця",
+      "unitG": "г",
+      "unitKg": "кг",
+      "unitMl": "мл",
+      "unitL": "л",
+      "unitPieces": "шт",
+      "lowStockThresholdLabel": "Поріг низького запасу (необов’язково)",
+      "presentInitiallyLabel": "Спочатку в наявності",
+      "submitCreate": "Створити",
+      "submitEdit": "Зберегти зміни"
+    },
+    "archiveDialog": {
+      "title": "Архівувати інгредієнт",
+      "message": "Архівувати «{{name}}»? Ви зможете відновити його пізніше.",
+      "confirm": "Архівувати",
+      "cancel": "Скасувати"
+    },
+    "restockDialog": {
+      "title": "Поповнення запасу «{{name}}»",
+      "submit": "Поповнити"
+    },
+    "correctionDialog": {
+      "title": "Коригування запасу «{{name}}»",
+      "amountLabel": "Фактична кількість",
+      "reasonLabel": "Причина коригування",
+      "submit": "Зберегти коригування"
+    },
+    "errors": {
+      "invalidName": "Введіть назву інгредієнта",
+      "invalidTrackingMode": "Оберіть тип обліку",
+      "invalidBaseUnit": "Непідтримувана одиниця виміру",
+      "invalidQuantity": "Кількість має бути числом не менше нуля",
+      "invalidPresence": "Некоректне значення наявності",
+      "invalidLowStockThreshold": "Поріг низького запасу має бути числом не менше нуля",
+      "invalidUnit": "Оберіть одиницю виміру",
+      "invalidAmount": "Введіть коректну кількість (число не менше нуля)",
+      "invalidReason": "Вкажіть причину коригування",
+      "ingredientArchived": "Інгредієнт архівовано"
+    },
+    "history": {
+      "title": "Історія руху запасів",
+      "backToInventory": "До запасів",
+      "loading": "Завантаження історії…",
+      "error": "Не вдалося завантажити історію",
+      "empty": "Історія порожня",
+      "transition": "{{from}} → {{to}}",
+      "noteLabel": "Примітка: {{note}}",
+      "filter": {
+        "label": "Фільтр за інгредієнтом",
+        "all": "Усі інгредієнти"
+      },
+      "type": {
+        "restock": "Поповнення",
+        "cooking": "Приготування",
+        "correction": "Коригування",
+        "archive_adjustment": "Коригування архівування"
+      }
+    }
+  }
+}

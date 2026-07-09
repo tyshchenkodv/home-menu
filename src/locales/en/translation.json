@@ -1,0 +1,142 @@
+{
+  "app": {
+    "title": "Home Menu"
+  },
+  "nav": {
+    "login": "Login",
+    "admin": "Admin",
+    "inventory": "Inventory",
+    "history": "History"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "empty": "No data"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "googleButton": "Sign in with Google",
+      "signingIn": "Signing in...",
+      "error": "Failed to sign in. Please try again."
+    },
+    "accessDenied": {
+      "title": "Access denied",
+      "description": "Your account does not have active administrator access to this page."
+    },
+    "signOut": "Sign out"
+  },
+  "adminHome": {
+    "description": "Manage ingredients and review the inventory history.",
+    "inventoryCardTitle": "Inventory",
+    "inventoryCardDescription": "View, add, and archive ingredients.",
+    "historyCardTitle": "History",
+    "historyCardDescription": "Review the inventory movement log."
+  },
+  "inventory": {
+    "loading": "Loading ingredients…",
+    "error": "Failed to load ingredients",
+    "quantityWithUnit": "{{amount}} {{unit}}",
+    "empty": {
+      "active": "No active ingredients yet",
+      "archived": "No archived ingredients"
+    },
+    "tabs": {
+      "ariaLabel": "Inventory tabs",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "actions": {
+      "create": "Add ingredient",
+      "editFor": "Edit \"{{name}}\"",
+      "archiveFor": "Archive \"{{name}}\"",
+      "restoreFor": "Restore \"{{name}}\"",
+      "historyFor": "History for \"{{name}}\"",
+      "restockFor": "Restock \"{{name}}\"",
+      "correctFor": "Correct \"{{name}}\"",
+      "markPresentFor": "Mark \"{{name}}\" present",
+      "markAbsentFor": "Mark \"{{name}}\" absent",
+      "cancel": "Cancel"
+    },
+    "presence": {
+      "present": "In stock",
+      "absent": "Out of stock"
+    },
+    "units": {
+      "gram": "g",
+      "kilogram": "kg",
+      "milliliter": "ml",
+      "liter": "l",
+      "piece": "pcs"
+    },
+    "lowStock": {
+      "label": "Low stock"
+    },
+    "form": {
+      "createTitle": "New ingredient",
+      "editTitle": "Edit ingredient",
+      "nameLabel": "Name",
+      "trackingModeLabel": "Tracking mode",
+      "trackingModeQuantity": "Quantity",
+      "trackingModePresence": "Presence",
+      "amountLabel": "Amount",
+      "unitLabel": "Unit",
+      "unitG": "g",
+      "unitKg": "kg",
+      "unitMl": "ml",
+      "unitL": "l",
+      "unitPieces": "pcs",
+      "lowStockThresholdLabel": "Low-stock threshold (optional)",
+      "presentInitiallyLabel": "Present initially",
+      "submitCreate": "Create",
+      "submitEdit": "Save changes"
+    },
+    "archiveDialog": {
+      "title": "Archive ingredient",
+      "message": "Archive \"{{name}}\"? You can restore it later.",
+      "confirm": "Archive",
+      "cancel": "Cancel"
+    },
+    "restockDialog": {
+      "title": "Restock \"{{name}}\"",
+      "submit": "Restock"
+    },
+    "correctionDialog": {
+      "title": "Correct \"{{name}}\"",
+      "amountLabel": "Actual amount",
+      "reasonLabel": "Reason for correction",
+      "submit": "Save correction"
+    },
+    "errors": {
+      "invalidName": "Enter an ingredient name",
+      "invalidTrackingMode": "Choose a tracking mode",
+      "invalidBaseUnit": "Unsupported unit of measure",
+      "invalidQuantity": "Quantity must be a number of at least zero",
+      "invalidPresence": "Invalid presence value",
+      "invalidLowStockThreshold": "Low-stock threshold must be a number of at least zero",
+      "invalidUnit": "Choose a unit of measure",
+      "invalidAmount": "Enter a valid amount (a number of at least zero)",
+      "invalidReason": "Provide a reason for the correction",
+      "ingredientArchived": "This ingredient is archived"
+    },
+    "history": {
+      "title": "Inventory movement history",
+      "backToInventory": "Back to inventory",
+      "loading": "Loading history…",
+      "error": "Failed to load history",
+      "empty": "No history yet",
+      "transition": "{{from}} → {{to}}",
+      "noteLabel": "Note: {{note}}",
+      "filter": {
+        "label": "Filter by ingredient",
+        "all": "All ingredients"
+      },
+      "type": {
+        "restock": "Restock",
+        "cooking": "Cooking",
+        "correction": "Correction",
+        "archive_adjustment": "Archive adjustment"
+      }
+    }
+  }
+}
