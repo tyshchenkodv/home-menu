@@ -9,27 +9,14 @@ import Typography from '@mui/material/Typography';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { convertToBaseUnit } from '../../../domain/inventory/convertToBaseUnit';
-import { InventoryDomainError } from '../../../domain/inventory/errors';
-import { inputUnitsForBaseUnit } from '../../../domain/inventory/inputUnitsForBaseUnit';
-import type { BaseUnit, InputUnit } from '../../../domain/inventory/types';
-import { resolveErrorTranslationKey } from '../errorMessages';
-
-const UNIT_LABEL_KEY: Record<InputUnit, string> = {
-  g: 'inventory.form.unitG',
-  kg: 'inventory.form.unitKg',
-  ml: 'inventory.form.unitMl',
-  l: 'inventory.form.unitL',
-  pieces: 'inventory.form.unitPieces',
-};
-
-interface CorrectionDialogProps {
-  open: boolean;
-  ingredientName: string;
-  baseUnit: BaseUnit;
-  onCancel: () => void;
-  onSubmit: (exactBalance: number, reason: string) => Promise<void>;
-}
+import { convertToBaseUnit } from '../../../../domain/inventory/convertToBaseUnit';
+import { InventoryDomainError } from '../../../../domain/inventory/errors';
+import { inputUnitsForBaseUnit } from '../../../../domain/inventory/inputUnitsForBaseUnit';
+import type { InputUnit } from '../../../../domain/inventory/types';
+import { UNIT_LABEL_KEY } from '../../constants/unitLabelKey';
+import { resolveErrorTranslationKey } from '../../errorMessages';
+import type { CorrectionDialogProps } from '../../types/correctionDialogProps';
+import { styles } from './styles';
 
 /**
  * Correction dialog: an exact observed balance (amount + unit, same family
@@ -87,7 +74,7 @@ export const CorrectionDialog = ({ open, ingredientName, baseUnit, onCancel, onS
         {t('inventory.correctionDialog.title', { name: ingredientName })}
       </DialogTitle>
       <DialogContent>
-        <Stack spacing={2} sx={{ pt: 1 }}>
+        <Stack spacing={2} sx={styles.content}>
           <Stack direction="row" spacing={2}>
             <TextField
               label={t('inventory.correctionDialog.amountLabel')}
@@ -105,7 +92,7 @@ export const CorrectionDialog = ({ open, ingredientName, baseUnit, onCancel, onS
                 setInputUnit(event.target.value as InputUnit);
               }}
               slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-              sx={{ minWidth: 96 }}
+              sx={styles.unitField}
             >
               {units.map(unit => (
                 <option key={unit} value={unit}>

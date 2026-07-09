@@ -1,14 +1,7 @@
 import Stack from '@mui/material/Stack';
 
-import type { BaseUnit } from '../../../domain/inventory/types';
-import type { InventoryMovementWithId } from '../../../shared/types/inventoryMovement';
-import { MovementListItem } from './MovementListItem';
-
-interface MovementListProps {
-  movements: InventoryMovementWithId[];
-  /** Maps an ingredient id to its current base unit, for formatting quantity movements. */
-  baseUnitByIngredientId: ReadonlyMap<string, BaseUnit>;
-}
+import type { MovementListProps } from '../../types/movementListProps';
+import { MovementListItem } from './components/MovementListItem/MovementListItem';
 
 /** Mobile-first stack of movement cards for the ready state. */
 export const MovementList = ({ movements, baseUnitByIngredientId }: MovementListProps) => (

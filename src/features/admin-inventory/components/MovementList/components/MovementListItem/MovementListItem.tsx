@@ -4,21 +4,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 
-import type { BaseUnit } from '../../../domain/inventory/types';
-import type { InventoryMovementWithId } from '../../../shared/types/inventoryMovement';
-import type { IngredientDisplayUnit } from '../types/ingredientDisplay';
-
-interface MovementListItemProps {
-  movement: InventoryMovementWithId;
-  /** The ingredient's current base unit, looked up by `movement.ingredientId`, or `null` when unresolvable. */
-  baseUnit: BaseUnit | null;
-}
-
-const UNIT_KEY_BY_BASE_UNIT: Partial<Record<BaseUnit, IngredientDisplayUnit>> = {
-  gram: 'gram',
-  milliliter: 'milliliter',
-  piece: 'piece',
-};
+import { UNIT_KEY_BY_BASE_UNIT } from '../../../../constants/unitKeyByBaseUnit';
+import type { MovementListItemProps } from '../../../../types/movementListItemProps';
+import { styles } from './styles';
 
 const signedAmountFormatter = new Intl.NumberFormat(undefined, { signDisplay: 'exceptZero' });
 
@@ -58,12 +46,8 @@ export const MovementListItem = ({ movement, baseUnit }: MovementListItemProps) 
     <Card variant="outlined">
       <CardContent>
         <Stack spacing={0.5}>
-          <Stack
-            direction="row"
-            spacing={1}
-            sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}
-          >
-            <Typography variant="h2" sx={{ fontSize: '1rem' }}>
+          <Stack direction="row" spacing={1} sx={styles.header}>
+            <Typography variant="h2" sx={styles.title}>
               {movement.ingredientName}
             </Typography>
             <Typography color="text.secondary">{t(`inventory.history.type.${movement.type}`)}</Typography>

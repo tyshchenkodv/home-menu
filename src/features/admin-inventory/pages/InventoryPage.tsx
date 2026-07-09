@@ -13,19 +13,20 @@ import {
 } from '../../../infrastructure/firebase/services/ingredientService';
 import type { IngredientWithId } from '../../../shared/types/ingredient';
 import { useAuth } from '../../auth/useAuth';
-import { ArchiveConfirmDialog } from '../components/ArchiveConfirmDialog';
-import { CorrectionDialog } from '../components/CorrectionDialog';
-import { EmptyState } from '../components/EmptyState';
-import { ErrorState } from '../components/ErrorState';
-import { IngredientFormDialog } from '../components/IngredientFormDialog';
-import { IngredientList } from '../components/IngredientList';
-import { InventoryTabs } from '../components/InventoryTabs';
-import { LoadingState } from '../components/LoadingState';
-import { RestockDialog } from '../components/RestockDialog';
+import { ArchiveConfirmDialog } from '../components/ArchiveConfirmDialog/ArchiveConfirmDialog';
+import { CorrectionDialog } from '../components/CorrectionDialog/CorrectionDialog';
+import { EmptyState } from '../components/EmptyState/EmptyState';
+import { ErrorState } from '../components/ErrorState/ErrorState';
+import { IngredientFormDialog } from '../components/IngredientFormDialog/IngredientFormDialog';
+import { IngredientList } from '../components/IngredientList/IngredientList';
+import { InventoryTabs } from '../components/InventoryTabs/InventoryTabs';
+import { LoadingState } from '../components/LoadingState/LoadingState';
+import { RestockDialog } from '../components/RestockDialog/RestockDialog';
 import { useIngredients } from '../hooks/useIngredients';
 import { useInventoryCommands } from '../hooks/useInventoryCommands';
 import type { IngredientFormSubmitPayload } from '../types/ingredientFormSubmitPayload';
 import type { InventoryTab } from '../types/inventoryTab';
+import { styles } from './InventoryPage.styles';
 
 type DialogState = { mode: 'create' } | { mode: 'edit'; ingredient: IngredientWithId };
 
@@ -110,8 +111,8 @@ export const InventoryPage = () => {
   };
 
   return (
-    <Stack spacing={2} sx={{ p: 2 }}>
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+    <Stack spacing={2} sx={styles.page}>
+      <Stack direction="row" sx={styles.header}>
         <Typography variant="h1">{t('nav.inventory')}</Typography>
         <Button
           variant="contained"

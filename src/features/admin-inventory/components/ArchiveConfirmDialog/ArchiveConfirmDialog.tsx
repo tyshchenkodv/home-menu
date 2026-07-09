@@ -6,12 +6,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import { useTranslation } from 'react-i18next';
 
-interface ArchiveConfirmDialogProps {
-  open: boolean;
-  ingredientName: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}
+import type { ArchiveConfirmDialogProps } from '../../types/archiveConfirmDialogProps';
 
 /** Confirmation dialog required before archiving an ingredient. */
 export const ArchiveConfirmDialog = ({ open, ingredientName, onConfirm, onCancel }: ArchiveConfirmDialogProps) => {

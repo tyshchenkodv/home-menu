@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Navigate } from 'react-router-dom';
 
 import { signInWithGoogle } from '../../infrastructure/firebase/authAdapter';
+import { styles } from './LoginPage.styles';
 import { useAuth } from './useAuth';
 
 export const LoginPage = () => {
@@ -35,7 +36,7 @@ export const LoginPage = () => {
   };
 
   return (
-    <Stack spacing={2} sx={{ py: 8, alignItems: 'center', justifyContent: 'center' }}>
+    <Stack spacing={2} sx={styles.container}>
       <Typography variant="h1">{t('auth.login.title')}</Typography>
       <Button variant="contained" onClick={() => void handleSignIn()} disabled={isSigningIn}>
         {isSigningIn ? (

@@ -7,13 +7,14 @@ import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 
 import type { BaseUnit } from '../../../domain/inventory/types';
-import { EmptyState } from '../components/EmptyState';
-import { ErrorState } from '../components/ErrorState';
-import { IngredientFilter } from '../components/IngredientFilter';
-import { LoadingState } from '../components/LoadingState';
-import { MovementList } from '../components/MovementList';
+import { EmptyState } from '../components/EmptyState/EmptyState';
+import { ErrorState } from '../components/ErrorState/ErrorState';
+import { IngredientFilter } from '../components/IngredientFilter/IngredientFilter';
+import { LoadingState } from '../components/LoadingState/LoadingState';
+import { MovementList } from '../components/MovementList/MovementList';
 import { useAllIngredients } from '../hooks/useAllIngredients';
 import { useInventoryMovements } from '../hooks/useInventoryMovements';
+import { styles } from './InventoryHistoryPage.styles';
 
 /**
  * Append-only inventory movement history: an ingredient filter (preselected
@@ -70,8 +71,8 @@ export const InventoryHistoryPage = () => {
   };
 
   return (
-    <Stack spacing={2} sx={{ p: 2 }}>
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+    <Stack spacing={2} sx={styles.page}>
+      <Stack direction="row" sx={styles.header}>
         <Typography variant="h1">{t('inventory.history.title')}</Typography>
         <Button component={RouterLink} to="/admin/inventory" startIcon={<ArrowBackIcon />}>
           {t('inventory.history.backToInventory')}

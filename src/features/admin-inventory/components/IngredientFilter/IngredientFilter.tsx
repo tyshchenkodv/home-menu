@@ -1,13 +1,8 @@
 import TextField from '@mui/material/TextField';
 import { useTranslation } from 'react-i18next';
 
-import type { IngredientWithId } from '../../../shared/types/ingredient';
-
-interface IngredientFilterProps {
-  ingredients: IngredientWithId[];
-  value: string;
-  onChange: (ingredientId: string) => void;
-}
+import type { IngredientFilterProps } from '../../types/ingredientFilterProps';
+import { styles } from './styles';
 
 /** Native select narrowing the history list to one ingredient (active or archived), or all ingredients. */
 export const IngredientFilter = ({ ingredients, value, onChange }: IngredientFilterProps) => {
@@ -22,7 +17,7 @@ export const IngredientFilter = ({ ingredients, value, onChange }: IngredientFil
         onChange(event.target.value);
       }}
       slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-      sx={{ minWidth: 220 }}
+      sx={styles.select}
     >
       <option value="">{t('inventory.history.filter.all')}</option>
       {ingredients.map(ingredient => (

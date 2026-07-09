@@ -8,6 +8,8 @@ import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 
+import { styles } from './AdminHomePage.styles';
+
 /**
  * Minimal administrator shell: a title plus navigation cards to the
  * inventory feature. Deliberately does not imply dishes, orders, or any
@@ -17,17 +19,17 @@ export const AdminHomePage = () => {
   const { t } = useTranslation();
 
   return (
-    <Stack spacing={2} sx={{ p: 2, maxWidth: 480 }}>
+    <Stack spacing={2} sx={styles.page}>
       <Typography variant="h1">{t('nav.admin')}</Typography>
       <Typography color="text.secondary">{t('adminHome.description')}</Typography>
 
       <Card variant="outlined">
         <CardActionArea component={RouterLink} to="/admin/inventory">
           <CardContent>
-            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={2} sx={styles.cardRow}>
               <InventoryIcon color="primary" />
               <Stack>
-                <Typography variant="h2" sx={{ fontSize: '1.125rem' }}>
+                <Typography variant="h2" sx={styles.cardTitle}>
                   {t('adminHome.inventoryCardTitle')}
                 </Typography>
                 <Typography color="text.secondary">{t('adminHome.inventoryCardDescription')}</Typography>
@@ -40,10 +42,10 @@ export const AdminHomePage = () => {
       <Card variant="outlined">
         <CardActionArea component={RouterLink} to="/admin/inventory/history">
           <CardContent>
-            <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={2} sx={styles.cardRow}>
               <HistoryIcon color="primary" />
               <Stack>
-                <Typography variant="h2" sx={{ fontSize: '1.125rem' }}>
+                <Typography variant="h2" sx={styles.cardTitle}>
                   {t('adminHome.historyCardTitle')}
                 </Typography>
                 <Typography color="text.secondary">{t('adminHome.historyCardDescription')}</Typography>

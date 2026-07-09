@@ -10,27 +10,14 @@ import type { KeyboardEvent } from 'react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { convertToBaseUnit } from '../../../domain/inventory/convertToBaseUnit';
-import { InventoryDomainError } from '../../../domain/inventory/errors';
-import { inputUnitsForBaseUnit } from '../../../domain/inventory/inputUnitsForBaseUnit';
-import type { BaseUnit, InputUnit } from '../../../domain/inventory/types';
-import { resolveErrorTranslationKey } from '../errorMessages';
-
-const UNIT_LABEL_KEY: Record<InputUnit, string> = {
-  g: 'inventory.form.unitG',
-  kg: 'inventory.form.unitKg',
-  ml: 'inventory.form.unitMl',
-  l: 'inventory.form.unitL',
-  pieces: 'inventory.form.unitPieces',
-};
-
-interface RestockDialogProps {
-  open: boolean;
-  ingredientName: string;
-  baseUnit: BaseUnit;
-  onCancel: () => void;
-  onSubmit: (deltaQuantity: number) => Promise<void>;
-}
+import { convertToBaseUnit } from '../../../../domain/inventory/convertToBaseUnit';
+import { InventoryDomainError } from '../../../../domain/inventory/errors';
+import { inputUnitsForBaseUnit } from '../../../../domain/inventory/inputUnitsForBaseUnit';
+import type { InputUnit } from '../../../../domain/inventory/types';
+import { UNIT_LABEL_KEY } from '../../constants/unitLabelKey';
+import { resolveErrorTranslationKey } from '../../errorMessages';
+import type { RestockDialogProps } from '../../types/restockDialogProps';
+import { styles } from './styles';
 
 /** Restock dialog: an amount + unit consistent with the ingredient's base unit family, converted to a canonical positive delta. */
 export const RestockDialog = ({ open, ingredientName, baseUnit, onCancel, onSubmit }: RestockDialogProps) => {
@@ -87,7 +74,7 @@ export const RestockDialog = ({ open, ingredientName, baseUnit, onCancel, onSubm
         {t('inventory.restockDialog.title', { name: ingredientName })}
       </DialogTitle>
       <DialogContent>
-        <Stack direction="row" spacing={2} sx={{ pt: 1 }} onKeyDown={handleKeyDown}>
+        <Stack direction="row" spacing={2} sx={styles.fieldsRow} onKeyDown={handleKeyDown}>
           <TextField
             label={t('inventory.form.amountLabel')}
             value={amountText}
@@ -104,7 +91,7 @@ export const RestockDialog = ({ open, ingredientName, baseUnit, onCancel, onSubm
               setInputUnit(event.target.value as InputUnit);
             }}
             slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-            sx={{ minWidth: 96 }}
+            sx={styles.unitField}
           >
             {units.map(unit => (
               <option key={unit} value={unit}>
@@ -114,7 +101,7 @@ export const RestockDialog = ({ open, ingredientName, baseUnit, onCancel, onSubm
           </TextField>
         </Stack>
         {errorKey && (
-          <Typography color="error" sx={{ mt: 2 }}>
+          <Typography color="error" sx={styles.error}>
             {t(errorKey)}
           </Typography>
         )}

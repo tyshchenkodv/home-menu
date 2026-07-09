@@ -14,23 +14,11 @@ import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink } from 'react-router-dom';
 
-import { isLowStock } from '../../../domain/inventory/isLowStock';
-import type { IngredientWithId } from '../../../shared/types/ingredient';
-import type { InventoryTab } from '../types/inventoryTab';
-import { formatIngredientQuantity } from '../utils/formatIngredientQuantity';
-import { LowStockChip } from './LowStockChip';
-
-interface IngredientCardProps {
-  ingredient: IngredientWithId;
-  tab: InventoryTab;
-  onEdit: (ingredient: IngredientWithId) => void;
-  onArchive: (ingredient: IngredientWithId) => void;
-  onRestore: (ingredient: IngredientWithId) => void;
-  onRestock: (ingredient: IngredientWithId) => void;
-  onCorrect: (ingredient: IngredientWithId) => void;
-  onMarkPresent: (ingredient: IngredientWithId) => void;
-  onMarkAbsent: (ingredient: IngredientWithId) => void;
-}
+import { isLowStock } from '../../../../../../domain/inventory/isLowStock';
+import type { IngredientCardProps } from '../../../../types/ingredientCardProps';
+import { formatIngredientQuantity } from '../../../../utils/formatIngredientQuantity';
+import { LowStockChip } from './components/LowStockChip/LowStockChip';
+import { styles } from './styles';
 
 /** One ingredient's mobile-first card: quantity/presence, low-stock chip, and actions. */
 export const IngredientCard = ({
@@ -55,12 +43,12 @@ export const IngredientCard = ({
   return (
     <Card variant="outlined">
       <CardContent>
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" spacing={2} sx={styles.row}>
           <Stack spacing={0.5}>
-            <Typography variant="h2" sx={{ fontSize: '1.125rem' }}>
+            <Typography variant="h2" sx={styles.title}>
               {ingredient.name}
             </Typography>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Stack direction="row" spacing={1} sx={styles.quantityRow}>
               <Typography color="text.secondary">{quantityText}</Typography>
               {isLowStock(ingredient) && <LowStockChip label={t('inventory.lowStock.label')} />}
             </Stack>

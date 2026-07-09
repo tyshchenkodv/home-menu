@@ -3,12 +3,14 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 
+import { styles } from './AuthLoadingState.styles';
+
 /** Shared loading indicator shown while auth state is resolving. */
 export const AuthLoadingState = () => {
   const { t } = useTranslation();
 
   return (
-    <Stack spacing={2} sx={{ py: 8, alignItems: 'center', justifyContent: 'center' }}>
+    <Stack spacing={2} sx={styles.container}>
       <CircularProgress />
       <Typography>{t('common.loading')}</Typography>
     </Stack>

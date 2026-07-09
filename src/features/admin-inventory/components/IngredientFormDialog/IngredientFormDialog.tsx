@@ -12,27 +12,13 @@ import type { KeyboardEvent } from 'react';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { convertToBaseUnit } from '../../../domain/inventory/convertToBaseUnit';
-import { InventoryDomainError } from '../../../domain/inventory/errors';
-import type { InputUnit, TrackingMode } from '../../../domain/inventory/types';
-import { resolveErrorTranslationKey } from '../errorMessages';
-import type { IngredientFormSubmitPayload } from '../types/ingredientFormSubmitPayload';
-
-export type IngredientFormMode = 'create' | 'edit';
-
-export interface IngredientFormInitialValues {
-  name: string;
-  trackingMode: TrackingMode;
-  lowStockThreshold: number | null;
-}
-
-interface IngredientFormDialogProps {
-  open: boolean;
-  mode: IngredientFormMode;
-  initialValues: IngredientFormInitialValues;
-  onCancel: () => void;
-  onSubmit: (payload: IngredientFormSubmitPayload) => Promise<void>;
-}
+import { convertToBaseUnit } from '../../../../domain/inventory/convertToBaseUnit';
+import { InventoryDomainError } from '../../../../domain/inventory/errors';
+import type { InputUnit, TrackingMode } from '../../../../domain/inventory/types';
+import { resolveErrorTranslationKey } from '../../errorMessages';
+import type { IngredientFormDialogProps } from '../../types/ingredientFormDialogProps';
+import type { IngredientFormSubmitPayload } from '../../types/ingredientFormSubmitPayload';
+import { styles } from './styles';
 
 function parseLowStockThreshold(text: string): number | null {
   const trimmed = text.trim();
@@ -164,7 +150,7 @@ export const IngredientFormDialog = ({ open, mode, initialValues, onCancel, onSu
         {t(mode === 'create' ? 'inventory.form.createTitle' : 'inventory.form.editTitle')}
       </DialogTitle>
       <DialogContent>
-        <Stack spacing={2} sx={{ pt: 1 }} onKeyDown={handleKeyDown}>
+        <Stack spacing={2} sx={styles.content} onKeyDown={handleKeyDown}>
           <TextField
             label={t('inventory.form.nameLabel')}
             value={name}
@@ -205,7 +191,7 @@ export const IngredientFormDialog = ({ open, mode, initialValues, onCancel, onSu
                   setInputUnit(event.target.value as InputUnit);
                 }}
                 slotProps={{ select: { native: true }, inputLabel: { shrink: true } }}
-                sx={{ minWidth: 96 }}
+                sx={styles.unitField}
               >
                 <option value="g">{t('inventory.form.unitG')}</option>
                 <option value="kg">{t('inventory.form.unitKg')}</option>

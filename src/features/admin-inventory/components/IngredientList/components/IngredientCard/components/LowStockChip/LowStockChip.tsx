@@ -1,9 +1,7 @@
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Chip from '@mui/material/Chip';
 
-interface LowStockChipProps {
-  label: string;
-}
+import type { LowStockChipProps } from '../../../../../../types/lowStockChipProps';
 
 /**
  * Low-stock indicator. The warning color is paired with an icon and a
