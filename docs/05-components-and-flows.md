@@ -28,10 +28,13 @@ flowchart TD
 
 | Component | Responsibility |
 | --- | --- |
+| `AppHeader` | Persistent banner: brand mascot, wordmark, language and theme controls |
 | `AppShell` | Mobile navigation, title, sign-out, event badges |
 | `RequireAuth` | Wait for Auth and reject unknown or inactive UIDs |
 | `RequireAdmin` | Require the `admin` role |
-| `LanguageSwitcher` | Switch `uk`/`en` and persist the local preference |
+| `LanguageSwitcher` | Switch `uk`/`en` (UK/EN) and persist the local preference |
+| `ColorSchemeToggle` | Toggle binary light↔dark mode and persist it |
+| `CatArt` | Brand cat illustration (`content`/`confused`/`sleeping`, theme-aware) |
 | `AsyncState` | Consistent loading, error, and empty states |
 | `ConfirmDialog` | Confirm destructive or accounting-sensitive operations |
 | `QuantityField` | Quantity, display unit, and canonical-unit conversion |
@@ -41,6 +44,16 @@ flowchart TD
 
 Every visible label, aria-label, validation message, dialog, toast, and empty
 state is translated.
+
+### Theme and design system
+
+The application theme (`src/app/theme.ts`) is derived from the design canon in
+`docs/design/README.md`: MUI CSS-variable `light` and `dark` color schemes
+(default light, user-toggled and persisted), self-hosted Nunito / Nunito Sans
+typography, an 8px spacing base, per-surface radii, and component overrides.
+`AppHeader`, `LanguageSwitcher`, `ColorSchemeToggle`, and `CatArt` live under
+`src/shared/components/` (one component per folder). See the
+`design-system-foundation` specification for scope and follow-ups.
 
 ## User interface
 

@@ -115,14 +115,18 @@ review.
 
 ## Design reference
 
-Before building or changing UI, open `design/Home Menu.html` in a browser.
-It is a Claude-generated visual mockup showing the intended look and feel
-(palette, typography, tone, layout rhythm) — a directional example, not a
-literal spec or component source. Do not scrape markup or styles out of it
-and do not treat it as pixel-accurate. Use it to align Material UI theme
-choices, spacing, and visual tone with the intended product feel; the actual
-implementation still follows this skill's architecture and the UI contract
-below.
+`docs/design/README.md` is the canonical, readable source of design truth:
+the target Material UI theme, palette-to-semantics mapping, typography, spacing,
+radii, status-chip mapping, and screen catalog — all transcribed from the
+mockup. Read it before building or changing UI, and reference `theme.palette.*`
+tokens rather than raw hex.
+
+`design/Home Menu.html` is a **human visual reference only** — a self-contained
+Claude artifact bundle (React + Babel packed into a base64 manifest). A person
+opens it in a browser to feel tone, rhythm, and layout; it cannot be read or
+scraped programmatically and is not pixel-accurate. When it and
+`docs/design/README.md` disagree, the document wins. The actual implementation
+still follows this skill's architecture and the UI contract below.
 
 ## UI contract
 

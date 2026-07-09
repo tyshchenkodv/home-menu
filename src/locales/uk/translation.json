@@ -11,7 +11,11 @@
   "common": {
     "loading": "Завантаження...",
     "error": "Сталася помилка",
-    "empty": "Немає даних"
+    "empty": "Немає даних",
+    "toggleDarkMode": "Перемкнути темну тему",
+    "language": "Мова",
+    "languageUk": "UK",
+    "languageEn": "EN"
   },
   "auth": {
     "login": {
