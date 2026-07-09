@@ -21,4 +21,5 @@ and link it with `Supersedes`.
 
 | Specification | Plan | Status |
 | --- | --- | --- |
+| [Admin inventory foundation](./admin-inventory-foundation/SPEC.md) | [PLAN](./admin-inventory-foundation/PLAN.md) | Implemented |
 | [Agent skill routing](./agent-skill-routing/SPEC.md) | [PLAN](./agent-skill-routing/PLAN.md) | Implemented |
