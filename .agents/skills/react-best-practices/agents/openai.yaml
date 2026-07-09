@@ -1,0 +1,4 @@
+interface:
+  display_name: "React Best Practices"
+  short_description: "Apply Home Menu React SPA best practices"
+  default_prompt: "Use $react-best-practices for Home Menu React implementation and review."

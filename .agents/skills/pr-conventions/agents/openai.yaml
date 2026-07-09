@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Conventions"
+  short_description: "Use Home Menu pull request conventions"
+  default_prompt: "Use $pr-conventions before pushing or opening a Home Menu pull request."

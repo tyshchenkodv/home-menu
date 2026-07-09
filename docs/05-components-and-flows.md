@@ -1,0 +1,188 @@
+# Components and user flows
+
+## Component map
+
+```mermaid
+flowchart TD
+    App["App"] --> I18n["I18nProvider"]
+    I18n --> Auth["AuthProvider"]
+    Auth --> Router["HashRouter"]
+    Router --> Login["LoginPage"]
+    Router --> Protected["RequireAuth"]
+    Protected --> Shell["AppShell"]
+    Shell --> Menu["MenuPage"]
+    Shell --> Mine["MyOrdersPage"]
+    Shell --> Language["LanguageSwitcher"]
+    Protected --> Admin["RequireAdmin"]
+    Admin --> AdminShell["AdminShell"]
+    AdminShell --> Dashboard["AdminDashboardPage"]
+    AdminShell --> Dishes["DishesPage"]
+    AdminShell --> Inventory["InventoryPage"]
+    AdminShell --> History["InventoryHistoryPage"]
+    AdminShell --> Batches["BatchesPage"]
+    AdminShell --> Orders["AdminOrdersPage"]
+    AdminShell --> Settings["SettingsPage"]
+```
+
+## Shared components
+
+| Component | Responsibility |
+| --- | --- |
+| `AppShell` | Mobile navigation, title, sign-out, event badges |
+| `RequireAuth` | Wait for Auth and reject unknown or inactive UIDs |
+| `RequireAdmin` | Require the `admin` role |
+| `LanguageSwitcher` | Switch `uk`/`en` and persist the local preference |
+| `AsyncState` | Consistent loading, error, and empty states |
+| `ConfirmDialog` | Confirm destructive or accounting-sensitive operations |
+| `QuantityField` | Quantity, display unit, and canonical-unit conversion |
+| `DateMealSelector` | Date, meal type, and default/custom time |
+| `StatusChip` | Translate domain status enums |
+| `ErrorBoundary` | Render a localized recovery screen |
+
+Every visible label, aria-label, validation message, dialog, toast, and empty
+state is translated.
+
+## User interface
+
+### `MenuPage`
+
+Contains:
+
+- `DateMealSelector`;
+- `DishAvailabilityList`;
+- `DishCard`;
+- `OrderDialog`.
+
+`useAvailableDishes(date, mealType)` subscribes to dishes, ingredients, and
+prepared batches, then calls a pure availability selector.
+
+`DishCard` displays:
+
+- user-entered dish name and description;
+- translated readiness labels;
+- ready portion count;
+- a reserve action when enough prepared portions exist;
+- a cooking-request action when the recipe can be fulfilled.
+
+Requested quantity defaults to one. Scheduled time defaults to
+`settings/general` but can be changed.
+
+### `MyOrdersPage`
+
+Sections:
+
+- active: future reservations, `pending`, `approved`, `cooking`, `prepared`;
+- history: `consumed`, `cancelled`, `rejected`.
+
+`CancelOrderButton` consumes the result of `canCancelOrder`; it does not
+duplicate status rules in JSX.
+
+## Administrator interface
+
+### `AdminDashboardPage`
+
+Displays:
+
+- new `pending` cooking requests;
+- requests currently in `cooking`;
+- ingredients below their low-stock threshold;
+- expired but undiscarded batches;
+- total ready portions.
+
+### `DishesPage`
+
+- active and archived dish lists;
+- `DishFormDialog`;
+- `RecipeEditor`;
+- multi-select meal types;
+- current `canCook` preview;
+- archive action instead of delete.
+
+A dish may be saved with an empty recipe as a draft, but it does not appear in
+the menu and cannot be cooked.
+
+### `InventoryPage`
+
+- `IngredientFormDialog`;
+- quantity input in g/kg, ml/l, pieces, or presence;
+- `RestockDialog`;
+- `CorrectionDialog` with a required reason;
+- low-stock indicators;
+- affected-dish list.
+
+Snapshot changes automatically recompute availability; no `isActive` document
+field is updated.
+
+### `InventoryHistoryPage`
+
+Read-only filters by ingredient, movement type, and date. Related cooking
+requests and batches are linked.
+
+### `BatchesPage`
+
+- register cooking without a user request;
+- complete a cooking request;
+- show available/reserved/consumed/discarded counters;
+- show expiration warnings;
+- discard available food;
+- sort oldest first.
+
+### `AdminOrdersPage`
+
+Provides a status-filtered list or Kanban view with only valid actions:
+
+- `pending` → approve or reject;
+- `approved` → cooking;
+- `cooking` → completion dialog;
+- administrator correction with confirmation.
+
+### `SettingsPage`
+
+Edits default meal times. It displays `Europe/Kyiv` as a fixed timezone. UI
+language is not a household setting and is changed through `LanguageSwitcher`.
+
+## Prepared-food sequence
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as MenuPage
+    participant Service as Order service
+    participant DB as Firestore transaction
+
+    User->>UI: Select quantity and time
+    UI->>Service: placeReadyOrder(input)
+    Service->>DB: Read dish and oldest batches
+    DB-->>Service: Current counters
+    Service->>DB: Update counters and create order
+    DB-->>UI: Commit
+    UI-->>User: Render translated reserved status
+```
+
+## Cooking-request sequence
+
+```mermaid
+sequenceDiagram
+    actor User
+    actor Admin
+    participant DB as Firestore
+
+    User->>DB: Create pending request
+    DB-->>Admin: Real-time update
+    Admin->>DB: pending → approved → cooking
+    Admin->>DB: Complete with actual yield
+    Note over DB: Transaction updates ingredients,<br/>movements, batch, reservation, order
+    DB-->>User: prepared request and reserved portions
+```
+
+## Form behavior
+
+- Disable submit while a command runs.
+- Prevent duplicate creation.
+- Reject `NaN`, infinity, negative values, and zero where `> 0` is required.
+- Prevent scheduling in the past.
+- Combine date and custom time into one `scheduledFor`.
+- Repeat domain checks in the service layer.
+- Map conflicts to actionable translated messages.
+- Give form controls localized labels while keeping field names and test IDs in
+  English.

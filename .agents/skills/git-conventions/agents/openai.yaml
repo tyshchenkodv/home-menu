@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Conventions"
+  short_description: "Use Home Menu Git safety and commit conventions"
+  default_prompt: "Use $git-conventions before staging or committing Home Menu changes."

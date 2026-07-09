@@ -1,0 +1,4 @@
+interface:
+  display_name: "Home Menu Project"
+  short_description: "Apply repository privacy and language rules"
+  default_prompt: "Use $home-menu-project when changing this repository."

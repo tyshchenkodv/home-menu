@@ -1,0 +1,4 @@
+interface:
+  display_name: "Grill Me"
+  short_description: "Resolve design decisions one question at a time"
+  default_prompt: "Use $grill-me to stress-test this design before specification."

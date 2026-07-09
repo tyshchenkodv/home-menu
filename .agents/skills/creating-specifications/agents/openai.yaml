@@ -1,0 +1,4 @@
+interface:
+  display_name: "Creating Specifications"
+  short_description: "Create Home Menu SDD specifications"
+  default_prompt: "Use $creating-specifications to specify a substantial Home Menu change."

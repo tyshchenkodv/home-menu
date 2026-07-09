@@ -1,0 +1,4 @@
+interface:
+  display_name: "Creating Plans"
+  short_description: "Create approved-spec implementation plans"
+  default_prompt: "Use $creating-plans to plan an approved Home Menu specification."

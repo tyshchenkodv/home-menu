@@ -1,0 +1,4 @@
+interface:
+  display_name: "Frontend Architecture"
+  short_description: "Apply Home Menu frontend boundaries"
+  default_prompt: "Use $frontend-architecture for Home Menu frontend structure."
