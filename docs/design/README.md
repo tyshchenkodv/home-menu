@@ -1,13 +1,14 @@
 # Design system reference
 
 This document is the **machine-readable canon** for Home Menu's visual design.
-It is transcribed from the designer's mockup bundle at `design/Home Menu.html`.
+It is transcribed from the designer's mockup bundle at
+`design/Home Menu (standalone).html`.
 
 ## How to use this
 
 - **`docs/design/README.md` (this file) and `src/app/theme.ts` are the canon.**
   Build and review UI against the tokens and rules recorded here.
-- **`design/Home Menu.html` is a human visual reference only.** It is a
+- **`design/Home Menu (standalone).html` is a human visual reference only.** It is a
   self-contained Claude artifact bundle (React + Babel packed into a base64
   manifest). Open it in a browser to feel the tone, rhythm, and screen layouts.
   Do not try to read or scrape it programmatically, and do not treat it as
@@ -33,7 +34,8 @@ The **design system foundation** slice is implemented (see
   brand mascot, the `app.title` wordmark, a `LanguageSwitcher` (UK/EN), and a
   binary light↔dark `ColorSchemeToggle` (default light, persisted).
 - `CatArt` (`src/shared/components/CatArt/`) provides the faithful multi-color
-  illustrations transcribed from `home-menu-kitchen-inventory-app/CatArt.dc.html`,
+  illustrations (originally transcribed from the design mockup, now maintained
+  directly in that component),
   with variants `idle`, `empty`, `sleeping`, `confused`, and `logo`. The header
   uses `logo`; loading/empty/error states use `sleeping`/`empty`/`confused` via
   the shared `StatePlaceholder`.
@@ -175,7 +177,7 @@ an icon):
 
 The design defines a flat-pastel cat mascot ("Kotyk") as a reusable SVG
 component, addressed as `<CatArt variant size />`. The authoritative SVG source
-is `home-menu-kitchen-inventory-app/CatArt.dc.html`. Variants: `idle` (happy —
+now lives in the component itself (`src/shared/components/CatArt/`). Variants: `idle` (happy —
 headers/success), `empty` (empty states), `sleeping` (loading/skeleton),
 `confused` (error / not-found), and `logo` (the compact brand mark used in the
 `AppHeader`). Implemented at `src/shared/components/CatArt/`.
