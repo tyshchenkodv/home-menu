@@ -34,3 +34,4 @@ and link it with `Supersedes`.
 | [Unified left navigation drawer with sign-out](./navigation-drawer-signout/SPEC.md) | [PLAN](./navigation-drawer-signout/PLAN.md) | Implemented |
 | [Email/password login, no Google Sign-In](./email-password-auth/SPEC.md) | [PLAN](./email-password-auth/PLAN.md) | Implemented |
 | [Menu own-reservation hint](./menu-own-reservation-hint/SPEC.md) | [PLAN](./menu-own-reservation-hint/PLAN.md) | Implemented |
+| [In-app help / FAQ page](./help-faq-page/SPEC.md) | [PLAN](./help-faq-page/PLAN.md) | Plan Approved |

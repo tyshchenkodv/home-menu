@@ -12,6 +12,7 @@ import { AdminOrdersPage } from '../features/admin-orders/pages/AdminOrdersPage'
 import { BatchesPage } from '../features/batches/pages/BatchesPage';
 import { ForbiddenPage } from '../features/errors/ForbiddenPage';
 import { NotFoundPage } from '../features/errors/NotFoundPage';
+import { HelpPage } from '../features/help/pages/HelpPage';
 import { MenuPage } from '../features/menu/pages/MenuPage';
 import { OrdersPage } from '../features/orders/pages/OrdersPage';
 import { SettingsPage } from '../features/settings/pages/SettingsPage';
@@ -33,6 +34,7 @@ export const AppRouter = () => {
           <Route index element={<RootRedirect />} />
           <Route path="/menu" element={<MenuPage />} />
           <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/help" element={<HelpPage />} />
           <Route
             path="/settings"
             element={

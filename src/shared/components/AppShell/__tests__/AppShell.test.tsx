@@ -119,6 +119,7 @@ describe('AppShell', () => {
       expect(screen.getByRole('link', { name: i18n.t('nav.dishes') })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: i18n.t('nav.inventory') })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: i18n.t('nav.batches') })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: i18n.t('nav.help') })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: i18n.t('nav.settings') })).toBeInTheDocument();
     });
 
@@ -138,6 +139,7 @@ describe('AppShell', () => {
 
       expect(screen.getByRole('link', { name: i18n.t('nav.menu') })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: i18n.t('nav.myOrders') })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: i18n.t('nav.help') })).toBeInTheDocument();
       expect(screen.queryByRole('link', { name: i18n.t('nav.settings') })).not.toBeInTheDocument();
     });
 
@@ -197,6 +199,7 @@ describe('AppShell', () => {
       expect(screen.getByRole('link', { name: i18n.t('nav.cookingRequests') })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: i18n.t('nav.batches') })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: i18n.t('nav.dishes') })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: i18n.t('nav.help') })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: i18n.t('nav.settings') })).toBeInTheDocument();
     });
 

@@ -1,4 +1,5 @@
 import Dashboard from '@mui/icons-material/Dashboard';
+import HelpOutline from '@mui/icons-material/HelpOutlineOutlined';
 import Inventory2 from '@mui/icons-material/Inventory2';
 import ReceiptLong from '@mui/icons-material/ReceiptLong';
 import RestaurantMenu from '@mui/icons-material/RestaurantMenu';
@@ -63,6 +64,13 @@ export const navigationDestinations: NavigationDestination[] = [
     labelKey: 'nav.batches',
     Icon: SoupKitchen,
     roles: ['admin'],
+  },
+  {
+    key: 'help',
+    path: '/help',
+    labelKey: 'nav.help',
+    Icon: HelpOutline,
+    roles: ['admin', 'user'],
   },
   {
     key: 'settings',

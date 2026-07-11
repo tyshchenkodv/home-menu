@@ -13,6 +13,7 @@
     "batches": "Available portions",
     "dishes": "Dishes",
     "settings": "Settings",
+    "help": "Help",
     "landmark": "Primary navigation",
     "cookingRequests": "Cooking requests",
     "openMenu": "Open menu"
@@ -587,5 +588,66 @@
     },
     "readyPortions": "Portions ready to reserve",
     "reviewRequests": "Review cooking requests"
+  },
+  "help": {
+    "title": "Help",
+    "intro": {
+      "body": "Home Menu is a shared app for the whole household — it shows what food is already prepared and what can still be cooked. An administrator keeps the dishes and stock up to date, and every household member can browse the menu, reserve a portion, or ask for something to be cooked."
+    },
+    "quickStart": {
+      "title": "Where to start",
+      "steps": {
+        "browseMenu": {
+          "title": "Browse the menu",
+          "body": "Open Menu, pick a date and a meal — breakfast, lunch, or dinner — to see what's available to eat."
+        },
+        "reserveOrRequest": {
+          "title": "Reserve or request cooking",
+          "body": "If a dish is already ready, just reserve a portion. If it isn't yet but there are enough ingredients, send a cooking request instead."
+        },
+        "trackOrder": {
+          "title": "Track your order",
+          "body": "My orders shows the status of every order you've placed. You can cancel it as long as cooking hasn't started yet."
+        },
+        "processRequests": {
+          "title": "Handle the household's requests",
+          "body": "If you're an administrator, review the household's cooking requests in Cooking requests: approve, reject, or mark a request as cooking or prepared."
+        }
+      }
+    },
+    "topics": {
+      "menuBrowse": {
+        "title": "How the menu works",
+        "description": "Every dish in the menu shows a status: Ready now means you can reserve it right away; Can be cooked means there are enough ingredients to send a cooking request; Unavailable means nothing is ready and there isn't enough in stock; Not configured means the dish has no recipe yet. Pick a date and a meal, then reserve a portion or ask for the dish to be cooked."
+      },
+      "myOrders": {
+        "title": "My orders",
+        "description": "My orders lists your active orders and your past ones. You can still cancel an order as long as cooking hasn't started — after that, cancelling is no longer possible."
+      },
+      "languageAndTheme": {
+        "title": "Language and appearance",
+        "description": "From the navigation menu you can switch the app's language between Ukrainian and English, and choose light or dark appearance, whenever you like."
+      },
+      "cookingRequests": {
+        "title": "Cooking requests (administrator)",
+        "description": "An administrator sees every household request on a board: approve a request, reject it with a note, then mark it as cooking and, once it's done, as prepared."
+      },
+      "dishesAndRecipes": {
+        "title": "Dishes and recipes (administrator)",
+        "description": "In Dishes, an administrator adds new dishes, edits existing ones, and sets the recipe — how much of each ingredient is needed for one standard cooking batch."
+      },
+      "inventoryAndStock": {
+        "title": "Inventory and stock (administrator)",
+        "description": "In Inventory, an administrator sees how much of everything is on hand, adds new stock, corrects amounts when needed, and reviews the history of every change."
+      },
+      "preparedBatches": {
+        "title": "Available portions (administrator)",
+        "description": "In Available portions, an administrator registers how much of a dish was actually cooked, and discards portions that have gone bad or passed their best-before date."
+      },
+      "mealTimeSettings": {
+        "title": "Meal time settings (administrator)",
+        "description": "In Settings, an administrator sets the usual times for breakfast, lunch, and dinner, which apply to new requests."
+      }
+    }
   }
 }

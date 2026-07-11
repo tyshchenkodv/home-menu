@@ -6,7 +6,7 @@ describe('selectDestinations', () => {
   it('returns the full ordered destination set for admin', () => {
     const keys = selectDestinations('admin').map(destination => destination.key);
 
-    expect(keys).toEqual(['menu', 'admin', 'orders', 'dishes', 'inventory', 'batches', 'settings']);
+    expect(keys).toEqual(['menu', 'admin', 'orders', 'dishes', 'inventory', 'batches', 'help', 'settings']);
   });
 
   it('uses the catalog drawer label keys for the dashboard and admin-orders destinations', () => {
@@ -21,7 +21,7 @@ describe('selectDestinations', () => {
   it('returns exactly Menu and My orders for user', () => {
     const keys = selectDestinations('user').map(destination => destination.key);
 
-    expect(keys).toEqual(['menu', 'myOrders']);
+    expect(keys).toEqual(['menu', 'myOrders', 'help']);
   });
 
   it('never leaks a destination to a role it does not list', () => {
