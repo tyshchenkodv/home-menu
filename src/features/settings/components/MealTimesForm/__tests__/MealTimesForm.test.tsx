@@ -26,7 +26,6 @@ const renderForm = (props: Partial<React.ComponentProps<typeof MealTimesForm>> =
           hasNeverBeenSaved={false}
           isSaving={false}
           error={null}
-          isLoading={false}
           onSave={mockOnSave}
           {...props}
         />
@@ -48,13 +47,6 @@ describe('MealTimesForm', () => {
     expect(screen.getByLabelText('Вечеря')).toBeInTheDocument();
   });
 
-  it('renders loading state with spinner and text', () => {
-    renderForm({ isLoading: true });
-
-    expect(screen.getByText('Завантаження…')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
-  });
-
   it('shows never-saved banner when hasNeverBeenSaved is true', () => {
     renderForm({ hasNeverBeenSaved: true });
 
@@ -73,7 +65,6 @@ describe('MealTimesForm', () => {
             hasNeverBeenSaved={true}
             isSaving={false}
             error={null}
-            isLoading={false}
             onSave={vi.fn()}
           />
         </ThemeProvider>

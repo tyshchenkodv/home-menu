@@ -59,7 +59,7 @@ export const MenuPage = () => {
   const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
-    void getGeneralSettings().then(settings => {
+    void getGeneralSettings().then(({ settings }) => {
       setMealTimes(settings.defaultMealTimes);
     });
   }, [retryToken]);

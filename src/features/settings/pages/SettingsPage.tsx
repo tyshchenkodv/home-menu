@@ -1,3 +1,5 @@
+import CircularProgress from '@mui/material/CircularProgress';
+import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
@@ -32,14 +34,25 @@ export const SettingsPage = () => {
         <Typography variant="h2" sx={styles.sectionTitle}>
           {t('settings.mealTimes.title')}
         </Typography>
-        <MealTimesForm
-          initialTimes={settings.defaultMealTimes}
-          hasNeverBeenSaved={hasNeverBeenSaved}
-          isSaving={isSaving}
-          error={error}
-          isLoading={status === 'loading'}
-          onSave={handleSave}
-        />
+        {status === 'loading' ? (
+          <Paper sx={styles.loadingCard}>
+            <Stack spacing={1} sx={styles.loadingStack}>
+              <CircularProgress size={40} />
+              <Typography>{t('settings.loading')}</Typography>
+            </Stack>
+          </Paper>
+        ) : (
+          // Mounted only once the load has settled, so MealTimesForm seeds its
+          // field state from the real persisted times (not the loading-state
+          // defaults) — no remount key or post-mount sync needed.
+          <MealTimesForm
+            initialTimes={settings.defaultMealTimes}
+            hasNeverBeenSaved={hasNeverBeenSaved}
+            isSaving={isSaving}
+            error={error}
+            onSave={handleSave}
+          />
+        )}
       </Stack>
     </Stack>
   );

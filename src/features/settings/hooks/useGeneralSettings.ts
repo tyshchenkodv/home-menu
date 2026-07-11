@@ -38,15 +38,11 @@ export const useGeneralSettings = (): UseGeneralSettingsResult & {
   useEffect(() => {
     const load = async () => {
       try {
-        const loaded = await getGeneralSettings();
+        const { settings: loaded, exists } = await getGeneralSettings();
         setSettings(loaded);
         setStatus('ready');
         setError(null);
-        // We have no way to know if the doc exists from getGeneralSettings alone,
-        // but we can infer: if loaded matches defaults exactly, it's likely never saved.
-        // For MVP, we'll mark it as never-saved only if a flag is explicitly set elsewhere.
-        // For now, assume if we got here without error, it was saved.
-        setHasNeverBeenSaved(false);
+        setHasNeverBeenSaved(!exists);
       } catch (err) {
         setStatus('error');
         setError(err instanceof Error ? err : new Error(String(err)));

@@ -38,17 +38,18 @@ beforeEach(() => {
 });
 
 describe('getGeneralSettings', () => {
-  it('falls back to the documented defaults when settings/general does not exist', async () => {
+  it('falls back to the documented defaults and reports exists:false when settings/general does not exist', async () => {
     mockGetDoc.mockResolvedValue({ exists: () => false, data: () => undefined });
 
-    const settings = await getGeneralSettings();
+    const { settings, exists } = await getGeneralSettings();
 
+    expect(exists).toBe(false);
     expect(settings).toEqual(DEFAULT_GENERAL_SETTINGS);
     expect(settings.defaultMealTimes).toEqual({ breakfast: '08:00', lunch: '13:00', dinner: '19:00' });
     expect(settings.timezone).toBe('Europe/Kyiv');
   });
 
-  it('returns the persisted meal times when the document exists', async () => {
+  it('returns the persisted meal times and reports exists:true when the document exists', async () => {
     mockGetDoc.mockResolvedValue({
       exists: () => true,
       data: () => ({
@@ -59,8 +60,9 @@ describe('getGeneralSettings', () => {
       }),
     });
 
-    const settings = await getGeneralSettings();
+    const { settings, exists } = await getGeneralSettings();
 
+    expect(exists).toBe(true);
     expect(settings).toEqual({
       timezone: 'Europe/Kyiv',
       defaultMealTimes: { breakfast: '07:30', lunch: '12:30', dinner: '18:30' },
