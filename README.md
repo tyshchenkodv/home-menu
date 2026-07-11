@@ -16,8 +16,11 @@ Firestore provide the backend on the Firebase Spark plan.
 
 ## Status
 
-This repository currently contains the agreed technical specification and
-project-local agent tooling. Application code has not been scaffolded yet.
+The React single-page application is scaffolded, and the admin inventory
+workflow (authentication guard, ingredient CRUD, restock/correction/presence
+transactions, and movement history) is implemented. Firestore security-rule
+tests are written but not yet run in this environment; see
+[Local development](#local-development) for the Java prerequisite.
 
 ## Planned stack
 
@@ -26,7 +29,7 @@ project-local agent tooling. Application code has not been scaffolded yet.
 - React Router with `HashRouter`
 - `i18next` and `react-i18next`
 - Ukrainian (`uk`) and English (`en`) UI; Ukrainian is the default
-- Firebase Authentication with Google Sign-In
+- Firebase Authentication with email/password sign-in, no self-registration
 - Cloud Firestore
 - Vitest, React Testing Library, Firebase Emulator Suite, and Playwright
 - GitHub Actions and GitHub Pages
@@ -46,29 +49,35 @@ project-local agent tooling. Application code has not been scaffolded yet.
 
 ### Prerequisites
 
-- Node.js version defined by the future `.nvmrc`
+- Node.js version pinned in `.nvmrc` (currently 26; `firebase-tools` officially
+  supports Node 20, 22, and 24, so the emulator CLI may warn on 26)
 - npm
-- Java 21 or another version supported by the Firebase Emulator Suite
+- Docker, for the containerized Firebase Emulator Suite (no local Java
+  needed); alternatively Java 21+ if you prefer running the emulators
+  directly via `npm run test:rules`
 - A Firebase project for manual cloud testing, or the local Emulator Suite
 
 ### Install and run
-
-After the React application is scaffolded:
 
 ```bash
 npm ci
 npm run dev
 ```
 
-Expected quality commands:
+Verified quality commands:
 
 ```bash
-npm run format:check
-npm run lint
-npm run typecheck
-npm test
-npm run test:rules
-npm run build
+npm run dev          # start the local dev server
+npm run build        # type-check and produce a production build
+npm run format:check # Prettier check
+npm run format       # Prettier write
+npm run lint         # ESLint, zero warnings allowed
+npm run typecheck    # tsc -b --noEmit
+npm test             # Vitest unit and component tests
+npm run test:rules   # Firestore emulator Rules tests, requires local Java 21+
+npm run emulators    # start Dockerized Firestore + Auth emulators
+npm run test:rules:docker # Rules tests against the Docker emulators
+npm run emulators:stop    # stop the Docker emulators
 ```
 
 ### Firebase configuration
@@ -77,10 +86,10 @@ Do not commit local environment files or Firebase credentials. Create an
 ignored `.env.local` on your machine with your own Firebase Web App values:
 
 ```text
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_API_KEY=your-api-key
+VITE_FIREBASE_AUTH_DOMAIN=your-auth-domain
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_APP_ID=your-app-id
 ```
 
 Firebase web configuration identifies a project and is not an administrative
@@ -91,17 +100,75 @@ emails, and real UIDs must never enter Git history.
 For most development and all security-rule tests, prefer the Firebase Emulator
 Suite.
 
+### Fully local development with Docker emulators
+
+No real Firebase project is required. Start the containerized emulators and
+point the app at them with an ignored `.env.local` (the `demo-` project id
+keeps everything offline):
+
+```text
+VITE_FIREBASE_API_KEY=demo-api-key
+VITE_FIREBASE_AUTH_DOMAIN=localhost
+VITE_FIREBASE_PROJECT_ID=demo-home-menu
+VITE_FIREBASE_APP_ID=demo-app-id
+VITE_USE_EMULATORS=true
+```
+
+```bash
+npm run emulators   # Firestore :8080, Auth :9099, Emulator UI :4000
+npm run dev
+```
+
+Create a fake emulator account (email + password) in the Auth Emulator UI,
+sign in on `/login` (you will land on the not-activated screen — expected for
+an unprovisioned account), then set the account's custom claims as described
+below and sign in again. See `docker/firebase-emulators/README.md`.
+
+### Provisioning a user (custom claims)
+
+There is no Google Sign-In and no self-service account creation: the owner
+creates every Firebase Auth account by hand (email + password) and grants
+access with custom claims. Authorization state — `role` (`admin` | `user`)
+and `isActive` — lives in Firebase Auth **custom claims** on the ID token, not
+in a Firestore document. An account with no `role` claim, or `isActive !==
+true`, is not provisioned: the app keeps the session and shows a
+not-activated screen, and Security Rules deny all data access.
+
+There is currently no bundled CLI for this: call the Firebase Admin SDK's
+`getAuth().setCustomUserClaims(uid, { role, isActive })` yourself, for example
+from a short ad hoc Node script using `firebase-admin`, against the emulator
+(`FIREBASE_AUTH_EMULATOR_HOST=localhost:9099`) locally or a service-account
+key (`GOOGLE_APPLICATION_CREDENTIALS`, never committed) in production. A
+dedicated `scripts/setUserRole.mjs` wrapper is planned — see
+`docs/specifications/auth-custom-claims-migration/PLAN.md` (task T2.2) — but
+not yet implemented.
+
+**Re-login required:** claims only take effect on the next ID token refresh.
+An already signed-in user must sign out and back in (or the client must call
+`getIdToken(true)`) to pick up a changed role.
+
+**Bootstrapping the first admin:** the owner sets custom claims in production
+mode with their own service-account key. Because the Admin SDK bypasses
+Security Rules, this works even before any account has a role claim.
+
+Use your own project's real `uid`/email only in your local environment; never
+commit a real `uid`, email, or service-account key to this repository.
+
 ## Create your own deployment
 
 1. Fork this repository.
 2. Create a Firebase project on the no-cost Spark plan.
-3. Enable Google Sign-In and create Firestore.
+3. Enable Authentication with Email/Password and disable self-signup
+   (Authentication → Settings → disable "Enable create (sign-up)"), then
+   create Firestore.
 4. Configure GitHub Actions variables with your Firebase Web App values.
 5. Store the deployment service-account credential only in GitHub Secrets.
 6. Enable GitHub Pages with GitHub Actions as the source.
 7. Deploy the Firestore rules and indexes.
-8. Sign in once, then create your own `users/{uid}` documents in Firebase
-   Console with `admin` and `user` roles.
+8. Create each real household account directly in Firebase Auth (email +
+   password), then set custom claims (`role`, `isActive`) for each one with
+   your own service-account key, starting with your own admin account (see
+   "Provisioning a user" above).
 
 Never reuse the original author's Firebase project or identity data. Detailed
 instructions are in the [deployment guide](docs/08-deployment.md).

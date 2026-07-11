@@ -1,0 +1,589 @@
+rules_version = '2';
+
+// See docs/06-auth-and-security.md ("Security Rules concepts",
+// "Permission matrix") and docs/03-data-model.md for the shapes and
+// invariants this file enforces. Deny by default; every collection below
+// grants access explicitly and the trailing catch-all denies everything
+// else.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Authorization is carried entirely on the Firebase Auth ID token as
+    // custom claims (`role`, `isActive`), set by the local `firebase-admin`
+    // provisioning script — never by a client. Absence of a `role` claim
+    // means the account was never provisioned (no self-signup); it is
+    // denied everywhere. See docs/06-auth-and-security.md.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function claims() {
+      return request.auth.token;
+    }
+
+    function activeUser() {
+      return signedIn() && ('role' in claims()) && claims().isActive == true;
+    }
+
+    function isAdmin() {
+      return activeUser() && claims().role == 'admin';
+    }
+
+    // ---------------------------------------------------------------------
+    // users/{uid}
+    //
+    // Documents are provisioned manually (docs/06 "Initial provisioning").
+    // Clients never create a profile or change a role: there is no create,
+    // update, or delete path for anyone, including admins.
+    // ---------------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create, update, delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // ingredients/{ingredientId}
+    //
+    // Any active user may read. Only active admins may create or update,
+    // subject to a field allowlist and the quantity/presence invariants from
+    // docs/03-data-model.md. Ingredients are never physically deleted
+    // (archiving is a field update, not a delete).
+    // ---------------------------------------------------------------------
+    function hasOnlyIngredientFields(data) {
+      return data.keys().hasOnly([
+        'name', 'trackingMode', 'baseUnit', 'quantity', 'isPresent',
+        'lowStockThreshold', 'archivedAt', 'createdAt', 'createdBy',
+        'updatedAt', 'updatedBy'
+      ]);
+    }
+
+    function hasRequiredIngredientTypes(data) {
+      return data.name is string && data.name.size() > 0
+        && data.trackingMode is string
+        && data.baseUnit is string
+        && (data.quantity == null || data.quantity is number)
+        && (data.isPresent == null || data.isPresent is bool)
+        && (data.lowStockThreshold == null || data.lowStockThreshold is number)
+        && (data.archivedAt == null || data.archivedAt is timestamp)
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.updatedAt is timestamp
+        && data.updatedBy is string;
+    }
+
+    function hasValidTrackingModeShape(data) {
+      return (
+        data.trackingMode == 'quantity'
+        && data.baseUnit in ['piece', 'gram', 'milliliter']
+        && data.quantity >= 0
+        && data.isPresent == null
+        && (data.lowStockThreshold == null || data.lowStockThreshold >= 0)
+      ) || (
+        data.trackingMode == 'presence'
+        && data.baseUnit == 'presence'
+        && data.quantity == null
+        && data.isPresent is bool
+        && data.lowStockThreshold == null
+      );
+    }
+
+    function isValidIngredientPayload(data) {
+      return hasOnlyIngredientFields(data)
+        && hasRequiredIngredientTypes(data)
+        && hasValidTrackingModeShape(data);
+    }
+
+    match /ingredients/{ingredientId} {
+      allow read: if activeUser();
+
+      allow create: if isAdmin()
+        && isValidIngredientPayload(request.resource.data)
+        && request.resource.data.archivedAt == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow update: if isAdmin()
+        && isValidIngredientPayload(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // inventoryMovements/{movementId}
+    //
+    // Append-only audit trail. Only active admins may read or create; there
+    // is no update or delete path for anyone. Client-issued creates are
+    // restricted to the movement types this and the cooking-completion slice
+    // produce (`restock`, `correction`, `cooking`); `archive_adjustment`
+    // stays reserved for a future backend-issued write. A `cooking` movement
+    // always names the prepared batch it fed (`preparedBatchId`); it may
+    // optionally name the cooking request that triggered it
+    // (`cookingRequestId` — null for the ad-hoc admin-cooking path). Every
+    // other type keeps both linkage fields null, matching
+    // `docs/04-business-logic.md` "Inventory movements".
+    // ---------------------------------------------------------------------
+    function isValidMovementPayload(data) {
+      return data.keys().hasOnly([
+        'ingredientId', 'ingredientName', 'type', 'deltaQuantity',
+        'presenceBefore', 'presenceAfter', 'balanceAfter',
+        'cookingRequestId', 'preparedBatchId', 'note', 'createdAt', 'createdBy'
+      ])
+        && data.ingredientId is string && data.ingredientId.size() > 0
+        && data.ingredientName is string && data.ingredientName.size() > 0
+        && data.type in ['restock', 'correction', 'cooking']
+        && (data.deltaQuantity == null || data.deltaQuantity is number)
+        && (data.presenceBefore == null || data.presenceBefore is bool)
+        && (data.presenceAfter == null || data.presenceAfter is bool)
+        && (data.balanceAfter == null || data.balanceAfter is number)
+        && (data.type == 'cooking'
+              ? (data.preparedBatchId is string && data.preparedBatchId.size() > 0
+                  && (data.cookingRequestId == null || data.cookingRequestId is string))
+              : (data.cookingRequestId == null && data.preparedBatchId == null))
+        && (data.note == null || data.note is string)
+        && data.createdAt is timestamp
+        && data.createdBy == request.auth.uid;
+    }
+
+    match /inventoryMovements/{movementId} {
+      allow read: if isAdmin();
+
+      allow create: if isAdmin()
+        && isValidMovementPayload(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && exists(/databases/$(database)/documents/ingredients/$(request.resource.data.ingredientId));
+
+      allow update, delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // dishes/{dishId}
+    //
+    // Any active user may read. Only active admins may create or update,
+    // subject to a field allowlist and the mealTypes/archivedAt enum and type
+    // constraints from docs/03-data-model.md. Dishes are never physically
+    // deleted (archiving is a field update, not a delete); the recipe may be
+    // empty (see docs/04 "not configured").
+    // ---------------------------------------------------------------------
+    function hasOnlyDishFields(data) {
+      return data.keys().hasOnly([
+        'name', 'description', 'mealTypes', 'recipeItems', 'archivedAt',
+        'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+      ]);
+    }
+
+    // Firestore Rules cannot iterate an arbitrary-length list to validate
+    // each recipe item's shape (docs/06 "Client-only limitations"); only the
+    // list's presence is checked here, and TypeScript's `validateDish`
+    // enforces the full per-item contract before the client ever writes.
+    function hasValidRecipeItems(data) {
+      return data.recipeItems is list;
+    }
+
+    function hasValidMealTypes(data) {
+      return data.mealTypes is list
+        && data.mealTypes.size() > 0
+        && data.mealTypes.hasOnly(['breakfast', 'lunch', 'dinner']);
+    }
+
+    function hasRequiredDishTypes(data) {
+      return data.name is string && data.name.size() > 0
+        && data.description is string
+        && hasValidMealTypes(data)
+        && hasValidRecipeItems(data)
+        && (data.archivedAt == null || data.archivedAt is timestamp)
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.updatedAt is timestamp
+        && data.updatedBy is string;
+    }
+
+    function isValidDishPayload(data) {
+      return hasOnlyDishFields(data) && hasRequiredDishTypes(data);
+    }
+
+    match /dishes/{dishId} {
+      allow read: if activeUser();
+
+      allow create: if isAdmin()
+        && isValidDishPayload(request.resource.data)
+        && request.resource.data.archivedAt == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow update: if isAdmin()
+        && isValidDishPayload(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // preparedBatches/{batchId}
+    //
+    // Any active user may read. Only active admins may create, or fully
+    // update (registration, completion, discard, correction — later PLAN
+    // tasks). The one exception is the narrow single-document counter move
+    // `orderTransactions.reserveReadyOrder` performs: an active user may
+    // shift `availableQuantity` down and `reservedQuantity` up by the exact
+    // same amount, touching no other field. Rules validate that one
+    // document's invariants but cannot verify, across an arbitrary number of
+    // batches inside the same client transaction, that the total moved
+    // equals the quantity on the order being created alongside it — that
+    // cross-document aggregate is exactly the `docs/06-auth-and-security.md`
+    // "Client-only limitations" case, so `orderTransactions.ts` (TypeScript)
+    // is the sole enforcer of the FIFO/atomicity invariant; Rules only stop
+    // a user from writing anything a real reservation move could not have
+    // produced. Batches are never physically deleted.
+    // ---------------------------------------------------------------------
+    function hasOnlyBatchFields(data) {
+      return data.keys().hasOnly([
+        'dishId', 'dishName', 'batchNumber', 'producedQuantity', 'availableQuantity',
+        'reservedQuantity', 'consumedQuantity', 'discardedQuantity',
+        'preparedAt', 'expiresAt', 'status', 'sourceCookingRequestId',
+        'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+      ]);
+    }
+
+    function hasRequiredBatchTypes(data) {
+      return data.dishId is string && data.dishId.size() > 0
+        && data.dishName is string && data.dishName.size() > 0
+        && data.batchNumber is int && data.batchNumber > 0
+        && data.producedQuantity is number && data.producedQuantity >= 0
+        && data.availableQuantity is number && data.availableQuantity >= 0
+        && data.reservedQuantity is number && data.reservedQuantity >= 0
+        && data.consumedQuantity is number && data.consumedQuantity >= 0
+        && data.discardedQuantity is number && data.discardedQuantity >= 0
+        && data.preparedAt is timestamp
+        && (data.expiresAt == null || data.expiresAt is timestamp)
+        && data.status in ['available', 'depleted', 'discarded']
+        && (data.sourceCookingRequestId == null || data.sourceCookingRequestId is string)
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.updatedAt is timestamp
+        && data.updatedBy is string;
+    }
+
+    // The full counter set is fixed-size, so — unlike an arbitrary-length
+    // list — Rules can and do check the docs/03 conservation invariant here.
+    function hasConservedBatchCounters(data) {
+      return data.producedQuantity ==
+        data.availableQuantity + data.reservedQuantity + data.consumedQuantity + data.discardedQuantity;
+    }
+
+    function isValidBatchPayload(data) {
+      return hasOnlyBatchFields(data) && hasRequiredBatchTypes(data) && hasConservedBatchCounters(data);
+    }
+
+    // The exact shape of `orderTransactions.reserveReadyOrder`'s per-batch
+    // update: `availableQuantity` strictly decreases by the same amount
+    // `reservedQuantity` moves up (a zero-delta "move" is not a real
+    // reservation and is rejected), every other field is byte-for-byte
+    // unchanged, and the actor stamps their own uid and `request.time`.
+    function isUserReservationMove(before, after) {
+      return after.keys().hasOnly([
+        'dishId', 'dishName', 'batchNumber', 'producedQuantity', 'availableQuantity',
+        'reservedQuantity', 'consumedQuantity', 'discardedQuantity',
+        'preparedAt', 'expiresAt', 'status', 'sourceCookingRequestId',
+        'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+      ])
+        && after.availableQuantity is number
+        && after.reservedQuantity is number
+        && after.availableQuantity >= 0
+        && after.availableQuantity < before.availableQuantity
+        && (before.availableQuantity - after.availableQuantity) == (after.reservedQuantity - before.reservedQuantity)
+        && after.status == (after.availableQuantity == 0 ? 'depleted' : 'available')
+        && before.status != 'discarded'
+        && after.dishId == before.dishId
+        && after.dishName == before.dishName
+        && after.batchNumber == before.batchNumber
+        && after.producedQuantity == before.producedQuantity
+        && after.consumedQuantity == before.consumedQuantity
+        && after.discardedQuantity == before.discardedQuantity
+        && after.preparedAt == before.preparedAt
+        && after.expiresAt == before.expiresAt
+        && after.sourceCookingRequestId == before.sourceCookingRequestId
+        && after.createdAt == before.createdAt
+        && after.createdBy == before.createdBy
+        && after.updatedAt == request.time
+        && after.updatedBy == request.auth.uid;
+    }
+
+    // The exact shape of `orderTransactions.cancelOrder`'s per-batch update:
+    // the inverse of a reservation move — `availableQuantity` moves up by
+    // the same amount `reservedQuantity` moves down, every other field
+    // byte-for-byte unchanged, and the actor stamps their own uid.
+    // Ownership of the *order* being cancelled is enforced on the
+    // `orders/{orderId}` match block's `isUserOwnCancel` predicate (the
+    // client always cancels the order in the same transaction); Rules
+    // cannot correlate this batch write back to a specific order id
+    // (`docs/06-auth-and-security.md` "Client-only limitations" — the same
+    // reason `isUserReservationMove` cannot verify the cross-document
+    // allocation total either), so — exactly like the forward move — this
+    // predicate only denies a shape no real cancellation could have
+    // produced; it never grants any user broader batch-write access.
+    function isUserCancellationMove(before, after) {
+      return after.keys().hasOnly([
+        'dishId', 'dishName', 'batchNumber', 'producedQuantity', 'availableQuantity',
+        'reservedQuantity', 'consumedQuantity', 'discardedQuantity',
+        'preparedAt', 'expiresAt', 'status', 'sourceCookingRequestId',
+        'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
+      ])
+        && after.availableQuantity is number
+        && after.reservedQuantity is number
+        && after.reservedQuantity >= 0
+        && after.reservedQuantity < before.reservedQuantity
+        && (after.availableQuantity - before.availableQuantity) == (before.reservedQuantity - after.reservedQuantity)
+        && after.status == (after.availableQuantity == 0 ? 'depleted' : 'available')
+        && before.status != 'discarded'
+        && after.dishId == before.dishId
+        && after.dishName == before.dishName
+        && after.batchNumber == before.batchNumber
+        && after.producedQuantity == before.producedQuantity
+        && after.consumedQuantity == before.consumedQuantity
+        && after.discardedQuantity == before.discardedQuantity
+        && after.preparedAt == before.preparedAt
+        && after.expiresAt == before.expiresAt
+        && after.sourceCookingRequestId == before.sourceCookingRequestId
+        && after.createdAt == before.createdAt
+        && after.createdBy == before.createdBy
+        && after.updatedAt == request.time
+        && after.updatedBy == request.auth.uid;
+    }
+
+    match /preparedBatches/{batchId} {
+      allow read: if activeUser();
+
+      allow create: if isAdmin()
+        && isValidBatchPayload(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow update: if (
+        isAdmin()
+        && isValidBatchPayload(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.batchNumber == resource.data.batchNumber
+      ) || (
+        activeUser() && isUserReservationMove(resource.data, request.resource.data)
+      ) || (
+        activeUser() && isUserCancellationMove(resource.data, request.resource.data)
+      );
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // counters/{counterId}
+    //
+    // A single top-level collection for global monotonic counters (today,
+    // only `preparedBatchNumber` — see
+    // `docs/specifications/batch-sequence-number/SPEC.md`). Only an admin may
+    // write, and only through the exact `{ value: int }` shape a real
+    // batch-creation transaction would produce: create starts at >= 1;
+    // update must strictly increase the value (numbers are allocated once
+    // and never reused or decreased). Never deleted.
+    // ---------------------------------------------------------------------
+    match /counters/{counterId} {
+      allow read: if activeUser();
+
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['value'])
+        && request.resource.data.value is int
+        && request.resource.data.value >= 1;
+
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['value'])
+        && request.resource.data.value is int
+        && request.resource.data.value >= 1
+        && request.resource.data.value > resource.data.value;
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // orders/{orderId}
+    //
+    // A user creates only their own order (`userId == request.auth.uid`) and
+    // may later update only that order, and only to cancel it (the sole
+    // client-writable transition per docs/04 "Cancellation"); every other
+    // transition, and every other user's orders, are admin-only. Orders are
+    // never physically deleted (docs/04 rule 9 — historical records are
+    // archived, not deleted; "consumed"/"cancelled"/"rejected" are terminal
+    // statuses, not tombstones).
+    //
+    // `allocations` is a variable-length list; as with `dishes.recipeItems`,
+    // Rules validate only its presence and per-create emptiness contract
+    // (docs/06 "Client-only limitations") — `orderTransactions.ts` is the
+    // sole writer of allocation content, and Rules never let a client set
+    // `allocations` directly to anything but the empty list a `cook` order
+    // starts with.
+    // ---------------------------------------------------------------------
+    function hasOnlyOrderFields(data) {
+      return data.keys().hasOnly([
+        'userId', 'userDisplayName', 'dishId', 'dishName', 'kind', 'status',
+        'quantity', 'mealType', 'scheduledFor', 'allocations',
+        'rejectionReason', 'preparedBatchId', 'preparedBatchNumber', 'createdAt', 'createdBy',
+        'updatedAt', 'updatedBy'
+      ]);
+    }
+
+    function hasRequiredOrderTypes(data) {
+      return data.userId is string && data.userId.size() > 0
+        && data.userDisplayName is string
+        && data.dishId is string && data.dishId.size() > 0
+        && data.dishName is string
+        && data.kind in ['ready', 'cook']
+        && data.status in [
+          'reserved', 'pending', 'approved', 'cooking', 'prepared', 'rejected', 'cancelled', 'consumed'
+        ]
+        && data.quantity is int && data.quantity >= 1 && data.quantity <= 99
+        && data.mealType in ['breakfast', 'lunch', 'dinner']
+        && data.scheduledFor is timestamp
+        && data.allocations is list
+        && (data.rejectionReason == null || data.rejectionReason is string)
+        && (data.preparedBatchId == null || data.preparedBatchId is string)
+        && (data.preparedBatchNumber == null || (data.preparedBatchNumber is int && data.preparedBatchNumber > 0))
+        && data.createdAt is timestamp
+        && data.createdBy is string
+        && data.updatedAt is timestamp
+        && data.updatedBy is string;
+    }
+
+    // A freshly created order is exactly the two starting shapes docs/04
+    // describes: a ready reservation (already `reserved`, allocations filled
+    // in by the same transaction) or a pending cooking request (no
+    // allocations yet).
+    function isValidNewOrderShape(data) {
+      return (data.kind == 'ready' && data.status == 'reserved' && data.preparedBatchId == null && data.preparedBatchNumber == null)
+        || (data.kind == 'cook' && data.status == 'pending' && data.allocations.size() == 0 && data.preparedBatchId == null && data.preparedBatchNumber == null);
+    }
+
+    function isValidOrderPayload(data) {
+      return hasOnlyOrderFields(data) && hasRequiredOrderTypes(data);
+    }
+
+    // The only order mutation an owning user may make in this task: cancel a
+    // `reserved` reservation or a `pending`/`approved` cooking request
+    // (docs/04 "Cancellation"). Every other field — including `allocations`,
+    // whose restoration/deduction happens in the batch-side transactions of
+    // this and later PLAN tasks — stays byte-for-byte identical.
+    function isUserOwnCancel(before, after) {
+      return after.status == 'cancelled'
+        && (
+          (before.status == 'reserved' && before.kind == 'ready')
+          || (before.status in ['pending', 'approved'] && before.kind == 'cook')
+        )
+        && after.userId == before.userId
+        && after.userDisplayName == before.userDisplayName
+        && after.dishId == before.dishId
+        && after.dishName == before.dishName
+        && after.kind == before.kind
+        && after.quantity == before.quantity
+        && after.mealType == before.mealType
+        && after.scheduledFor == before.scheduledFor
+        && after.allocations == before.allocations
+        && after.rejectionReason == before.rejectionReason
+        && after.preparedBatchId == before.preparedBatchId
+        && after.preparedBatchNumber == before.preparedBatchNumber
+        && after.createdAt == before.createdAt
+        && after.createdBy == before.createdBy
+        && after.updatedAt == request.time
+        && after.updatedBy == request.auth.uid;
+    }
+
+    match /orders/{orderId} {
+      allow read: if activeUser() && (isAdmin() || resource.data.userId == request.auth.uid);
+
+      allow create: if activeUser()
+        && request.resource.data.userId == request.auth.uid
+        && isValidOrderPayload(request.resource.data)
+        && isValidNewOrderShape(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.updatedBy == request.auth.uid;
+
+      allow update: if (
+        isAdmin()
+        && isValidOrderPayload(request.resource.data)
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.dishId == resource.data.dishId
+        && request.resource.data.kind == resource.data.kind
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid
+      ) || (
+        activeUser()
+        && resource.data.userId == request.auth.uid
+        && isValidOrderPayload(request.resource.data)
+        && isUserOwnCancel(resource.data, request.resource.data)
+      );
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // settings/general
+    //
+    // Any active user may read; only active admins may write the singleton
+    // document (docs/03 `settings/general`, docs/06 permission matrix).
+    // ---------------------------------------------------------------------
+    function hasOnlySettingsFields(data) {
+      return data.keys().hasOnly(['timezone', 'defaultMealTimes', 'updatedAt', 'updatedBy']);
+    }
+
+    function isValidMealTime(value) {
+      return value is string && value.matches('^([0-1][0-9]|2[0-3]):[0-5][0-9]$');
+    }
+
+    // Any non-empty IANA-shaped zone name is accepted: this repository is
+    // reused by any household, not just the maintainer's, so the rule must
+    // not pin a single deployment's timezone (docs/06 "Public Firebase
+    // configuration" — the same "no maintainer-specific values" principle
+    // applied to a data field instead of a config value). This only rejects
+    // an empty or malformed string a direct write could otherwise smuggle in;
+    // it does not by itself let a client change the app's timezone, since
+    // that also depends on what the UI layer sends.
+    function isValidTimezone(value) {
+      return value is string && value.size() > 0 && value.matches('^[A-Za-z0-9_+/-]+$');
+    }
+
+    function isValidSettingsPayload(data) {
+      return hasOnlySettingsFields(data)
+        && isValidTimezone(data.timezone)
+        && data.defaultMealTimes.keys().hasOnly(['breakfast', 'lunch', 'dinner'])
+        && isValidMealTime(data.defaultMealTimes.breakfast)
+        && isValidMealTime(data.defaultMealTimes.lunch)
+        && isValidMealTime(data.defaultMealTimes.dinner)
+        && data.updatedAt == request.time
+        && data.updatedBy == request.auth.uid;
+    }
+
+    match /settings/general {
+      allow read: if activeUser();
+      allow create, update: if isAdmin() && isValidSettingsPayload(request.resource.data);
+      allow delete: if false;
+    }
+
+    // Deny everything not explicitly allowed above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

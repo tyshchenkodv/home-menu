@@ -8,30 +8,35 @@ flowchart TD
     I18n --> Auth["AuthProvider"]
     Auth --> Router["HashRouter"]
     Router --> Login["LoginPage"]
-    Router --> Protected["RequireAuth"]
+    Router --> Protected["RequireActiveProfile"]
     Protected --> Shell["AppShell"]
-    Shell --> Menu["MenuPage"]
-    Shell --> Mine["MyOrdersPage"]
-    Shell --> Language["LanguageSwitcher"]
-    Protected --> Admin["RequireAdmin"]
-    Admin --> AdminShell["AdminShell"]
-    AdminShell --> Dashboard["AdminDashboardPage"]
-    AdminShell --> Dishes["DishesPage"]
-    AdminShell --> Inventory["InventoryPage"]
-    AdminShell --> History["InventoryHistoryPage"]
-    AdminShell --> Batches["BatchesPage"]
-    AdminShell --> Orders["AdminOrdersPage"]
-    AdminShell --> Settings["SettingsPage"]
+    Shell --> Root["RootRedirect"]
+    Shell --> Menu["MenuPage (implemented)"]
+    Shell --> Orders["OrdersPage (implemented)"]
+    Shell --> Settings["SettingsPage (implemented)"]
+    Shell --> Admin["RequireAdmin"]
+    Admin --> Dashboard["AdminDashboardPage (implemented)"]
+    Admin --> AdminOrders["AdminOrdersPage (implemented)"]
+    Admin --> Dishes["AdminDishesPage (implemented)"]
+    Admin --> Batches["BatchesPage (implemented)"]
+    Admin --> Inventory["InventoryPage"]
+    Admin --> History["InventoryHistoryPage"]
 ```
 
 ## Shared components
 
 | Component | Responsibility |
 | --- | --- |
-| `AppShell` | Mobile navigation, title, sign-out, event badges |
-| `RequireAuth` | Wait for Auth and reject unknown or inactive UIDs |
+| `AppHeader` | Brand mascot, wordmark, and (on mobile) the nav hamburger; rendered inside `AppShell` only (not on `/login`). Language and theme controls live in `AppNavDrawer`, not here |
+| `AppShell` | Layout route: header, role-aware responsive navigation (`AppNavDrawer` at `md`+, `AppNavBottom` below it), routed `Outlet` |
+| `FeaturePlaceholder` | Localized title plus a shared "coming soon" `StatePlaceholder`, used by every not-yet-built feature screen |
+| `RequireActiveProfile` | Wait for Auth and reject unauthenticated or inactive profiles; does not check role |
 | `RequireAdmin` | Require the `admin` role |
-| `LanguageSwitcher` | Switch `uk`/`en` and persist the local preference |
+| `LanguageSwitcher` | Switch `uk`/`en` (UK/EN) and persist the local preference; `fullWidth` variant used in the nav drawer |
+| `ColorSchemeMenuItem` | Full-width nav-drawer row toggling binary light↔dark mode and persisting it |
+| `CatArt` | Brand cat illustration (`idle`/`empty`/`sleeping`/`confused`/`logo`) |
+| `StatusChip` | Semantic status pill (`success`/`warning`/`default`) |
+| `StatePlaceholder` | Pairs a `CatArt` beat with a message for loading/empty/error |
 | `AsyncState` | Consistent loading, error, and empty states |
 | `ConfirmDialog` | Confirm destructive or accounting-sensitive operations |
 | `QuantityField` | Quantity, display unit, and canonical-unit conversion |
@@ -41,6 +46,40 @@ flowchart TD
 
 Every visible label, aria-label, validation message, dialog, toast, and empty
 state is translated.
+
+### Theme and design system
+
+The application theme (`src/app/theme.ts`) is derived from the design canon in
+`docs/design/README.md`: MUI CSS-variable `light` and `dark` color schemes
+(default light, user-toggled and persisted), self-hosted Nunito / Nunito Sans
+typography, an 8px spacing base, per-surface radii, and component overrides.
+`AppHeader`, `LanguageSwitcher`, `ColorSchemeMenuItem`, and `CatArt` live under
+`src/shared/components/` (one component per folder). See the
+`design-system-foundation` specification for scope and follow-ups.
+
+## Navigation
+
+`AppShell` reads `profile.role` and shows a role-scoped destination set
+(`src/shared/components/AppShell/constants/navigationDestinations.ts`,
+filtered by `selectDestinations`):
+
+- **Administrator**: Dashboard (`/admin`), Menu (`/menu`), Orders
+  (`/admin/orders`), Batches (`/admin/batches`), Dishes (`/admin/dishes`),
+  Inventory (`/admin/inventory`, with Inventory History reachable as a
+  sub-page rather than its own destination), Settings (`/settings`).
+- **User**: Menu (`/menu`), My orders (`/orders`).
+
+Settings is administrator-only. Language and theme controls live in the nav
+drawer for every role, so users retain those without a Settings destination.
+
+Below the `md` breakpoint, `AppNavBottom` shows the mobile-primary
+destinations directly (Dashboard, Menu, Orders for admin; Menu, Orders for user). At `md` and above, `AppNavDrawer`
+lists every destination for the role. The active route is emphasized and
+exposes a current state to assistive technology.
+
+Cooking requests are now integrated into the My Orders and Admin Orders
+flows. The `MenuPage`, `OrdersPage`, `AdminOrdersPage`, `AdminDashboardPage`,
+`AdminDishesPage`, `BatchesPage`, and `SettingsPage` are implemented. Inventory and Inventory History remain functional from previous slices.
 
 ## User interface
 
@@ -138,8 +177,10 @@ Provides a status-filtered list or Kanban view with only valid actions:
 
 ### `SettingsPage`
 
-Edits default meal times. It displays `Europe/Kyiv` as a fixed timezone. UI
-language is not a household setting and is changed through `LanguageSwitcher`.
+An administrator-only screen, reachable at `/settings` behind the
+`RequireAdmin` route guard and hidden from the user navigation set. Renders the
+default meal-times form (`MealTimesForm`). Language and theme controls are not
+shown here; they live in the nav drawer for every role.
 
 ## Prepared-food sequence
 

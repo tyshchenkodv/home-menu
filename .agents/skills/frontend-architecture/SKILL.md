@@ -41,6 +41,13 @@ Use only folders needed by the feature:
 ```text
 features/<feature-name>/
 ├── components/
+│   ├── IngredientCard/
+│   │   └── IngredientCard.tsx
+│   └── IngredientList/
+│       ├── IngredientList.tsx
+│       └── components/
+│           └── IngredientListRow/
+│               └── IngredientListRow.tsx
 ├── hooks/
 ├── pages/
 ├── schemas/
@@ -49,6 +56,15 @@ features/<feature-name>/
 ├── utils/
 └── index.ts
 ```
+
+One component gets one folder under `components/`, named after the
+component, holding that component's file. Never dump multiple components'
+files together directly in a flat `components/` folder. When a component owns
+subcomponents that only it uses, nest another `components/` folder inside its
+own folder and apply the same one-component-one-folder rule there. A generic,
+feature-agnostic component (no domain ownership, reused across features)
+lives under `shared/components/` following the same per-component-folder
+pattern, not inside any single feature.
 
 Domain logic belongs under `domain/<domain-name>/`; Firebase details belong
 under `infrastructure/firebase/<domain-name>/`.
@@ -59,10 +75,15 @@ camelCase names.
 
 ## File responsibility
 
-- One React component per `.tsx` file. A page, dialog, form section, row, and
-  reusable visual primitive each get their own file.
+- One React component per `.tsx` file, and one component folder per
+  component (see Feature shape). A page, dialog, form section, row, and
+  reusable visual primitive each get their own file and folder.
 - Put every interface and reusable type in a focused file under the nearest
   `types/` folder. Do not define interfaces inside component or hook files.
+- Put every reusable constant in a focused file under the nearest
+  `constants/` folder. Do not define module-level constants inside component
+  or hook files, and never duplicate the same constant across files —
+  extract and import it once.
 - Put hooks, schemas, constants, and utilities in their corresponding folders
   and focused files.
 - Keep one clear responsibility per file. Split orchestration, rendering,
@@ -92,6 +113,21 @@ constraints or reasons.
 Use `react-best-practices` for performance, effects, waterfalls, and rendering
 review.
 
+## Design reference
+
+`docs/design/README.md` is the canonical, readable source of design truth:
+the target Material UI theme, palette-to-semantics mapping, typography, spacing,
+radii, status-chip mapping, and screen catalog — all transcribed from the
+mockup. Read it before building or changing UI, and reference `theme.palette.*`
+tokens rather than raw hex.
+
+`design/Home Menu.html` is a **human visual reference only** — a self-contained
+Claude artifact bundle (React + Babel packed into a base64 manifest). A person
+opens it in a browser to feel tone, rhythm, and layout; it cannot be read or
+scraped programmatically and is not pixel-accurate. When it and
+`docs/design/README.md` disagree, the document wins. The actual implementation
+still follows this skill's architecture and the UI contract below.
+
 ## UI contract
 
 - Use Material UI semantic theme tokens and responsive breakpoints; do not
@@ -105,6 +141,46 @@ review.
 - Keep persistence enums and user-generated data language-neutral.
 - Use stable, business-meaningful test IDs only when role/name queries are not
   sufficient; repeated components need instance-specific IDs.
+
+### Styling with `sx`
+
+Keep `sx` values out of component JSX so markup reads without inline style
+noise. A component that uses `sx` gets a sibling styles file:
+
+```text
+components/InventoryTabs/
+├── InventoryTabs.tsx
+└── styles.ts
+```
+
+Name the sibling file `styles.ts` when the component already owns its file
+(one component, one folder — see Feature shape). In a flat directory shared
+by multiple components or pages (e.g. `pages/`), name it
+`<ComponentName>.styles.ts` instead, so two pages in the same folder never
+both claim `styles.ts`.
+
+The styles file exports one `styles` object, keyed by semantic area name,
+typed as a `Record` (not a bare `SxProps<Theme>`, which describes a single sx
+value, not a map of them):
+
+```ts
+import type { SxProps, Theme } from '@mui/material/styles';
+
+export const styles: Record<string, SxProps<Theme>> = {
+  page: { p: 2 },
+  nav: { display: 'flex', justifyContent: 'space-between' },
+};
+```
+
+Import and apply it by key: `import { styles } from './styles';` then
+`sx={styles.nav}`. Reference theme tokens as palette/spacing path strings
+(`color: 'text.secondary'`, `bgcolor: 'background.paper'`) instead of a
+`(theme) => ({...})` callback, so `styles.ts` stays a plain static object. For
+the rare style that truly depends on runtime props (not just the theme),
+compose at the call site with the sx array form —
+`sx={[styles.card, isActive && styles.cardActive]}` — keeping every object
+defined in `styles.ts`. Skip `styles.ts` entirely for a component with no
+`sx` usage; do not create an empty file for ceremony.
 
 ## SOLID, DRY, KISS, and YAGNI
 
@@ -121,12 +197,31 @@ review.
 When principles compete, preserve correctness and clear ownership first, then
 prefer the simpler implementation.
 
+## Code style
+
+Follow the instructions in `@.agents/skills/jsinfo-style/SKILL.md` verbatim —
+that file is the single source of truth.
+
+Additional repository conventions:
+
+- Never use `export default` in application code; always use named exports
+  (`export const LoginPage = ...`). Tool config files that require a default
+  export (e.g. `vite.config.ts`) are the only exception.
+- Dependency versions in `package.json` are exact (no `^`/`~` ranges) and new
+  dependencies start at their latest published versions.
+
 ## Review checklist
 
 - Does each file have one clear responsibility and each `.tsx` one component?
-- Are types/interfaces, hooks, schemas, constants, and utilities separated?
+- Does each component live in its own folder, with no flat multi-component
+  `components/` bucket, and are shared components under `shared/components/`?
+- Are types/interfaces, hooks, schemas, constants, and utilities separated,
+  with no inline types/constants left in component or hook files?
+- Does a component using `sx` have its values in a sibling `styles.ts`
+  (`Record<string, SxProps<Theme>>`), not inline in the JSX?
 - Does domain remain pure and Firebase remain behind typed infrastructure?
 - Is feature-owned code colocated without deep cross-feature imports?
 - Are all visible and accessible strings translated in both locales?
 - Are async, responsive, theme, accessibility, and test states covered?
 - Is every abstraction justified by current behavior or consumers?
+- Is every file follow code style rules?

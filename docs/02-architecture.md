@@ -9,7 +9,7 @@ Authentication and Cloud Firestore, which form the serverless backend.
 ```mermaid
 flowchart LR
     Person["User or administrator"] --> SPA["React SPA<br/>GitHub Pages"]
-    SPA --> Auth["Firebase Authentication<br/>Google Sign-In"]
+    SPA --> Auth["Firebase Authentication<br/>Email/Password"]
     SPA --> Firestore["Cloud Firestore"]
     Firestore --> Rules["Firestore Security Rules"]
     Repo["Public GitHub repository"] --> Actions["GitHub Actions"]
@@ -101,14 +101,16 @@ Pure functions without React or Firebase dependencies:
 - `Timestamp` conversion;
 - error-code normalization.
 
-## Suggested source tree
+## Actual source tree (Task 8 implementation)
 
 ```text
 src/
 ├── app/
 │   ├── App.tsx
+│   ├── RootRedirect.tsx
 │   ├── router.tsx
 │   ├── theme.ts
+│   ├── i18n.ts
 │   └── providers/
 ├── domain/
 │   ├── dishes/
@@ -116,21 +118,25 @@ src/
 │   ├── batches/
 │   └── orders/
 ├── features/
-│   ├── auth/
-│   ├── menu/
-│   ├── my-orders/
-│   ├── language/
 │   ├── admin-dashboard/
 │   ├── admin-dishes/
 │   ├── admin-inventory/
-│   ├── admin-batches/
 │   ├── admin-orders/
+│   ├── auth/
+│   ├── batches/
+│   ├── cooking-requests/ (removed)
+│   ├── menu/
+│   ├── orders/
 │   └── settings/
 ├── infrastructure/
 │   └── firebase/
+│       ├── converters/
+│       ├── services/
+│       └── __tests__/
 ├── locales/
 │   ├── en/translation.json
-│   └── uk/translation.json
+│   ├── uk/translation.json
+│   └── __tests__/
 ├── shared/
 │   ├── components/
 │   ├── hooks/
@@ -182,20 +188,51 @@ Rules:
 
 ```text
 /#/login
+/#/               (RootRedirect)
 /#/menu
 /#/orders
+/#/settings
 /#/admin
+/#/admin/orders
+/#/admin/batches
 /#/admin/dishes
 /#/admin/inventory
 /#/admin/inventory/history
-/#/admin/batches
-/#/admin/orders
-/#/admin/settings
 ```
 
-`RequireAuth` blocks users without an active profile. `RequireAdmin` protects
-administrative routes. Route guards are a UX measure; Firestore Rules enforce
-the actual authorization boundary.
+`/login` is the only ungated route. Every other route is nested under a
+single layout route, `<RequireActiveProfile><AppShell /></RequireActiveProfile>`
+(`src/app/router.tsx`), so an authenticated-and-active profile is required
+before any in-app screen renders; `RequireActiveProfile`
+(`src/features/auth/RequireActiveProfile.tsx`) does not check role.
+`/admin/*` routes are additionally wrapped in `RequireAdmin`. Route guards are
+a UX measure; Firestore Rules enforce the actual authorization boundary.
+
+`AppShell` (`src/shared/components/AppShell/`) is the layout route's element:
+it renders `AppHeader`, role-aware responsive navigation (`AppNavDrawer` at
+the `md` breakpoint and above, `AppNavBottom` below it), and the routed
+`<Outlet/>`. `AppHeader` no longer renders globally from
+`app/providers/AppProviders.tsx`; it renders only inside `AppShell`, so
+`/login` has no header, navigation, or switcher chrome.
+
+The index route (`/`) renders `RootRedirect` (`src/app/RootRedirect.tsx`),
+which reads `useAuth()` and navigates an `admin` profile to `/admin` and a
+`user` profile to `/menu`, showing a loading placeholder while auth status is
+still resolving. `LoginPage` uses the same admin→`/admin`, user→`/menu`
+redirect target for an already-active profile, so the two entry points land
+consistently.
+
+`AuthStatus` (`src/features/auth/authContextValue.ts`) is
+`'loading' | 'authenticated' | 'unauthenticated' | 'error'`. `AuthContext`
+sets `'error'` (not `'authenticated'`) when the `users/{uid}` profile read
+itself rejects (offline, `permission-denied`, aborted) and logs the failure
+via `import.meta.env.DEV`-gated `console.error` — development only, no PII
+beyond the Firebase error code/message. A missing document still resolves to
+`'authenticated'` with `profile: null`, which the route guards render as
+access-denied. `RequireActiveProfile` renders a distinct, retryable error
+state (`StatePlaceholder` `confused` + retry) for `status === 'error'`,
+keeping "profile not provisioned" and "profile failed to load" visually and
+semantically separate.
 
 ## Atomic operations
 
@@ -210,6 +247,15 @@ Use `runTransaction` whenever one action changes multiple documents:
 
 A transaction re-reads current documents, validates invariants, and then writes.
 Disabling a submit button improves UX but is not the concurrency guarantee.
+
+All client writes that carry an audit timestamp (`createdAt`, `updatedAt`) use
+Firestore's `serverTimestamp()` rather than a client-generated `Date`/
+`Timestamp.now()`, across every service in
+`src/infrastructure/firebase/services/*`. This is required, not just
+convention: Security Rules validate those fields against `request.time` (see
+`docs/06-auth-and-security.md`), so a client-forged value is rejected.
+Fields that represent a chosen instant rather than "now" (`scheduledFor`,
+`preparedAt`, `expiresAt`) are unaffected and stay client-supplied.
 
 ## Time-based state without a scheduler
 

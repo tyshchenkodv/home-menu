@@ -1,0 +1,11 @@
+services:
+  firebase-emulators:
+    build: ./docker/firebase-emulators
+    ports:
+      - '8080:8080' # Firestore emulator
+      - '9099:9099' # Auth emulator
+      - '4000:4000' # Emulator UI
+    volumes:
+      - ./firebase.json:/workspace/firebase.json:ro
+      - ./firestore.rules:/workspace/firestore.rules:ro
+      - ./firestore.indexes.json:/workspace/firestore.indexes.json:ro

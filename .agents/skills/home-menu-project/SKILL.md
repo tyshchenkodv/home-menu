@@ -43,6 +43,22 @@ household data.
 - Add tests for business rules, security rules, and both locale resources.
 - Update documentation when a decision changes.
 
+## Verification gate
+
+- `npm run verify` is the single project gate: it runs `typecheck`, `lint`
+  (ESLint, which now also enforces Prettier formatting on code), `format:check`
+  (Prettier for non-code files), `test`, and `build` in sequence.
+- Run `npm run verify` and confirm it passes before claiming a slice complete,
+  before marking any specification `Implemented` in
+  `docs/specifications/README.md`, and before proposing a commit.
+- ESLint and Prettier are unified: fix style with `npm run fix`
+  (`eslint --fix` then `prettier --write`); never hand-fix formatting a tool
+  can apply. Do not bypass or narrow the gate; report, do not hide, any check
+  that cannot run.
+- Delegated implementation agents must run the same checks on their scope; the
+  primary agent re-runs the full `npm run verify` at integration because a
+  green subagent report is not integration evidence.
+
 ## Handoff rules
 
 - Do not stage, commit, push, or publish unless the user explicitly requests it
