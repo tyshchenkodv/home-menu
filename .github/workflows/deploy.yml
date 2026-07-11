@@ -45,10 +45,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Repeats the full local gate (typecheck, lint, Prettier, tests) and
-      # produces the production `dist/` bundle with the Pages base path.
+      # Static checks + production build with the Pages base path. Tests are
+      # intentionally excluded here for a faster deploy; they run on the
+      # pre-commit hook instead (see .husky/pre-commit).
       - name: Verify and build
-        run: npm run verify
+        run: npm run verify:ci
 
       # Deploy Rules and indexes before publishing the frontend: if this step
       # fails, the Pages artifact is never uploaded (see docs/08-deployment.md).
