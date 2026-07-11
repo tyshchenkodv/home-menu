@@ -6,6 +6,7 @@ import { selectExpiredBackingBatches } from '../../../domain/menu/selectExpiredB
 import type { DomainTimestamp } from '../../../domain/batches/types';
 import { subscribeAvailableBatchesForDish } from '../../../infrastructure/firebase/services/batchService';
 import { subscribeActiveIngredients } from '../../../infrastructure/firebase/services/ingredientService';
+import { notifyError } from '../../../shared/notifications/notify';
 import type { DishWithId } from '../../../shared/types/dish';
 import type { PreparedBatchWithId } from '../../../shared/types/preparedBatch';
 import type { UseDishAvailabilityResult } from '../types/useDishAvailabilityResult';
@@ -50,6 +51,7 @@ export const useDishAvailability = (dishes: DishWithId[]): UseDishAvailabilityRe
       },
       error => {
         setIngredientsError(error);
+        notifyError(error);
       },
     );
   }, []);
@@ -69,6 +71,7 @@ export const useDishAvailability = (dishes: DishWithId[]): UseDishAvailabilityRe
         },
         error => {
           setBatchesError(error);
+          notifyError(error);
         },
       ),
     );

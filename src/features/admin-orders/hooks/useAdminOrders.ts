@@ -5,6 +5,7 @@ import {
   subscribeAdminBoardOrders,
   subscribeAdminHistoryOrders,
 } from '../../../infrastructure/firebase/services/orderService';
+import { notifyError } from '../../../shared/notifications/notify';
 import type { OrderWithId } from '../../../shared/types/order';
 import type { AdminOrdersTab } from '../types/adminOrdersTab';
 import type { UseAdminOrdersResult } from '../types/useAdminOrdersResult';
@@ -33,6 +34,7 @@ export const useAdminOrders = (
     };
     const onError = (error: Error) => {
       setResult({ status: 'error', orders: [], error });
+      notifyError(error);
     };
 
     if (tab === 'board') {
