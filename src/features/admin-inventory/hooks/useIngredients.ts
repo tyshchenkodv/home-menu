@@ -4,6 +4,7 @@ import {
   subscribeActiveIngredients,
   subscribeArchivedIngredients,
 } from '../../../infrastructure/firebase/services/ingredientService';
+import { notifyError } from '../../../shared/notifications/notify';
 import type { InventoryTab } from '../types/inventoryTab';
 import type { UseIngredientsResult } from '../types/useIngredientsResult';
 
@@ -37,6 +38,7 @@ export const useIngredients = (tab: InventoryTab, reloadKey = 0): UseIngredients
       },
       error => {
         setTagged({ tab, status: 'error', ingredients: [], error });
+        notifyError(error);
       },
     );
 

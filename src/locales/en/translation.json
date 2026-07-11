@@ -82,7 +82,14 @@
   "error": {
     "forbiddenTitle": "403",
     "notFoundTitle": "404",
-    "backHome": "Go home"
+    "backHome": "Go home",
+    "toast": {
+      "generic": "Something went wrong. Please try again.",
+      "network": "Connection problem. Check your internet.",
+      "permission": "You don't have access to this data.",
+      "notReady": "This data isn't ready yet. Try again in a moment.",
+      "quota": "Request limit reached. Try again later."
+    }
   },
   "screens": {
     "comingSoon": "This screen is still in development. Check back soon.",
