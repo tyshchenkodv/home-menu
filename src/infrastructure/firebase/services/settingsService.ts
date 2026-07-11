@@ -1,4 +1,4 @@
-import { doc, getDoc, getFirestore, serverTimestamp, updateDoc, type WithFieldValue } from 'firebase/firestore';
+import { doc, getDoc, getFirestore, serverTimestamp, setDoc, type WithFieldValue } from 'firebase/firestore';
 
 import { getFirebaseApp } from '../firebaseApp';
 import type { GeneralSettings, GeneralSettingsDoc } from '../../../shared/types/generalSettings';
@@ -60,5 +60,9 @@ export const updateGeneralSettings = async (
     updatedBy: userId,
   };
 
-  await updateDoc(settingsRef, payload as unknown as Record<string, unknown>);
+  // `setDoc` (not `updateDoc`): the singleton may not exist yet the first time
+  // an admin saves it, and `updateDoc` fails with `not-found` on a missing
+  // document. The payload carries every field, so a full write is correct for
+  // both the create and the update case.
+  await setDoc(settingsRef, payload);
 };

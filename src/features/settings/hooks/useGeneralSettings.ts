@@ -4,6 +4,7 @@ import {
   DEFAULT_GENERAL_SETTINGS,
   getGeneralSettings,
 } from '../../../infrastructure/firebase/services/settingsService';
+import { notifyError } from '../../../shared/notifications/notify';
 import type { GeneralSettings } from '../../../shared/types/generalSettings';
 
 export interface UseGeneralSettingsResult {
@@ -72,6 +73,7 @@ export const useGeneralSettings = (): UseGeneralSettingsResult & {
     } catch (err) {
       setStatus('error');
       setError(err instanceof Error ? err : new Error(String(err)));
+      notifyError(err);
     } finally {
       setIsSaving(false);
     }
