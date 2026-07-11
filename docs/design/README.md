@@ -41,11 +41,28 @@ The **design system foundation** slice is implemented (see
   `admin-inventory-design-retrofit`): `IngredientCard` shows a `StatusChip`
   (`src/shared/components/StatusChip/`) and a kebab action menu, the inventory
   screen adds via a FAB, and the history screen groups movements by day with
-  signed, color-coded deltas.
-
-Not yet adopted (tracked follow-ups): the responsive navigation shell, a
-Settings screen, and the not-yet-built feature screens (Batches, Cooking
-requests / Orders, Menu), each of which needs its own specification.
+  a movement-type filter chip row (All/Restock/Correction/Cooking/Archive
+  adjustment) and signed, color-coded deltas.
+- The `LoginPage` (`src/features/auth/`) carries the brand mascot (`CatArt`
+  `idle`), the `app.title` wordmark, a tagline, and a "Sign in with Google"
+  button — see `screens/login.md` for the full, as-built spec (Google
+  Sign-In only; no email/password form).
+- The responsive navigation shell is implemented (see
+  `docs/specifications/navigation-shell/`): `AppShell`
+  (`src/shared/components/AppShell/`) is a layout route rendering `AppHeader`
+  plus role-aware navigation and the routed `Outlet`. Below the `md`
+  breakpoint it renders a `BottomNavigation` (admin: four primary
+  destinations; user: three destinations directly); at `md` and above it
+  promotes to a persistent `Drawer` listing every destination. The active
+  destination is emphasized with `primary` and exposed to assistive tech.
+- The **MVP completion** slice is implemented (`docs/specifications/mvp-completion/`):
+  all feature screens are now functional including Menu (`/menu`), Orders
+  (`/orders`, user + admin flavors), Dashboard (`/admin`), Batches
+  (`/admin/batches`), Dishes (`/admin/dishes`), and Settings (`/settings`).
+  Cooking requests are integrated into the Orders flow (no separate route).
+  Settings includes the real meal-times form with persistence and defaults.
+  All screens have proper loading, error, empty, and ready states per
+  `docs/design/screens/` specifications.
 
 ## Authoritative MUI theme (source of truth)
 
@@ -165,19 +182,25 @@ headers/success), `empty` (empty states), `sleeping` (loading/skeleton),
 
 ## Screen catalog (`05 Screens`)
 
-The mockup renders reference layouts for these screens. Use them as visual
-targets when the corresponding feature is built:
+The mockup's screen layouts are transcribed into machine-readable per-screen
+specifications under `docs/design/screens/` — **those files are the canon for
+screen structure, states, dialogs, and validation**; the mockup remains the
+visual reference. `docs/design/screen-spec-checklist.md` defines the required
+coverage and the transcription template.
 
-- Login (UA default) and onboarding.
-- Admin dashboard — summary tiles.
-- Admin orders — Kanban board with contextual actions.
-- Batches — counters plus expiration warnings.
-- Menu browse — available dishes with readiness.
-- Cooking requests list.
-- Reservation confirmation flow.
-- Correction dialog (requires a reason).
-- Archive confirmation, ingredient inventory list and filters.
-- Settings — app language, default meal times.
+| Screen | Transcription |
+| --- | --- |
+| Login / onboarding | `screens/login.md` |
+| Menu browse + reservation flow | `screens/menu-browse.md` |
+| My orders (user) | `screens/my-orders.md` |
+| Cooking request creation | `screens/cooking-request.md` |
+| Admin dashboard | `screens/admin-dashboard.md` |
+| Admin orders | `screens/admin-orders.md` |
+| Prepared batches | `screens/admin-batches.md` |
+| Dishes management | `screens/admin-dishes.md` |
+| Ingredient inventory (implemented) | `screens/admin-inventory.md` |
+| Settings | `screens/settings.md` |
+| Cross-screen canon (status matrix, dialogs, states, responsive, dark) | `screens/shared-patterns.md` |
 
 Responsive (`06b`): the same screens promote from a mobile `BottomNavigation`
 layout to a persistent `Drawer` with multi-column grids on wider viewports.
@@ -192,7 +215,8 @@ here:
 2. **Font sourcing** — how Nunito / Nunito Sans are delivered without violating
    the public-repo and privacy rules (no maintainer-specific external URLs;
    prefer self-hosted or a documented, neutral source).
-3. **Responsive navigation** — `BottomNavigation` ↔ `Drawer` switch point and
-   how it maps onto the existing `HashRouter` structure.
+3. **Responsive navigation** — RESOLVED. The switch point is the `md`
+   breakpoint (`BottomNavigation` below it, persistent `Drawer` at and above
+   it); see `docs/specifications/navigation-shell/`.
 4. **Retrofit order** — which existing feature (`admin-inventory`) adopts the
    theme first, and how to keep the change behavior-preserving.
