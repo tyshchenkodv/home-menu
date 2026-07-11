@@ -76,7 +76,7 @@ export const AdminOrderCard = ({
       }
       data-testid="admin-order-card"
     >
-      <CardContent>
+      <CardContent sx={styles.cardContent}>
         <Stack spacing={1}>
           <Stack direction="row" sx={styles.headerRow}>
             <Typography variant="h4" component="h3" sx={styles.title}>
@@ -100,10 +100,11 @@ export const AdminOrderCard = ({
           )}
 
           {order.status === 'pending' && onApprove && onReject && (
-            <Stack direction="row" spacing={1}>
+            <Stack spacing={1}>
               <Button
                 variant="contained"
                 color="primary"
+                fullWidth
                 sx={styles.actionButton}
                 onClick={() => {
                   onApprove(order);
@@ -114,6 +115,7 @@ export const AdminOrderCard = ({
               <Button
                 variant="outlined"
                 color="error"
+                fullWidth
                 sx={styles.actionButton}
                 onClick={() => {
                   onReject(order);
@@ -125,10 +127,11 @@ export const AdminOrderCard = ({
           )}
 
           {order.status === 'approved' && onStartCooking && onReject && (
-            <Stack direction="row" spacing={1}>
+            <Stack spacing={1}>
               <Button
                 variant="contained"
                 color="primary"
+                fullWidth
                 sx={styles.actionButton}
                 onClick={() => {
                   onStartCooking(order);
@@ -139,6 +142,7 @@ export const AdminOrderCard = ({
               <Button
                 variant="outlined"
                 color="error"
+                fullWidth
                 sx={styles.actionButton}
                 onClick={() => {
                   onReject(order);
@@ -164,10 +168,11 @@ export const AdminOrderCard = ({
           )}
 
           {order.status === 'reserved' && onConsume && onCancel && (
-            <Stack direction="row" spacing={1}>
+            <Stack spacing={1}>
               <Button
                 variant="contained"
                 color="success"
+                fullWidth
                 sx={styles.actionButton}
                 onClick={() => {
                   onConsume(order);
@@ -178,6 +183,7 @@ export const AdminOrderCard = ({
               <Button
                 variant="outlined"
                 color="inherit"
+                fullWidth
                 sx={styles.actionButton}
                 onClick={() => {
                   onCancel(order);
@@ -194,9 +200,10 @@ export const AdminOrderCard = ({
               order.status === 'cooking' ||
               order.status === 'prepared') && (
               <Button
-                variant="text"
+                variant="outlined"
                 color="inherit"
-                size="small"
+                fullWidth
+                sx={styles.actionButton}
                 onClick={() => {
                   onCorrect(order);
                 }}

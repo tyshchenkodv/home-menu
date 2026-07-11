@@ -11,16 +11,22 @@ section), OrderCard status matrix ("05d Status matrices"), dialogs 3 and 4
 ## Layout
 
 - **Mobile (< `md`)**: app bar title uk "Запити на готування" (en "Cooking
-  requests"). Kanban columns in a **horizontally scrolling** row (mockup
-  caption: "mobile · light · горизонтальний скрол колонок"). Each column
-  header: colored dot + column name + count, e.g. uk "Очікує · 2". Bottom
-  navigation shell.
+  requests"). The four statuses stack into a **single vertical column of
+  collapsible sections** separated by full-width horizontal dividers, so the
+  board scrolls with the page (no horizontal column scroll). Each section
+  header is a tappable toggle (`aria-expanded`) that expands or collapses that
+  status's cards: colored dot + column name + count, e.g. uk "Очікує · 2", plus
+  a chevron that rotates when open. Sections start expanded. Bottom navigation
+  shell.
 - **Desktop (≥ `md`)**: persistent drawer; **full 4 columns** side by side
   (caption "desktop · light · повні 4 колонки"): uk "● Очікує", "● Підтверджено",
   "● Готується", "● Приготовано" (en Pending, Approved, Cooking, Prepared),
-  each with a count. Column dot colors: Pending → primary.main, Approved →
-  info.main (Ukrainian desktop mock shows the approved column), Cooking →
-  warning.main, Prepared → success.main.
+  each with a count. The columns **share the available board width** between the
+  drawer and the right edge (each takes an equal `flex: 1` share) and are
+  separated by full-height **vertical dividers**. Headers are static (no
+  toggle) and all cards are always visible. Column dot colors: Pending →
+  primary.main, Approved → info.main (Ukrainian desktop mock shows the approved
+  column), Cooking → warning.main, Prepared → success.main.
 - **Dark theme**: both breakpoints mocked; identical structure on the dark
   palette scheme.
 - **Primary action**: contextual button on each card; no FAB, no header button.

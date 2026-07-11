@@ -1,12 +1,26 @@
 import type { SxProps, Theme } from '@mui/material/styles';
 
 export const styles: Record<string, SxProps<Theme>> = {
-  // Fixed-width column that neither grows nor shrinks, so an empty column
-  // keeps its configured width instead of collapsing, and all 4 columns lay
-  // out at full width on desktop without clipping.
-  column: { flex: '0 0 280px', minWidth: 280, maxWidth: 280 },
+  // Desktop (`md`+): each column takes an equal share of the board width
+  // (`flex: 1`), with `minWidth: 0` so long content can shrink instead of
+  // forcing horizontal overflow. Mobile (< `md`): a full-width stacked
+  // section.
+  column: { flex: { md: 1 }, minWidth: 0, width: '100%' },
   headerRow: { alignItems: 'center' },
   columnTitle: { fontWeight: 700 },
+  // Mobile-only tappable header: the status heading on the left, the chevron
+  // on the right, spanning the full section width.
+  toggle: {
+    justifyContent: 'space-between',
+    width: '100%',
+    borderRadius: 1,
+    px: 0.5,
+    py: 0.5,
+  },
+  chevron: {
+    color: 'text.secondary',
+    transition: 'transform 150ms ease',
+  },
 };
 
 /** Column-header status dot: fixed shape, per-status fill color. */
