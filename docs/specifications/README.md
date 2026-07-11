@@ -32,5 +32,5 @@ and link it with `Supersedes`.
 | [Menu expired-batch admin banner](./menu-expired-batch-banner/SPEC.md) | [PLAN](./menu-expired-batch-banner/PLAN.md) | Implemented |
 | [Role migration to custom claims + no self-signup](./auth-custom-claims-migration/SPEC.md) | [PLAN](./auth-custom-claims-migration/PLAN.md) | Implemented |
 | [Unified left navigation drawer with sign-out](./navigation-drawer-signout/SPEC.md) | [PLAN](./navigation-drawer-signout/PLAN.md) | Implemented |
-| [Email/password login, no Google Sign-In](./email-password-auth/SPEC.md) | [PLAN](./email-password-auth/PLAN.md) | Plan Approved |
+| [Email/password login, no Google Sign-In](./email-password-auth/SPEC.md) | [PLAN](./email-password-auth/PLAN.md) | Implemented |
 | [Menu own-reservation hint](./menu-own-reservation-hint/SPEC.md) | [PLAN](./menu-own-reservation-hint/PLAN.md) | Implemented |

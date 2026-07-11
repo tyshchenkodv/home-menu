@@ -9,7 +9,7 @@ Authentication and Cloud Firestore, which form the serverless backend.
 ```mermaid
 flowchart LR
     Person["User or administrator"] --> SPA["React SPA<br/>GitHub Pages"]
-    SPA --> Auth["Firebase Authentication<br/>Google Sign-In"]
+    SPA --> Auth["Firebase Authentication<br/>Email/Password"]
     SPA --> Firestore["Cloud Firestore"]
     Firestore --> Rules["Firestore Security Rules"]
     Repo["Public GitHub repository"] --> Actions["GitHub Actions"]

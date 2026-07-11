@@ -7,7 +7,7 @@ The target recurring cost is zero:
 - GitHub Pages from a public repository on GitHub Free;
 - GitHub Actions for a public repository;
 - Firebase Spark;
-- Google Sign-In;
+- Firebase Authentication with Email/Password sign-in;
 - Firestore within no-cost quotas;
 - no Cloud Functions, Scheduler, or Storage.
 
@@ -20,7 +20,7 @@ Every adopter must use:
 
 - their own fork or clone;
 - their own Firebase project;
-- their own Google OAuth setup;
+- their own household accounts, created directly in Firebase Auth;
 - their own `users/{uid}` documents;
 - their own GitHub variables and secrets.
 
@@ -31,14 +31,17 @@ backend. Production data never belongs in Git.
 
 1. Create a Firebase project on Spark.
 2. Add a Web App.
-3. Enable Authentication with Google.
+3. Enable Authentication with Email/Password and disable self-signup
+   (Authentication → Settings → disable "Enable create (sign-up)").
 4. Create Firestore in an appropriate region.
 5. Do not use test-mode Rules in production.
 6. Add the GitHub Pages hostname to authorized domains.
 7. Deploy Rules and indexes.
 8. Create `settings/general`.
-9. Sign in once with each household account.
-10. Create the matching `users/{uid}` profiles manually.
+9. Create each household account directly in Firebase Auth (email +
+   password).
+10. Set custom claims (`role`, `isActive`) for each account via the Admin
+    SDK; optionally create the matching `users/{uid}` display profiles.
 11. Create a minimally privileged deploy service account.
 
 Use placeholders such as `<firebase-project-id>` in documentation and committed
@@ -116,7 +119,7 @@ Locale selection does not change Firebase data or URLs.
 5. Publish `dist` to GitHub Pages.
 6. Perform smoke checks:
    - the application loads from its repository base path;
-   - Google Sign-In returns to the Pages URL;
+   - a provisioned account can sign in with email and password;
    - the administrator sees admin navigation;
    - a regular user cannot access admin routes;
    - real-time reads work;
@@ -162,7 +165,7 @@ revocation.
 - [ ] The repository contains no maintainer Firebase values or identity data.
 - [ ] `.env*`, credentials, exports, logs, and IDE state are ignored.
 - [ ] Spark is active and no billing account is linked.
-- [ ] Google Sign-In is enabled.
+- [ ] Email/Password sign-in is enabled and self-signup is disabled.
 - [ ] The Pages domain is authorized.
 - [ ] Production Rules deny by default.
 - [ ] Rules and locale parity tests pass.

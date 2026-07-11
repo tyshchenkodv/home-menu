@@ -42,8 +42,9 @@ interface UserProfile {
 }
 ```
 
-The document is provisioned manually after the user's first Google sign-in.
-Client code cannot create users or change roles.
+The document is a non-authoritative display record provisioned manually by
+the owner (email/password Auth account plus custom claims); it never
+authorizes access. Client code cannot create users or change roles.
 
 ## `ingredients/{ingredientId}`
 

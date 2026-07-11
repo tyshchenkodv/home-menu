@@ -29,7 +29,7 @@ tests are written but not yet run in this environment; see
 - React Router with `HashRouter`
 - `i18next` and `react-i18next`
 - Ukrainian (`uk`) and English (`en`) UI; Ukrainian is the default
-- Firebase Authentication with Google Sign-In
+- Firebase Authentication with email/password sign-in, no self-registration
 - Cloud Firestore
 - Vitest, React Testing Library, Firebase Emulator Suite, and Playwright
 - GitHub Actions and GitHub Pages
@@ -119,22 +119,23 @@ npm run emulators   # Firestore :8080, Auth :9099, Emulator UI :4000
 npm run dev
 ```
 
-Sign in with a fake emulator Google account (you will land on the
-not-authorized screen — expected for an unprovisioned account), then set the
-account's custom claims as described below and sign in again. See
-`docker/firebase-emulators/README.md`.
+Create a fake emulator account (email + password) in the Auth Emulator UI,
+sign in on `/login` (you will land on the not-activated screen — expected for
+an unprovisioned account), then set the account's custom claims as described
+below and sign in again. See `docker/firebase-emulators/README.md`.
 
 ### Provisioning a user (custom claims)
 
-Authorization state — `role` (`admin` | `user`) and `active` — lives in
-Firebase Auth **custom claims** on the ID token, not in a Firestore document.
-An account with no `role` claim is not provisioned and is denied everywhere:
-the app signs it out and shows a not-authorized screen, and Security Rules
-deny all data access. There is no self-registration; the owner provisions
-every account.
+There is no Google Sign-In and no self-service account creation: the owner
+creates every Firebase Auth account by hand (email + password) and grants
+access with custom claims. Authorization state — `role` (`admin` | `user`)
+and `isActive` — lives in Firebase Auth **custom claims** on the ID token, not
+in a Firestore document. An account with no `role` claim, or `isActive !==
+true`, is not provisioned: the app keeps the session and shows a
+not-activated screen, and Security Rules deny all data access.
 
 There is currently no bundled CLI for this: call the Firebase Admin SDK's
-`getAuth().setCustomUserClaims(uid, { role, active })` yourself, for example
+`getAuth().setCustomUserClaims(uid, { role, isActive })` yourself, for example
 from a short ad hoc Node script using `firebase-admin`, against the emulator
 (`FIREBASE_AUTH_EMULATOR_HOST=localhost:9099`) locally or a service-account
 key (`GOOGLE_APPLICATION_CREDENTIALS`, never committed) in production. A
@@ -157,14 +158,17 @@ commit a real `uid`, email, or service-account key to this repository.
 
 1. Fork this repository.
 2. Create a Firebase project on the no-cost Spark plan.
-3. Enable Google Sign-In and create Firestore.
+3. Enable Authentication with Email/Password and disable self-signup
+   (Authentication → Settings → disable "Enable create (sign-up)"), then
+   create Firestore.
 4. Configure GitHub Actions variables with your Firebase Web App values.
 5. Store the deployment service-account credential only in GitHub Secrets.
 6. Enable GitHub Pages with GitHub Actions as the source.
 7. Deploy the Firestore rules and indexes.
-8. Sign in once, then set custom claims (`role`, `active`) for each real
-   account with your own service-account key, starting with your own admin
-   account (see "Provisioning a user" above).
+8. Create each real household account directly in Firebase Auth (email +
+   password), then set custom claims (`role`, `isActive`) for each one with
+   your own service-account key, starting with your own admin account (see
+   "Provisioning a user" above).
 
 Never reuse the original author's Firebase project or identity data. Detailed
 instructions are in the [deployment guide](docs/08-deployment.md).
