@@ -1,48 +1,85 @@
-import { Navigate, HashRouter, Route, Routes } from 'react-router-dom';
+import { HashRouter, Route, Routes } from 'react-router-dom';
 
+import { AppShell } from '../shared/components/AppShell/AppShell';
 import { LoginPage } from '../features/auth/LoginPage';
+import { RequireActiveProfile } from '../features/auth/RequireActiveProfile';
 import { RequireAdmin } from '../features/auth/RequireAdmin';
-import { RequireAuth } from '../features/auth/RequireAuth';
-import { AdminHomePage } from '../features/admin-inventory/pages/AdminHomePage';
+import { AdminDashboardPage } from '../features/admin-dashboard/pages/AdminDashboardPage';
+import { DishesPage } from '../features/admin-dishes/pages/DishesPage';
 import { InventoryHistoryPage } from '../features/admin-inventory/pages/InventoryHistoryPage';
 import { InventoryPage } from '../features/admin-inventory/pages/InventoryPage';
+import { AdminOrdersPage } from '../features/admin-orders/pages/AdminOrdersPage';
+import { BatchesPage } from '../features/batches/pages/BatchesPage';
+import { MenuPage } from '../features/menu/pages/MenuPage';
+import { OrdersPage } from '../features/orders/pages/OrdersPage';
+import { SettingsPage } from '../features/settings/pages/SettingsPage';
+import { RootRedirect } from './RootRedirect';
 
 export const AppRouter = () => {
   return (
     <HashRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/admin/inventory" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/admin"
           element={
-            <RequireAuth>
-              <RequireAdmin>
-                <AdminHomePage />
-              </RequireAdmin>
-            </RequireAuth>
+            <RequireActiveProfile>
+              <AppShell />
+            </RequireActiveProfile>
           }
-        />
-        <Route
-          path="/admin/inventory"
-          element={
-            <RequireAuth>
+        >
+          <Route index element={<RootRedirect />} />
+          <Route path="/menu" element={<MenuPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route
+            path="/admin"
+            element={
+              <RequireAdmin>
+                <AdminDashboardPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <RequireAdmin>
+                <AdminOrdersPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/batches"
+            element={
+              <RequireAdmin>
+                <BatchesPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/dishes"
+            element={
+              <RequireAdmin>
+                <DishesPage />
+              </RequireAdmin>
+            }
+          />
+          <Route
+            path="/admin/inventory"
+            element={
               <RequireAdmin>
                 <InventoryPage />
               </RequireAdmin>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/inventory/history"
-          element={
-            <RequireAuth>
+            }
+          />
+          <Route
+            path="/admin/inventory/history"
+            element={
               <RequireAdmin>
                 <InventoryHistoryPage />
               </RequireAdmin>
-            </RequireAuth>
-          }
-        />
+            }
+          />
+        </Route>
       </Routes>
     </HashRouter>
   );

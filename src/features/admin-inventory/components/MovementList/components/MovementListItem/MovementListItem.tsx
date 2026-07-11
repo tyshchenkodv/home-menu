@@ -33,8 +33,7 @@ export const MovementListItem = ({ movement, baseUnit }: MovementListItemProps) 
           to: t(movement.presenceAfter ? 'inventory.presence.present' : 'inventory.presence.absent'),
         });
 
-  const deltaColor =
-    movement.deltaQuantity === null ? undefined : movement.deltaQuantity > 0 ? 'success' : 'textSecondary';
+  const deltaColor = movement.deltaQuantity === null ? undefined : movement.deltaQuantity > 0 ? 'success' : 'error';
 
   const balanceText =
     movement.balanceAfter !== null

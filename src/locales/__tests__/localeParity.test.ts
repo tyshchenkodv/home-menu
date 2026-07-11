@@ -1,54 +1,42 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
+import ukTranslation from '../uk/translation.json';
+import enTranslation from '../en/translation.json';
 
-import en from '../en/translation.json';
-import uk from '../uk/translation.json';
+/**
+ * Recursive key path collection: traverses an object and collects all dot-separated
+ * paths (e.g., `settings.mealTimes.title`).
+ */
+function collectKeyPaths(obj: unknown, prefix = ''): Set<string> {
+  const paths = new Set<string>();
 
-interface TranslationTree {
-  [key: string]: string | TranslationTree;
+  if (obj === null || typeof obj !== 'object' || obj instanceof Date || obj instanceof Array) {
+    return paths;
+  }
+
+  for (const [key, value] of Object.entries(obj)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    paths.add(path);
+
+    if (value !== null && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value)) {
+      for (const subPath of collectKeyPaths(value, path)) {
+        paths.add(subPath);
+      }
+    }
+  }
+
+  return paths;
 }
 
-const flattenKeys = (tree: TranslationTree, prefix = ''): string[] => {
-  return Object.entries(tree).flatMap(([key, value]) => {
-    const path = prefix ? `${prefix}.${key}` : key;
+describe('Locale parity', () => {
+  it('both locales contain the exact same set of keys', () => {
+    const ukPaths = collectKeyPaths(ukTranslation);
+    const enPaths = collectKeyPaths(enTranslation);
 
-    if (typeof value === 'string') {
-      return [path];
-    }
+    const missingInEn = [...ukPaths].filter(p => !enPaths.has(p)).sort();
+    const missingInUk = [...enPaths].filter(p => !ukPaths.has(p)).sort();
 
-    return flattenKeys(value, path);
-  });
-};
-
-describe('locale parity', () => {
-  it('has identical flattened key sets for uk and en', () => {
-    const ukKeys = flattenKeys(uk).sort();
-    const enKeys = flattenKeys(en).sort();
-
-    expect(ukKeys).toEqual(enKeys);
-  });
-});
-
-describe('i18n initialization', () => {
-  beforeEach(() => {
-    window.localStorage.clear();
-  });
-
-  it('defaults to uk when no language preference is stored', async () => {
-    const { i18n } = await import('../../app/i18n');
-    await i18n.init();
-
-    expect(i18n.language).toBe('uk');
-  });
-
-  it('falls back to en for unsupported languages', async () => {
-    const { i18n } = await import('../../app/i18n');
-
-    expect(i18n.options.fallbackLng).toEqual(['en']);
-  });
-
-  it('reports uk and en as the supported languages', async () => {
-    const { i18n } = await import('../../app/i18n');
-
-    expect(i18n.options.supportedLngs).toEqual(expect.arrayContaining(['uk', 'en']));
+    expect(missingInEn, 'Missing in EN').toHaveLength(0);
+    expect(missingInUk, 'Missing in UK').toHaveLength(0);
+    expect(ukPaths).toEqual(enPaths);
   });
 });

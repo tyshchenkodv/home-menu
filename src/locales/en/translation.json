@@ -6,7 +6,17 @@
     "login": "Login",
     "admin": "Admin",
     "inventory": "Inventory",
-    "history": "History"
+    "history": "History",
+    "dashboard": "Dashboard",
+    "menu": "Menu",
+    "orders": "Orders",
+    "myOrders": "My orders",
+    "batches": "Batches",
+    "dishes": "Dishes",
+    "requests": "Requests",
+    "settings": "Settings",
+    "more": "More",
+    "landmark": "Primary navigation"
   },
   "common": {
     "loading": "Loading...",
@@ -15,11 +25,32 @@
     "toggleDarkMode": "Toggle dark mode",
     "language": "Language",
     "languageUk": "UK",
-    "languageEn": "EN"
+    "languageEn": "EN",
+    "retry": "Retry",
+    "all": "All",
+    "cancel": "Cancel",
+    "keep": "Keep",
+    "save": "Save",
+    "saving": "Saving…",
+    "yesterday": "Yesterday",
+    "meals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner"
+    },
+    "units": {
+      "gram": "g",
+      "kilogram": "kg",
+      "milliliter": "ml",
+      "liter": "l",
+      "piece": "pcs",
+      "presence": "presence"
+    }
   },
   "auth": {
     "login": {
       "title": "Sign in",
+      "tagline": "Your household's food inventory & menu",
       "googleButton": "Sign in with Google",
       "signingIn": "Signing in...",
       "error": "Failed to sign in. Please try again."
@@ -30,18 +61,44 @@
     },
     "signOut": "Sign out"
   },
-  "adminHome": {
-    "description": "Manage ingredients and review the inventory history.",
-    "inventoryCardTitle": "Inventory",
-    "inventoryCardDescription": "View, add, and archive ingredients.",
-    "historyCardTitle": "History",
-    "historyCardDescription": "Review the inventory movement log."
+  "screens": {
+    "comingSoon": "This screen is still in development. Check back soon.",
+    "title": {
+      "menu": "Menu",
+      "orders": "Orders",
+      "adminOrders": "Orders",
+      "batches": "Batches",
+      "dishes": "Dishes",
+      "cookingRequests": "Cooking requests",
+      "dashboard": "Dashboard"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "mealTimes": {
+      "title": "Default meal times",
+      "defaultBanner": "Default values are in use — save to lock in your own.",
+      "defaultsHelp": "Defaults: 08:00 · 13:00 · 19:00 · they apply to new requests; existing ones are unchanged.",
+      "reset": "Reset to defaults"
+    },
+    "language": {
+      "title": "Language",
+      "appLanguage": "App language"
+    },
+    "save": "Save",
+    "saving": "Saving…",
+    "loading": "Loading…",
+    "error": {
+      "title": "Didn't save",
+      "body": "The changes were not applied — try again."
+    }
   },
   "inventory": {
     "loading": "Loading ingredients…",
     "error": "Failed to load ingredients",
     "quantityWithUnit": "{{amount}} {{unit}}",
     "empty": {
+      "activeTitle": "Inventory is empty",
       "active": "No active ingredients yet",
       "archived": "No archived ingredients"
     },
@@ -145,11 +202,309 @@
         "all": "All ingredients"
       },
       "type": {
+        "all": "All",
         "restock": "Restock",
         "cooking": "Cooking",
         "correction": "Correction",
         "archive_adjustment": "Archive adjustment"
       }
+    }
+  },
+  "status": {
+    "dishAvailability": {
+      "readyNow": "Ready now",
+      "canBeCooked": "Can be cooked",
+      "unavailable": "Unavailable",
+      "notConfigured": "Not configured"
+    },
+    "order": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "cooking": "Cooking",
+      "prepared": "Prepared",
+      "reserved": "Reserved",
+      "consumed": "Consumed",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
+    "batch": {
+      "fresh": "Fresh",
+      "expiring": "⏳ Expires in {{hours}}h",
+      "expired": "⚠ Expired",
+      "fullyReserved": "Fully reserved",
+      "discarded": "Discarded"
+    }
+  },
+  "validation": {
+    "required": "Required field",
+    "incompleteRecipeRow": "Complete the row or remove it",
+    "mealTypeRequired": "Select at least one meal type",
+    "reservationMax": "Maximum {{max}} — that's how many free portions the batch has",
+    "quantityAtLeastOne": "Quantity must be at least 1",
+    "correctionReasonRequired": "Provide a reason — the field is required",
+    "dateNotInPast": "Date cannot be in the past",
+    "expiryNotInPast": "The expiration date cannot be in the past",
+    "number": "Enter a number",
+    "quantityGreaterThanZero": "Quantity must be greater than 0"
+  },
+  "menu": {
+    "title": "Today's menu",
+    "loading": "Loading menu…",
+    "empty": {
+      "title": "Nothing for this day",
+      "body": "No dish is ready or can be cooked. Try another day.",
+      "action": "Another day"
+    },
+    "error": {
+      "title": "Couldn't load",
+      "body": "Check your connection and try again."
+    },
+    "card": {
+      "readyCount": "{{count}} ready",
+      "zeroReady": "0 ready",
+      "noCount": "—",
+      "recipeNotConfigured": "Recipe not configured yet."
+    },
+    "actions": {
+      "reserve": "Reserve",
+      "request": "Request"
+    },
+    "past": {
+      "label": "Passed"
+    },
+    "reservation": {
+      "title": "Reserve portions",
+      "subtitle": "{{dish}} · {{count}} portions ready",
+      "portionsLabel": "Portions",
+      "confirm": "Confirm reservation",
+      "submitting": "Reserving…",
+      "error": {
+        "body": "Someone was faster — {{available}} portion left of the {{requested}} requested."
+      }
+    }
+  },
+  "orders": {
+    "title": "My Orders",
+    "tabs": {
+      "active": "Active",
+      "history": "History"
+    },
+    "earlier": "Earlier",
+    "loading": "Loading orders…",
+    "empty": {
+      "title": "No orders yet",
+      "body": "Kotyk's bowl is empty. Browse today's menu to reserve a dish.",
+      "action": "Browse menu"
+    },
+    "error": {
+      "title": "Something went wrong",
+      "body": "Couldn't fetch your orders."
+    },
+    "meta": {
+      "request": "Cooking request · {{count}} portion · {{date}}, {{meal}}",
+      "reservation": "Reserved · {{count}} portions · {{date}}, {{meal}}",
+      "consumedAt": "consumed {{time}}",
+      "cancelledByUser": "Cancelled by user · {{date}}"
+    },
+    "reason": "Reason: {{reason}}",
+    "actions": {
+      "cancel": "Cancel order",
+      "cancelUnavailable": "Cancel — not available",
+      "cancelUnavailableHelp": "Cancellation is disabled once cooking has started."
+    },
+    "preparedHelp": "No buttons — portions are reserved automatically from the batch.",
+    "batchWarning": "The linked batch has expired or was discarded. Contact an administrator.",
+    "cancelDialog": {
+      "title": "Cancel this order?",
+      "body": "Your {{count}} reserved portions of {{dish}} will be released back to the household.",
+      "keep": "Keep",
+      "confirm": "Cancel order"
+    },
+    "admin": {
+      "title": "Cooking requests",
+      "tabs": {
+        "board": "Board",
+        "history": "History"
+      },
+      "historyFilterLabel": "Filter by status",
+      "loading": "Loading…",
+      "empty": {
+        "title": "No requests",
+        "body": "No new cooking requests yet — the board is empty."
+      },
+      "error": {
+        "title": "The board didn't load",
+        "body": "Try refreshing."
+      },
+      "columnHeading": "{{status}} · {{count}}",
+      "meta": {
+        "requester": "{{requester}} · {{count}} portion · {{date}}",
+        "batch": "{{requester}} · batch #{{batchNumber}}"
+      },
+      "actions": {
+        "approve": "Approve",
+        "reject": "Reject",
+        "startCooking": "Start cooking",
+        "markPrepared": "Mark as prepared",
+        "markConsumed": "Mark as consumed",
+        "correct": "Correct"
+      },
+      "rejection": {
+        "title": "Reject the request?",
+        "context": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "reasonLabel": "Reason (optional)",
+        "helper": "The requester will see the reason."
+      },
+      "correction": {
+        "title": "Correct the order?",
+        "context": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "reasonLabel": "Reason *",
+        "reasonPlaceholder": "Describe why this order is being corrected…",
+        "helper": "The correction is appended to the immutable order history."
+      },
+      "completeCooking": {
+        "title": "Batch prepared",
+        "context": "{{dish}} · request by {{requester}}",
+        "plannedLabel": "Planned, portions",
+        "actualLabel": "Actual *",
+        "preparedAtLabel": "Prepared at *",
+        "bestBeforeLabel": "Best before",
+        "submit": "Register batch",
+        "submitting": "Saving…",
+        "yieldBelowRequested": "Actual yield must be at least the requested quantity ({{requested}})"
+      },
+      "batchWarning": "The linked batch has expired or was discarded. Cancel the order or move it to another batch."
+    }
+  },
+  "requests": {
+    "dialog": {
+      "title": "Ask to cook"
+    },
+    "form": {
+      "portionsLabel": "Portions",
+      "submit": "Send request",
+      "submitting": "Sending…"
+    }
+  },
+  "dishes": {
+    "title": "Dishes",
+    "loading": "Loading…",
+    "tabs": {
+      "ariaLabel": "Dishes tabs",
+      "active": "Active",
+      "archived": "Archived"
+    },
+    "empty": {
+      "title": "No dishes yet",
+      "body": "Add the first dish with a recipe — it will appear in the menu as soon as the ingredients are there.",
+      "action": "+ Add dish"
+    },
+    "error": {
+      "title": "Failed to load",
+      "body": "Try again."
+    },
+    "card": {
+      "ingredientCount": "{{count}} ingredients",
+      "missing": "Missing: {{ingredients}}",
+      "emptyRecipe": "Recipe is empty — the dish does not appear in the menu"
+    },
+    "actions": {
+      "edit": "Edit",
+      "archive": "Archive",
+      "restore": "Restore",
+      "configureRecipe": "Configure the recipe"
+    },
+    "form": {
+      "createTitle": "New dish",
+      "editTitle": "Edit dish",
+      "close": "Close form",
+      "nameLabel": "Name *",
+      "namePlaceholder": "E.g., \"Mushroom risotto\"",
+      "descriptionLabel": "Description",
+      "recipeTitle": "Recipe",
+      "addIngredient": "+ Add ingredient",
+      "ingredientPlaceholder": "Choose an ingredient…",
+      "removeIngredient": "Remove ingredient",
+      "quantityLabel": "Quantity",
+      "unitLabel": "Unit",
+      "unitsHelp": "Units: g · kg · ml · l · pcs · \"presence\"",
+      "mealTypesLabel": "Meal types",
+      "save": "Save dish"
+    },
+    "archiveDialog": {
+      "title": "Archive the dish?",
+      "body": "\"{{dish}}\" will disappear from the menu. Order history is kept; the dish can be restored from the archive.",
+      "keep": "Keep",
+      "confirm": "To archive"
+    }
+  },
+  "batches": {
+    "title": "Prepared batches",
+    "loading": "Loading…",
+    "empty": {
+      "title": "No prepared batches",
+      "body": "A batch will appear as soon as you mark a request as prepared."
+    },
+    "error": {
+      "title": "Couldn't load",
+      "body": "Try again."
+    },
+    "meta": {
+      "cooked": "Cooked {{date}} · {{time}}",
+      "bestBefore": "{{date}} · {{time}} · best before {{bestBefore}}",
+      "expired": "Cooked {{date}} · expired {{relativeDate}}",
+      "discarded": "Discarded {{date}} · {{count}} portions"
+    },
+    "counters": {
+      "available": "AVAIL",
+      "reserved": "RESV",
+      "consumed": "USED",
+      "discarded": "DISC"
+    },
+    "actions": {
+      "discard": "Discard…",
+      "discardCount": "Discard {{count}} portions",
+      "discardDisabled": "Discard — all portions are reserved"
+    },
+    "expired": {
+      "notice": "Reserving is blocked. {{count}} portions await disposal."
+    },
+    "discarded": {
+      "helper": "No buttons · stays in the movement log."
+    },
+    "registration": {
+      "title": "Batch prepared",
+      "context": "{{dish}} · request by {{requester}}",
+      "plannedLabel": "Planned, portions",
+      "actualLabel": "Actual *",
+      "bestBeforeLabel": "Best before *",
+      "actualBelowPlan": "Actual yield is lower than planned — inventory is deducted by the actual amount.",
+      "submit": "Register batch"
+    },
+    "discardDialog": {
+      "title": "Discard the batch?",
+      "body": "{{dish}} · {{count}} available portions will be written off permanently. This cannot be undone.",
+      "confirm": "Discard"
+    }
+  },
+  "dashboard": {
+    "adminOverline": "Admin",
+    "title": "Dashboard",
+    "loading": "Counting portions…",
+    "empty": {
+      "title": "All calm",
+      "body": "No requests, expired batches, or shortages. Kotyk is content."
+    },
+    "error": {
+      "title": "Data unavailable",
+      "body": "Couldn't fetch the summary."
+    },
+    "tiles": {
+      "pendingRequests": "Pending requests",
+      "inProgress": "In progress",
+      "lowStock": "Low-stock items",
+      "expiredBatch": "Expired batch",
+      "readyPortions": "Portions ready to reserve"
     }
   }
 }

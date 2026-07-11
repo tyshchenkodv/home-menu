@@ -8,29 +8,29 @@ flowchart TD
     I18n --> Auth["AuthProvider"]
     Auth --> Router["HashRouter"]
     Router --> Login["LoginPage"]
-    Router --> Protected["RequireAuth"]
+    Router --> Protected["RequireActiveProfile"]
     Protected --> Shell["AppShell"]
-    Shell --> Menu["MenuPage"]
-    Shell --> Mine["MyOrdersPage"]
-    Shell --> Language["LanguageSwitcher"]
-    Protected --> Admin["RequireAdmin"]
-    Admin --> AdminShell["AdminShell"]
-    AdminShell --> Dashboard["AdminDashboardPage"]
-    AdminShell --> Dishes["DishesPage"]
-    AdminShell --> Inventory["InventoryPage"]
-    AdminShell --> History["InventoryHistoryPage"]
-    AdminShell --> Batches["BatchesPage"]
-    AdminShell --> Orders["AdminOrdersPage"]
-    AdminShell --> Settings["SettingsPage"]
+    Shell --> Root["RootRedirect"]
+    Shell --> Menu["MenuPage (implemented)"]
+    Shell --> Orders["OrdersPage (implemented)"]
+    Shell --> Settings["SettingsPage (implemented)"]
+    Shell --> Admin["RequireAdmin"]
+    Admin --> Dashboard["AdminDashboardPage (implemented)"]
+    Admin --> AdminOrders["AdminOrdersPage (implemented)"]
+    Admin --> Dishes["AdminDishesPage (implemented)"]
+    Admin --> Batches["BatchesPage (implemented)"]
+    Admin --> Inventory["InventoryPage"]
+    Admin --> History["InventoryHistoryPage"]
 ```
 
 ## Shared components
 
 | Component | Responsibility |
 | --- | --- |
-| `AppHeader` | Persistent banner: brand mascot, wordmark, language and theme controls |
-| `AppShell` | Mobile navigation, title, sign-out, event badges |
-| `RequireAuth` | Wait for Auth and reject unknown or inactive UIDs |
+| `AppHeader` | Brand mascot, wordmark, language and theme controls; rendered inside `AppShell` only (not on `/login`) |
+| `AppShell` | Layout route: header, role-aware responsive navigation (`AppNavDrawer` at `md`+, `AppNavBottom` below it), routed `Outlet` |
+| `FeaturePlaceholder` | Localized title plus a shared "coming soon" `StatePlaceholder`, used by every not-yet-built feature screen |
+| `RequireActiveProfile` | Wait for Auth and reject unauthenticated or inactive profiles; does not check role |
 | `RequireAdmin` | Require the `admin` role |
 | `LanguageSwitcher` | Switch `uk`/`en` (UK/EN) and persist the local preference |
 | `ColorSchemeToggle` | Toggle binary light↔dark mode and persist it |
@@ -56,6 +56,27 @@ typography, an 8px spacing base, per-surface radii, and component overrides.
 `AppHeader`, `LanguageSwitcher`, `ColorSchemeToggle`, and `CatArt` live under
 `src/shared/components/` (one component per folder). See the
 `design-system-foundation` specification for scope and follow-ups.
+
+## Navigation
+
+`AppShell` reads `profile.role` and shows a role-scoped destination set
+(`src/shared/components/AppShell/constants/navigationDestinations.ts`,
+filtered by `selectDestinations`):
+
+- **Administrator**: Dashboard (`/admin`), Menu (`/menu`), Orders
+  (`/admin/orders`), Batches (`/admin/batches`), Dishes (`/admin/dishes`),
+  Inventory (`/admin/inventory`, with Inventory History reachable as a
+  sub-page rather than its own destination), Settings (`/settings`).
+- **User**: Menu (`/menu`), My orders (`/orders`), Settings (`/settings`).
+
+Below the `md` breakpoint, `AppNavBottom` shows the mobile-primary
+destinations directly (Dashboard, Menu, Orders for admin; Menu, Orders, Settings for user). At `md` and above, `AppNavDrawer`
+lists every destination for the role. The active route is emphasized and
+exposes a current state to assistive technology.
+
+Cooking requests are now integrated into the My Orders and Admin Orders
+flows. The `MenuPage`, `OrdersPage`, `AdminOrdersPage`, `AdminDashboardPage`,
+`AdminDishesPage`, `BatchesPage`, and `SettingsPage` are implemented. Inventory and Inventory History remain functional from previous slices.
 
 ## User interface
 
@@ -153,8 +174,12 @@ Provides a status-filtered list or Kanban view with only valid actions:
 
 ### `SettingsPage`
 
-Edits default meal times. It displays `Europe/Kyiv` as a fixed timezone. UI
-language is not a household setting and is changed through `LanguageSwitcher`.
+A single screen shared by both roles, reachable at `/settings`. Reuses
+`LanguageSwitcher` and `ColorSchemeToggle` for language and theme — the same
+controls and shared state as `AppHeader`, so header and Settings never
+diverge — and renders a "default meal times" section as a `comingSoon`
+placeholder with no control; persisted default meal times are a future
+feature slice.
 
 ## Prepared-food sequence
 

@@ -206,3 +206,22 @@ export const subscribeArchivedIngredients = (
     onError,
   );
 };
+
+/**
+ * Subscribes to all (both active and archived) ingredients ordered by name.
+ * Used by the admin dashboard to compute low-stock counts.
+ */
+export const subscribeAllIngredients = (
+  onNext: (ingredients: IngredientWithId[]) => void,
+  onError: (error: Error) => void,
+): Unsubscribe => {
+  const allQuery = query(getIngredientsCollection().withConverter(ingredientConverter), orderBy('name'));
+
+  return onSnapshot(
+    allQuery,
+    snapshot => {
+      onNext(mapSnapshot(snapshot));
+    },
+    onError,
+  );
+};

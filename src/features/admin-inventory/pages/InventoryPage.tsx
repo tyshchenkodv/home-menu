@@ -84,7 +84,12 @@ export const InventoryPage = () => {
     }
 
     if (ingredients.length === 0) {
-      return <EmptyState message={t(tab === 'active' ? 'inventory.empty.active' : 'inventory.empty.archived')} />;
+      return (
+        <EmptyState
+          title={tab === 'active' ? t('inventory.empty.activeTitle') : undefined}
+          message={t(tab === 'active' ? 'inventory.empty.active' : 'inventory.empty.archived')}
+        />
+      );
     }
 
     return (

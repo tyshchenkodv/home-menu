@@ -101,14 +101,16 @@ Pure functions without React or Firebase dependencies:
 - `Timestamp` conversion;
 - error-code normalization.
 
-## Suggested source tree
+## Actual source tree (Task 8 implementation)
 
 ```text
 src/
 ├── app/
 │   ├── App.tsx
+│   ├── RootRedirect.tsx
 │   ├── router.tsx
 │   ├── theme.ts
+│   ├── i18n.ts
 │   └── providers/
 ├── domain/
 │   ├── dishes/
@@ -116,21 +118,25 @@ src/
 │   ├── batches/
 │   └── orders/
 ├── features/
-│   ├── auth/
-│   ├── menu/
-│   ├── my-orders/
-│   ├── language/
 │   ├── admin-dashboard/
 │   ├── admin-dishes/
 │   ├── admin-inventory/
-│   ├── admin-batches/
 │   ├── admin-orders/
+│   ├── auth/
+│   ├── batches/
+│   ├── cooking-requests/ (removed)
+│   ├── menu/
+│   ├── orders/
 │   └── settings/
 ├── infrastructure/
 │   └── firebase/
+│       ├── converters/
+│       ├── services/
+│       └── __tests__/
 ├── locales/
 │   ├── en/translation.json
-│   └── uk/translation.json
+│   ├── uk/translation.json
+│   └── __tests__/
 ├── shared/
 │   ├── components/
 │   ├── hooks/
@@ -182,20 +188,37 @@ Rules:
 
 ```text
 /#/login
+/#/               (RootRedirect)
 /#/menu
 /#/orders
+/#/settings
 /#/admin
+/#/admin/orders
+/#/admin/batches
 /#/admin/dishes
 /#/admin/inventory
 /#/admin/inventory/history
-/#/admin/batches
-/#/admin/orders
-/#/admin/settings
 ```
 
-`RequireAuth` blocks users without an active profile. `RequireAdmin` protects
-administrative routes. Route guards are a UX measure; Firestore Rules enforce
-the actual authorization boundary.
+`/login` is the only ungated route. Every other route is nested under a
+single layout route, `<RequireActiveProfile><AppShell /></RequireActiveProfile>`
+(`src/app/router.tsx`), so an authenticated-and-active profile is required
+before any in-app screen renders; `RequireActiveProfile`
+(`src/features/auth/RequireActiveProfile.tsx`) does not check role.
+`/admin/*` routes are additionally wrapped in `RequireAdmin`. Route guards are
+a UX measure; Firestore Rules enforce the actual authorization boundary.
+
+`AppShell` (`src/shared/components/AppShell/`) is the layout route's element:
+it renders `AppHeader`, role-aware responsive navigation (`AppNavDrawer` at
+the `md` breakpoint and above, `AppNavBottom` below it), and the routed
+`<Outlet/>`. `AppHeader` no longer renders globally from
+`app/providers/AppProviders.tsx`; it renders only inside `AppShell`, so
+`/login` has no header, navigation, or switcher chrome.
+
+The index route (`/`) renders `RootRedirect` (`src/app/RootRedirect.tsx`),
+which reads `useAuth()` and navigates an `admin` profile to `/admin` and a
+`user` profile to `/menu`, showing a loading placeholder while auth status is
+still resolving.
 
 ## Atomic operations
 

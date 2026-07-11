@@ -7,13 +7,21 @@ import { styles } from './StatePlaceholder.styles';
 interface StatePlaceholderProps {
   variant: 'sleeping' | 'empty' | 'confused';
   message: string;
+  /** Optional headline shown above the message (design specs pair a headline
+   *  with the body copy for empty/error states). */
+  title?: string;
 }
 
-/** Centered mascot illustration paired with a localized state message. */
-export const StatePlaceholder = ({ variant, message }: StatePlaceholderProps) => (
-  <Stack spacing={2} sx={styles.container}>
+/** Centered mascot illustration paired with a localized headline and message. */
+export const StatePlaceholder = ({ variant, message, title }: StatePlaceholderProps) => (
+  <Stack spacing={1} sx={styles.container}>
     <CatArt variant={variant} size={120} />
-    <Typography>{message}</Typography>
+    {title ? (
+      <Typography variant="h5" sx={styles.title}>
+        {title}
+      </Typography>
+    ) : null}
+    <Typography color="text.secondary">{message}</Typography>
   </Stack>
 );
 

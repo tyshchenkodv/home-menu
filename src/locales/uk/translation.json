@@ -6,7 +6,17 @@
     "login": "Вхід",
     "admin": "Адміністрування",
     "inventory": "Запаси",
-    "history": "Історія"
+    "history": "Історія",
+    "dashboard": "Панель",
+    "menu": "Меню",
+    "orders": "Замовлення",
+    "myOrders": "Мої замовлення",
+    "batches": "Партії",
+    "dishes": "Страви",
+    "requests": "Заявки",
+    "settings": "Налаштування",
+    "more": "Більше",
+    "landmark": "Основна навігація"
   },
   "common": {
     "loading": "Завантаження...",
@@ -15,11 +25,32 @@
     "toggleDarkMode": "Перемкнути темну тему",
     "language": "Мова",
     "languageUk": "UK",
-    "languageEn": "EN"
+    "languageEn": "EN",
+    "retry": "Повторити",
+    "all": "Усі",
+    "cancel": "Скасувати",
+    "keep": "Залишити",
+    "yesterday": "Вчора",
+    "save": "Зберегти",
+    "saving": "Збереження…",
+    "meals": {
+      "breakfast": "Сніданок",
+      "lunch": "Обід",
+      "dinner": "Вечеря"
+    },
+    "units": {
+      "gram": "г",
+      "kilogram": "кг",
+      "milliliter": "мл",
+      "liter": "л",
+      "piece": "шт",
+      "presence": "наявність"
+    }
   },
   "auth": {
     "login": {
       "title": "Вхід до системи",
+      "tagline": "Домашній облік їжі та меню родини",
       "googleButton": "Увійти через Google",
       "signingIn": "Виконується вхід...",
       "error": "Не вдалося увійти. Спробуйте ще раз."
@@ -30,18 +61,44 @@
     },
     "signOut": "Вийти"
   },
-  "adminHome": {
-    "description": "Керуйте інгредієнтами та переглядайте історію запасів.",
-    "inventoryCardTitle": "Запаси",
-    "inventoryCardDescription": "Переглядайте, додавайте та архівуйте інгредієнти.",
-    "historyCardTitle": "Історія",
-    "historyCardDescription": "Переглядайте журнал руху запасів."
+  "screens": {
+    "comingSoon": "Цей розділ ще в розробці. Заглядайте пізніше.",
+    "title": {
+      "menu": "Меню",
+      "orders": "Замовлення",
+      "adminOrders": "Замовлення",
+      "batches": "Партії",
+      "dishes": "Страви",
+      "cookingRequests": "Заявки на приготування",
+      "dashboard": "Панель"
+    }
+  },
+  "settings": {
+    "title": "Налаштування",
+    "mealTimes": {
+      "title": "Типовий час прийомів їжі",
+      "defaultBanner": "Використовуються типові значення — збережіть, щоб зафіксувати свої.",
+      "defaultsHelp": "Типові: 08:00 · 13:00 · 19:00 · застосовуються до нових запитів, наявні не змінюються.",
+      "reset": "Скинути до типових"
+    },
+    "language": {
+      "title": "Мова",
+      "appLanguage": "Мова застосунку"
+    },
+    "save": "Зберегти",
+    "saving": "Збереження…",
+    "loading": "Завантаження…",
+    "error": {
+      "title": "Не збереглось",
+      "body": "Зміни не застосовано — спробуйте ще раз."
+    }
   },
   "inventory": {
     "loading": "Завантаження інгредієнтів…",
     "error": "Не вдалося завантажити інгредієнти",
     "quantityWithUnit": "{{amount}} {{unit}}",
     "empty": {
+      "activeTitle": "Інвентар порожній",
       "active": "Активних інгредієнтів ще немає",
       "archived": "Архівних інгредієнтів немає"
     },
@@ -145,11 +202,309 @@
         "all": "Усі інгредієнти"
       },
       "type": {
+        "all": "Усі",
         "restock": "Поповнення",
         "cooking": "Приготування",
         "correction": "Коригування",
         "archive_adjustment": "Коригування архівування"
       }
+    }
+  },
+  "status": {
+    "dishAvailability": {
+      "readyNow": "Готово зараз",
+      "canBeCooked": "Можна приготувати",
+      "unavailable": "Недоступно",
+      "notConfigured": "Не налаштовано"
+    },
+    "order": {
+      "pending": "Очікує",
+      "approved": "Підтверджено",
+      "cooking": "Готується",
+      "prepared": "Приготовано",
+      "reserved": "Зарезервовано",
+      "consumed": "Спожито",
+      "rejected": "Відхилено",
+      "cancelled": "Скасовано"
+    },
+    "batch": {
+      "fresh": "Свіжа",
+      "expiring": "⏳ Зіпсується за {{hours}} год",
+      "expired": "⚠ Прострочена",
+      "fullyReserved": "Повністю зарезервована",
+      "discarded": "Утилізована"
+    }
+  },
+  "validation": {
+    "required": "Обов'язкове поле",
+    "incompleteRecipeRow": "Заповніть рядок або видаліть його",
+    "mealTypeRequired": "Оберіть хоча б один прийом їжі",
+    "reservationMax": "Максимум {{max}} — стільки вільних порцій у партії",
+    "quantityAtLeastOne": "Кількість має бути не менше 1",
+    "correctionReasonRequired": "Вкажіть причину — поле обов'язкове",
+    "dateNotInPast": "Дата не може бути в минулому",
+    "expiryNotInPast": "Термін придатності не може бути в минулому",
+    "number": "Введіть число",
+    "quantityGreaterThanZero": "Кількість має бути більшою за 0"
+  },
+  "menu": {
+    "title": "Меню на сьогодні",
+    "loading": "Завантажуємо меню…",
+    "empty": {
+      "title": "На цей день нічого немає",
+      "body": "Жодна страва не готова й не може бути приготована. Загляньте на інший день.",
+      "action": "Інший день"
+    },
+    "error": {
+      "title": "Не вдалося завантажити",
+      "body": "Перевірте з'єднання і спробуйте ще раз."
+    },
+    "card": {
+      "readyCount": "{{count}} вільно",
+      "zeroReady": "0 готово",
+      "noCount": "—",
+      "recipeNotConfigured": "Рецепт ще не налаштовано."
+    },
+    "actions": {
+      "reserve": "Зарезервувати",
+      "request": "Запит"
+    },
+    "past": {
+      "label": "Минув"
+    },
+    "reservation": {
+      "title": "Зарезервувати порції",
+      "subtitle": "{{dish}} · вільно {{count}} порцій",
+      "portionsLabel": "Кількість порцій",
+      "confirm": "Зарезервувати",
+      "submitting": "Резервування…",
+      "error": {
+        "body": "Хтось випередив — залишилась {{available}} порція з {{requested}} потрібних."
+      }
+    }
+  },
+  "orders": {
+    "title": "Мої замовлення",
+    "tabs": {
+      "active": "Активні",
+      "history": "Історія"
+    },
+    "earlier": "Раніше",
+    "loading": "Завантажуємо замовлення…",
+    "empty": {
+      "title": "Ще немає замовлень",
+      "body": "Миска Котика порожня. Загляньте в меню й зарезервуйте страву.",
+      "action": "До меню"
+    },
+    "error": {
+      "title": "Щось пішло не так",
+      "body": "Не вдалося отримати ваші замовлення."
+    },
+    "meta": {
+      "request": "Запит · {{count}} порція · {{date}}, {{meal}}",
+      "reservation": "{{count}} порції · {{date}}, {{meal}}",
+      "consumedAt": "спожито {{time}}",
+      "cancelledByUser": "Скасовано користувачем · {{date}}"
+    },
+    "reason": "Причина: {{reason}}",
+    "actions": {
+      "cancel": "Скасувати замовлення",
+      "cancelUnavailable": "Скасувати — недоступно",
+      "cancelUnavailableHelp": "Скасування вимкнено, щойно почалося готування."
+    },
+    "preparedHelp": "Без кнопок — порції резервуються автоматично з партії.",
+    "batchWarning": "Пов'язана партія прострочена або утилізована. Зверніться до адміністратора.",
+    "cancelDialog": {
+      "title": "Скасувати замовлення?",
+      "body": "{{count}} зарезервовані порції «{{dish}}» повернуться в спільну партію.",
+      "keep": "Залишити",
+      "confirm": "Скасувати замовлення"
+    },
+    "admin": {
+      "title": "Запити на готування",
+      "tabs": {
+        "board": "Дошка",
+        "history": "Історія"
+      },
+      "historyFilterLabel": "Фільтр за статусом",
+      "loading": "Завантаження…",
+      "empty": {
+        "title": "Немає запитів",
+        "body": "Нових запитів на готування поки немає — дошка порожня."
+      },
+      "error": {
+        "title": "Дошка не завантажилась",
+        "body": "Спробуйте оновити."
+      },
+      "columnHeading": "{{status}} · {{count}}",
+      "meta": {
+        "requester": "{{requester}} · {{count}} порція · {{date}}",
+        "batch": "{{requester}} · партія #{{batchNumber}}"
+      },
+      "actions": {
+        "approve": "Підтвердити",
+        "reject": "Відхилити",
+        "startCooking": "Почати готування",
+        "markPrepared": "Позначити приготованим",
+        "markConsumed": "Позначити спожитим",
+        "correct": "Скоригувати"
+      },
+      "rejection": {
+        "title": "Відхилити запит?",
+        "context": "{{dish}} · {{requester}} · {{count}} порції · {{date}}",
+        "reasonLabel": "Причина (необов'язково)",
+        "helper": "Причину побачить автор запиту."
+      },
+      "correction": {
+        "title": "Скоригувати замовлення?",
+        "context": "{{dish}} · {{requester}} · {{count}} порції · {{date}}",
+        "reasonLabel": "Причина *",
+        "reasonPlaceholder": "Опишіть, чому коригується це замовлення…",
+        "helper": "Коригування додається до незмінної історії замовлення."
+      },
+      "completeCooking": {
+        "title": "Партію приготовано",
+        "context": "{{dish}} · запит {{requester}}",
+        "plannedLabel": "Планово, порцій",
+        "actualLabel": "Фактично *",
+        "preparedAtLabel": "Час приготування *",
+        "bestBeforeLabel": "Придатна до",
+        "submit": "Зареєструвати партію",
+        "submitting": "Збереження…",
+        "yieldBelowRequested": "Фактичний вихід має бути не менше запитаної кількості ({{requested}})"
+      },
+      "batchWarning": "Пов'язана партія прострочена або утилізована. Скасуйте замовлення або перемістіть його до іншої партії."
+    }
+  },
+  "requests": {
+    "dialog": {
+      "title": "Попросити приготувати"
+    },
+    "form": {
+      "portionsLabel": "Кількість порцій",
+      "submit": "Надіслати запит",
+      "submitting": "Надсилання…"
+    }
+  },
+  "dishes": {
+    "title": "Страви",
+    "loading": "Завантаження…",
+    "tabs": {
+      "ariaLabel": "Вкладки страв",
+      "active": "Активні",
+      "archived": "Архів"
+    },
+    "empty": {
+      "title": "Ще немає страв",
+      "body": "Додайте першу страву з рецептом — і вона з'явиться в меню, щойно будуть інгредієнти.",
+      "action": "+ Додати страву"
+    },
+    "error": {
+      "title": "Не вдалося завантажити",
+      "body": "Спробуйте ще раз."
+    },
+    "card": {
+      "ingredientCount": "{{count}} інгредієнтів",
+      "missing": "Бракує: {{ingredients}}",
+      "emptyRecipe": "Рецепт порожній — страва не з'являється в меню"
+    },
+    "actions": {
+      "edit": "Редагувати",
+      "archive": "В архів",
+      "restore": "Відновити",
+      "configureRecipe": "Налаштувати рецепт"
+    },
+    "form": {
+      "createTitle": "Нова страва",
+      "editTitle": "Редагувати страву",
+      "close": "Закрити форму",
+      "nameLabel": "Назва *",
+      "namePlaceholder": "Напр., «Грибне різото»",
+      "descriptionLabel": "Опис",
+      "recipeTitle": "Рецепт",
+      "addIngredient": "+ Додати інгредієнт",
+      "ingredientPlaceholder": "Оберіть інгредієнт…",
+      "removeIngredient": "Видалити інгредієнт",
+      "quantityLabel": "Кількість",
+      "unitLabel": "Одиниця",
+      "unitsHelp": "Одиниці: г · кг · мл · л · шт · «наявність»",
+      "mealTypesLabel": "Прийоми їжі",
+      "save": "Зберегти страву"
+    },
+    "archiveDialog": {
+      "title": "Архівувати страву?",
+      "body": "«{{dish}}» зникне з меню. Історія замовлень збережеться, страву можна відновити з архіву.",
+      "keep": "Залишити",
+      "confirm": "В архів"
+    }
+  },
+  "batches": {
+    "title": "Партії",
+    "loading": "Завантаження…",
+    "empty": {
+      "title": "Немає готових партій",
+      "body": "Партія з'явиться, щойно ви позначите запит приготованим."
+    },
+    "error": {
+      "title": "Не вдалося завантажити",
+      "body": "Спробуйте ще раз."
+    },
+    "meta": {
+      "cooked": "Приготовано {{date}} · {{time}}",
+      "bestBefore": "{{date}} · {{time}} · придатна до {{bestBefore}}",
+      "expired": "Пн 7 · термін минув учора",
+      "discarded": "Утилізовано {{date}} · {{count}} порц."
+    },
+    "counters": {
+      "available": "ВІЛЬНО",
+      "reserved": "РЕЗЕРВ",
+      "consumed": "СПОЖИТО",
+      "discarded": "УТИЛІЗ."
+    },
+    "actions": {
+      "discard": "Утилізувати…",
+      "discardCount": "Утилізувати {{count}} порції",
+      "discardDisabled": "Утилізувати — усі порції зарезервовані"
+    },
+    "expired": {
+      "notice": "Резервування заблоковано. {{count}} порції очікують утилізації."
+    },
+    "discarded": {
+      "helper": "Без кнопок · залишається в журналі руху."
+    },
+    "registration": {
+      "title": "Партію приготовано",
+      "context": "{{dish}} · запит {{requester}}",
+      "plannedLabel": "Планово, порцій",
+      "actualLabel": "Фактично *",
+      "bestBeforeLabel": "Придатна до *",
+      "actualBelowPlan": "Фактичний вихід менший за плановий — інвентар спишеться за фактом.",
+      "submit": "Зареєструвати партію"
+    },
+    "discardDialog": {
+      "title": "Утилізувати партію?",
+      "body": "{{dish}} · {{count}} вільні порції буде списано назавжди. Дію не можна скасувати.",
+      "confirm": "Утилізувати"
+    }
+  },
+  "dashboard": {
+    "adminOverline": "Адмін",
+    "title": "Панель",
+    "loading": "Рахуємо порції…",
+    "empty": {
+      "title": "Усе спокійно",
+      "body": "Немає запитів, прострочених партій чи дефіциту. Котик задоволений."
+    },
+    "error": {
+      "title": "Дані недоступні",
+      "body": "Не вдалося отримати зведення."
+    },
+    "tiles": {
+      "pendingRequests": "Запити",
+      "inProgress": "Готується",
+      "lowStock": "Дефіцит",
+      "expiredBatch": "Прострочено",
+      "readyPortions": "Порцій вільно"
     }
   }
 }

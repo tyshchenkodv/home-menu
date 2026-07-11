@@ -2,7 +2,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 
@@ -12,8 +12,10 @@ import { ErrorState } from '../components/ErrorState/ErrorState';
 import { IngredientFilter } from '../components/IngredientFilter/IngredientFilter';
 import { LoadingState } from '../components/LoadingState/LoadingState';
 import { MovementList } from '../components/MovementList/MovementList';
+import { MovementTypeFilter } from '../components/MovementTypeFilter/MovementTypeFilter';
 import { useAllIngredients } from '../hooks/useAllIngredients';
 import { useInventoryMovements } from '../hooks/useInventoryMovements';
+import type { MovementTypeFilterValue } from '../types/movementTypeFilterValue';
 import { styles } from './InventoryHistoryPage.styles';
 
 /**
@@ -29,8 +31,15 @@ export const InventoryHistoryPage = () => {
 
   const ingredientId = searchParams.get('ingredientId') ?? undefined;
 
+  const [typeFilter, setTypeFilter] = useState<MovementTypeFilterValue>('all');
+
   const { ingredients: allIngredients } = useAllIngredients();
   const { status, movements } = useInventoryMovements(ingredientId);
+
+  const filteredMovements = useMemo(
+    () => (typeFilter === 'all' ? movements : movements.filter(movement => movement.type === typeFilter)),
+    [movements, typeFilter],
+  );
 
   const baseUnitByIngredientId = useMemo(
     () => new Map<string, BaseUnit>(allIngredients.map(ingredient => [ingredient.id, ingredient.baseUnit])),
@@ -63,11 +72,11 @@ export const InventoryHistoryPage = () => {
       return <ErrorState message={t('inventory.history.error')} />;
     }
 
-    if (movements.length === 0) {
+    if (filteredMovements.length === 0) {
       return <EmptyState message={t('inventory.history.empty')} />;
     }
 
-    return <MovementList movements={movements} baseUnitByIngredientId={baseUnitByIngredientId} />;
+    return <MovementList movements={filteredMovements} baseUnitByIngredientId={baseUnitByIngredientId} />;
   };
 
   return (
@@ -78,6 +87,8 @@ export const InventoryHistoryPage = () => {
           {t('inventory.history.backToInventory')}
         </Button>
       </Stack>
+
+      <MovementTypeFilter value={typeFilter} onChange={setTypeFilter} />
 
       <IngredientFilter ingredients={allIngredients} value={ingredientId ?? ''} onChange={handleFilterChange} />
 

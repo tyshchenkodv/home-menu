@@ -165,7 +165,7 @@ describe('InventoryHistoryPage ready state entries', () => {
     renderPage();
 
     expect(screen.getByRole('heading', { name: 'Борошно' })).toBeInTheDocument();
-    expect(screen.getByText('Коригування')).toBeInTheDocument();
+    expect(screen.getByText('Коригування', { selector: 'p' })).toBeInTheDocument();
     expect(screen.getByText('-200 г')).toBeInTheDocument();
     expect(screen.getByText('1800 г')).toBeInTheDocument();
     expect(screen.getByText(/Звірка залишків/)).toBeInTheDocument();
@@ -184,7 +184,7 @@ describe('InventoryHistoryPage ready state entries', () => {
     expect(screen.getByText('2500 г')).toBeInTheDocument();
   });
 
-  it('colors a negative quantity delta as a decrease (muted, not success)', () => {
+  it('colors a negative quantity delta as an error (correction/cooking deduction)', () => {
     emitActive([buildIngredient()]);
     emitArchived([]);
     emitMovements([buildMovement({ type: 'correction', deltaQuantity: -200, balanceAfter: 1800, note: null })]);
@@ -193,8 +193,7 @@ describe('InventoryHistoryPage ready state entries', () => {
 
     const deltaText = screen.getByText('-200 г');
     expect(deltaText).toBeInTheDocument();
-    expect(getComputedStyle(deltaText).color).not.toBe('var(--mui-palette-success-main)');
-    expect(getComputedStyle(deltaText).color).toBe('var(--mui-palette-text-secondary)');
+    expect(getComputedStyle(deltaText).color).toBe('var(--mui-palette-error-main)');
   });
 
   it('does not render a note row when note is null', () => {
@@ -328,5 +327,57 @@ describe('InventoryHistoryPage ingredient filter', () => {
       expect.any(Function),
       expect.any(Function),
     );
+  });
+});
+
+describe('InventoryHistoryPage movement type filter', () => {
+  it('shows all movements by default and renders a chip per movement type plus "All"', () => {
+    emitActive([buildIngredient()]);
+    emitArchived([]);
+    emitMovements([
+      buildMovement({ id: 'movement-1', type: 'restock' }),
+      buildMovement({ id: 'movement-2', type: 'correction' }),
+    ]);
+
+    renderPage();
+
+    expect(screen.getByRole('button', { name: 'Усі' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Поповнення' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Коригування' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Приготування' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Коригування архівування' })).toBeInTheDocument();
+  });
+
+  it('narrows the visible movements to the selected type on click', async () => {
+    const user = userEvent.setup();
+    emitActive([buildIngredient()]);
+    emitArchived([]);
+    emitMovements([
+      buildMovement({ id: 'movement-1', type: 'restock', deltaQuantity: 500, balanceAfter: 2500 }),
+      buildMovement({ id: 'movement-2', type: 'correction', deltaQuantity: -200, balanceAfter: 1800 }),
+    ]);
+
+    renderPage();
+
+    expect(screen.getByText('+500 г')).toBeInTheDocument();
+    expect(screen.getByText('-200 г')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Коригування' }));
+
+    expect(screen.queryByText('+500 г')).not.toBeInTheDocument();
+    expect(screen.getByText('-200 г')).toBeInTheDocument();
+  });
+
+  it('shows the empty state when a type filter matches no movements', async () => {
+    const user = userEvent.setup();
+    emitActive([buildIngredient()]);
+    emitArchived([]);
+    emitMovements([buildMovement({ id: 'movement-1', type: 'restock' })]);
+
+    renderPage();
+
+    await user.click(screen.getByRole('button', { name: 'Коригування' }));
+
+    expect(screen.getByText('Історія порожня')).toBeInTheDocument();
   });
 });

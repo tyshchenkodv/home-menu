@@ -136,7 +136,12 @@ Only an administrator may discard its available remainder:
 ```text
 discardedQuantity += availableQuantity
 availableQuantity = 0
+status = 'discarded'
 ```
+
+`status` becomes `'discarded'` (distinct from `'depleted'`, which marks a
+batch whose stock ran out through ordinary reservation/consumption). The UI
+(`BatchCard`, `OrderCard`) reads `status === 'discarded'` directly.
 
 Reserved portions are not automatically discarded.
 

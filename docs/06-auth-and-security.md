@@ -73,6 +73,26 @@ an arbitrary number of batches or recipe items. Therefore:
 - If untrusted or public users are introduced, reservation and cooking commands
   must move to a trusted backend.
 
+### Accepted limitation: batch counter-move rules
+
+The prepared-batch reservation and cancellation flows move counters across a
+variable number of batch documents in one transaction. Firestore Rules cannot
+aggregate those cross-document deltas, so the `preparedBatches` rules validate
+only each single document's own counter shift (`isUserReservationMove` /
+`isUserCancellationMove`): the exact delta, all other fields frozen, and the
+actor stamping their own uid. They do **not** correlate the batch write to a
+specific order the caller owns.
+
+Consequence: any active (provisioned) household member could, by crafting a
+direct Firestore write, move a batch's `available`↔`reserved` counters without a
+matching order. In the intended single-household, fully-trusted deployment this
+is an accepted MVP limitation, consistent with the client-only model above. The
+TypeScript transaction layer is the real enforcer — `reserveReadyOrder` /
+`cancelOrder` verify order ownership and assert the conservation invariant
+before writing. If the app is ever opened to untrusted users, these two
+operations must move to a trusted backend (Cloud Function), which is out of MVP
+scope and would require a new architecture specification.
+
 ## Public Firebase configuration
 
 Firebase Web App values identify a project but do not grant administrative
