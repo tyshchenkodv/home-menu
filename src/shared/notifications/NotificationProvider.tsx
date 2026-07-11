@@ -64,7 +64,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
           open={open}
           autoHideDuration={AUTO_HIDE_MS}
           onClose={handleClose}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
           <Alert onClose={handleClose} severity={current.severity} variant="filled" sx={{ width: '100%' }}>
             {t(current.messageKey)}
