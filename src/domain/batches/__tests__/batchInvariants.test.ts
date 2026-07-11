@@ -7,6 +7,7 @@ function makeBatch(overrides: Partial<PreparedBatch> = {}): PreparedBatch {
   return {
     dishId: 'dish-1',
     dishName: 'Pancakes',
+    batchNumber: 1,
     producedQuantity: 10,
     availableQuantity: 4,
     reservedQuantity: 3,

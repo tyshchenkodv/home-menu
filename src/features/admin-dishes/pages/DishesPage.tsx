@@ -79,7 +79,16 @@ export const DishesPage = () => {
     }
 
     if (dishes.length === 0) {
-      return <EmptyState message={t('dishes.empty.title')} />;
+      return (
+        <EmptyState
+          title={t('dishes.empty.title')}
+          message={t('dishes.empty.body')}
+          actionLabel={t('dishes.empty.action')}
+          onAction={() => {
+            setDialogState({ mode: 'create' });
+          }}
+        />
+      );
     }
 
     return (

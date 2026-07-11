@@ -13,6 +13,7 @@ export const preparedBatchConverter: FirestoreDataConverter<PreparedBatchDoc> = 
     return {
       dishId: data.dishId as string,
       dishName: data.dishName as string,
+      batchNumber: (data.batchNumber ?? null) as number | null,
       producedQuantity: data.producedQuantity as number,
       availableQuantity: data.availableQuantity as number,
       reservedQuantity: data.reservedQuantity as number,

@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
 import { resolveErrorTranslationKey } from '../../errorMessages';
 import type { RejectDialogProps } from '../../types/rejectDialogProps';
 import { styles } from './styles';
@@ -28,6 +29,7 @@ export const RejectDialog = ({
   onConfirm,
 }: RejectDialogProps) => {
   const { t } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
   const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -48,7 +50,13 @@ export const RejectDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby="reject-dialog-title" fullWidth>
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      aria-labelledby="reject-dialog-title"
+      fullWidth
+      slotProps={{ paper: paperProps }}
+    >
       <DialogTitle id="reject-dialog-title">{t('orders.admin.rejection.title')}</DialogTitle>
       <DialogContent>
         <DialogContentText>
@@ -80,7 +88,7 @@ export const RejectDialog = ({
       </DialogContent>
       <DialogActions>
         <Button variant="outlined" onClick={onCancel} disabled={isSubmitting}>
-          {t('common.cancel')}
+          {t('common.back')}
         </Button>
         <Button variant="contained" color="error" onClick={() => void handleConfirm()} disabled={isSubmitting}>
           {t('orders.admin.actions.reject')}

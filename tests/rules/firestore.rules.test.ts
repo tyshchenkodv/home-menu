@@ -7,7 +7,17 @@ import {
   initializeTestEnvironment,
   type RulesTestEnvironment,
 } from '@firebase/rules-unit-testing';
-import { Timestamp, addDoc, collection, deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  Timestamp,
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import { afterAll, afterEach, beforeAll, describe, it } from 'vitest';
 
 /**
@@ -18,9 +28,11 @@ import { afterAll, afterEach, beforeAll, describe, it } from 'vitest';
  * part of `npm test` (see `vitest.rules.config.ts`).
  *
  * Synthetic-only identities: `test-admin-uid`, `test-user-uid`,
- * `test-inactive-uid`, `test-unprovisioned-uid`, and `*.example.test`
- * emails. No real UIDs, emails, or project IDs appear here (see
- * docs/06-auth-and-security.md, "Initial provisioning").
+ * `test-inactive-uid`, `test-unprovisioned-uid`. Authorization is entirely
+ * driven by Firebase Auth custom claims (`role`, `isActive`) injected via
+ * `testEnv.authenticatedContext(uid, claims)` — there are no real UIDs,
+ * emails, or project IDs here (see docs/06-auth-and-security.md, "Initial
+ * provisioning").
  */
 
 const PROJECT_ID = 'home-menu-rules-test';
@@ -36,21 +48,23 @@ const EMULATOR_PORT = process.env.FIRESTORE_EMULATOR_HOST
   ? Number(process.env.FIRESTORE_EMULATOR_HOST.split(':')[1])
   : firebaseConfig.emulators.firestore.port;
 
+// Identities are provisioned purely via Firebase Auth custom claims
+// (`role`, `isActive`) passed as the second argument to
+// `testEnv.authenticatedContext(uid, claims)`; there are no per-identity
+// email constants because email is not part of the authorization signal.
 const ADMIN_UID = 'test-admin-uid';
-const ADMIN_EMAIL = 'admin@example.test';
 const USER_UID = 'test-user-uid';
-const USER_EMAIL = 'user@example.test';
 const INACTIVE_UID = 'test-inactive-uid';
-const INACTIVE_EMAIL = 'inactive@example.test';
+// No claims at all: the direct rules-level analog of an un-provisioned,
+// never-added-by-the-owner Google account (docs/06 "no self-signup").
 const UNPROVISIONED_UID = 'test-unprovisioned-uid';
-const UNPROVISIONED_EMAIL = 'unprovisioned@example.test';
 
 const ACTIVE_INGREDIENT_ID = 'ingredient-flour';
 const ACTIVE_DISH_ID = 'dish-pancakes';
 const AVAILABLE_BATCH_ID = 'batch-risotto-1';
 const OTHER_USER_ORDER_ID = 'order-other-user';
 
-const now = Timestamp.now();
+const now = serverTimestamp();
 
 const quantityIngredient = {
   name: 'Flour',
@@ -88,6 +102,7 @@ const pancakesDish = {
 const availableBatch = {
   dishId: ACTIVE_DISH_ID,
   dishName: 'Pancakes',
+  batchNumber: 1,
   producedQuantity: 4,
   availableQuantity: 4,
   reservedQuantity: 0,
@@ -124,6 +139,7 @@ function buildReadyOrder(overrides: Record<string, unknown> = {}) {
     allocations: [{ batchId: AVAILABLE_BATCH_ID, quantity: 2 }],
     rejectionReason: null,
     preparedBatchId: null,
+    preparedBatchNumber: null,
     createdAt: now,
     createdBy: USER_UID,
     updatedAt: now,
@@ -146,6 +162,7 @@ function buildCookOrder(overrides: Record<string, unknown> = {}) {
     allocations: [] as unknown[],
     rejectionReason: null,
     preparedBatchId: null,
+    preparedBatchNumber: null,
     createdAt: now,
     createdBy: USER_UID,
     updatedAt: now,
@@ -175,36 +192,13 @@ afterEach(async () => {
   await testEnv.clearFirestore();
 });
 
-async function seedProfilesAndIngredient(): Promise<void> {
+// Seeds only non-auth fixture data. Authorization now comes exclusively
+// from the claims passed to `authenticatedContext`, so there is no
+// `users/{uid}` profile-doc seeding here: a "user" in these tests is
+// entirely defined by its claims, not by a Firestore document.
+async function seedFixtures(): Promise<void> {
   await testEnv.withSecurityRulesDisabled(async context => {
     const db = context.firestore();
-
-    await setDoc(doc(db, 'users', ADMIN_UID), {
-      displayName: 'Test Admin',
-      email: ADMIN_EMAIL,
-      role: 'admin',
-      active: true,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    await setDoc(doc(db, 'users', USER_UID), {
-      displayName: 'Test User',
-      email: USER_EMAIL,
-      role: 'user',
-      active: true,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    await setDoc(doc(db, 'users', INACTIVE_UID), {
-      displayName: 'Test Inactive',
-      email: INACTIVE_EMAIL,
-      role: 'user',
-      active: false,
-      createdAt: now,
-      updatedAt: now,
-    });
 
     await setDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID), quantityIngredient);
     await setDoc(doc(db, 'dishes', ACTIVE_DISH_ID), pancakesDish);
@@ -215,7 +209,7 @@ async function seedProfilesAndIngredient(): Promise<void> {
 describe('firestore.rules', () => {
   describe('unauthenticated access', () => {
     it('denies reading users, ingredients, and movements', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       const context = testEnv.unauthenticatedContext();
       const db = context.firestore();
 
@@ -225,7 +219,7 @@ describe('firestore.rules', () => {
     });
 
     it('denies writing ingredients and movements', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       const context = testEnv.unauthenticatedContext();
       const db = context.firestore();
 
@@ -250,29 +244,91 @@ describe('firestore.rules', () => {
   });
 
   describe('unprovisioned account', () => {
+    // A signed-in token with no `role` claim at all — the direct rules-level
+    // analog of a Google account the owner never provisioned (docs/06
+    // "no self-signup"). It must be denied on every collection it touches,
+    // exactly like an unauthenticated request, even though `request.auth`
+    // is non-null.
+
     it('denies reading and writing ingredients and movements', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, { email: UNPROVISIONED_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, {});
       const db = context.firestore();
 
       await assertFails(getDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID)));
       await assertFails(getDoc(doc(db, 'inventoryMovements', 'movement-1')));
       await assertFails(updateDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID), { name: 'Hacked' }));
+      await assertFails(setDoc(doc(db, 'ingredients', 'new-ingredient'), quantityIngredient));
+    });
+
+    it('denies reading and writing dishes', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, {});
+      const db = context.firestore();
+
+      await assertFails(getDoc(doc(db, 'dishes', ACTIVE_DISH_ID)));
+      await assertFails(setDoc(doc(db, 'dishes', 'new-dish'), pancakesDish));
+    });
+
+    it('denies reading and writing prepared batches', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, {});
+      const db = context.firestore();
+
+      await assertFails(getDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID)));
+      await assertFails(setDoc(doc(db, 'preparedBatches', 'new-batch'), availableBatch));
+      await assertFails(
+        updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
+          availableQuantity: 2,
+          reservedQuantity: 2,
+          updatedAt: serverTimestamp(),
+          updatedBy: UNPROVISIONED_UID,
+        }),
+      );
+    });
+
+    it('denies reading and creating orders, even its own', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, {});
+      const db = context.firestore();
+
+      await assertFails(getDoc(doc(db, 'orders', 'order-1')));
+      await assertFails(
+        setDoc(doc(db, 'orders', 'order-unprovisioned'), buildReadyOrder({ userId: UNPROVISIONED_UID })),
+      );
+    });
+
+    it('denies reading and writing settings', async () => {
+      await seedFixtures();
+      await testEnv.withSecurityRulesDisabled(async context => {
+        await setDoc(doc(context.firestore(), 'settings', 'general'), generalSettings);
+      });
+      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, {});
+      const db = context.firestore();
+
+      await assertFails(getDoc(doc(db, 'settings', 'general')));
+      await assertFails(
+        updateDoc(doc(db, 'settings', 'general'), {
+          updatedAt: serverTimestamp(),
+          updatedBy: UNPROVISIONED_UID,
+        }),
+      );
     });
 
     it('may read only its own (nonexistent) user document, not others', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, { email: UNPROVISIONED_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(UNPROVISIONED_UID, {});
       const db = context.firestore();
 
       await assertFails(getDoc(doc(db, 'users', ADMIN_UID)));
+      await assertSucceeds(getDoc(doc(db, 'users', UNPROVISIONED_UID)));
     });
   });
 
   describe('inactive account', () => {
     it('denies reading and writing ingredients and movements', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(INACTIVE_UID, { email: INACTIVE_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(INACTIVE_UID, { role: 'user', isActive: false });
       const db = context.firestore();
 
       await assertFails(getDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID)));
@@ -281,8 +337,8 @@ describe('firestore.rules', () => {
     });
 
     it('may still read its own user document', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(INACTIVE_UID, { email: INACTIVE_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(INACTIVE_UID, { role: 'user', isActive: false });
       const db = context.firestore();
 
       await assertSucceeds(getDoc(doc(db, 'users', INACTIVE_UID)));
@@ -291,8 +347,8 @@ describe('firestore.rules', () => {
 
   describe('role "user" (active, non-admin)', () => {
     it('may read ingredients but not inventory movements', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(getDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID)));
@@ -300,8 +356,8 @@ describe('firestore.rules', () => {
     });
 
     it('is denied ingredient writes', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertFails(setDoc(doc(db, 'ingredients', 'new-ingredient'), quantityIngredient));
@@ -309,8 +365,8 @@ describe('firestore.rules', () => {
     });
 
     it('is denied inventory movement creation', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -332,8 +388,8 @@ describe('firestore.rules', () => {
     });
 
     it('cannot create its own users/{uid} document or escalate role', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -352,8 +408,8 @@ describe('firestore.rules', () => {
 
   describe('active admin', () => {
     it('can create, update, archive, and restore ingredients', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(
@@ -366,15 +422,15 @@ describe('firestore.rules', () => {
       await assertSucceeds(
         updateDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID), {
           name: 'Flour (updated)',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
 
       await assertSucceeds(
         updateDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID), {
-          archivedAt: Timestamp.now(),
-          updatedAt: Timestamp.now(),
+          archivedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -382,15 +438,43 @@ describe('firestore.rules', () => {
       await assertSucceeds(
         updateDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID), {
           archivedAt: null,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
     });
 
+    it('denies a create with a forged (non-server) createdAt/updatedAt, but allows a serverTimestamp()-anchored one (T6.1)', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
+      const db = context.firestore();
+
+      // A client-supplied wall-clock value is never equal to `request.time`.
+      await assertFails(
+        setDoc(doc(db, 'ingredients', 'ingredient-forged'), {
+          ...quantityIngredient,
+          name: 'Forged',
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now(),
+        }),
+      );
+
+      // The real client write path (`ingredientService.createIngredient`)
+      // anchors both fields with `serverTimestamp()`, which resolves to
+      // exactly `request.time` on commit.
+      await assertSucceeds(
+        setDoc(doc(db, 'ingredients', 'ingredient-anchored'), {
+          ...quantityIngredient,
+          name: 'Anchored',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        }),
+      );
+    });
+
     it('can create inventory movements', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(
@@ -412,7 +496,7 @@ describe('firestore.rules', () => {
     });
 
     it('cannot update or delete an inventory movement', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'inventoryMovements', 'movement-1'), {
           ingredientId: ACTIVE_INGREDIENT_ID,
@@ -430,7 +514,7 @@ describe('firestore.rules', () => {
         });
       });
 
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(updateDoc(doc(db, 'inventoryMovements', 'movement-1'), { note: 'edited' }));
@@ -438,16 +522,16 @@ describe('firestore.rules', () => {
     });
 
     it('cannot delete an ingredient', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(deleteDoc(doc(db, 'ingredients', ACTIVE_INGREDIENT_ID)));
     });
 
     it('cannot create a users/{uid} document or change a role', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -464,8 +548,8 @@ describe('firestore.rules', () => {
     });
 
     it('rejects an ingredient write that violates the field allowlist or enum values', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -483,8 +567,8 @@ describe('firestore.rules', () => {
     });
 
     it('rejects a movement create with an out-of-scope type', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -506,8 +590,8 @@ describe('firestore.rules', () => {
     });
 
     it('allows a cooking movement linked to a prepared batch (with or without a source cooking request), but rejects one missing the batch link', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       // Request-driven `completeCooking`: both linkage fields set.
@@ -569,7 +653,7 @@ describe('firestore.rules', () => {
 
   describe('dishes', () => {
     it('denies unauthenticated read and write', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       const context = testEnv.unauthenticatedContext();
       const db = context.firestore();
 
@@ -578,8 +662,8 @@ describe('firestore.rules', () => {
     });
 
     it('allows an active user to read but not write dishes', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(getDoc(doc(db, 'dishes', ACTIVE_DISH_ID)));
@@ -588,8 +672,8 @@ describe('firestore.rules', () => {
     });
 
     it('allows an active admin to create and update dishes', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(
@@ -606,7 +690,7 @@ describe('firestore.rules', () => {
           description: pancakesDish.description,
           mealTypes: pancakesDish.mealTypes,
           recipeItems: pancakesDish.recipeItems,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -617,8 +701,8 @@ describe('firestore.rules', () => {
           description: pancakesDish.description,
           mealTypes: pancakesDish.mealTypes,
           recipeItems: pancakesDish.recipeItems,
-          archivedAt: Timestamp.now(),
-          updatedAt: Timestamp.now(),
+          archivedAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -630,23 +714,23 @@ describe('firestore.rules', () => {
           mealTypes: pancakesDish.mealTypes,
           recipeItems: pancakesDish.recipeItems,
           archivedAt: null,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
     });
 
     it('denies deleting a dish, even for an admin', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(deleteDoc(doc(db, 'dishes', ACTIVE_DISH_ID)));
     });
 
     it('rejects a dish write that violates the field allowlist or the mealTypes enum', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -670,21 +754,21 @@ describe('firestore.rules', () => {
     });
 
     it('keeps ownership and creation fields immutable on update', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(
         updateDoc(doc(db, 'dishes', ACTIVE_DISH_ID), {
           createdBy: USER_UID,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
       await assertFails(
         updateDoc(doc(db, 'dishes', ACTIVE_DISH_ID), {
-          createdAt: Timestamp.now(),
-          updatedAt: Timestamp.now(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -693,7 +777,7 @@ describe('firestore.rules', () => {
 
   describe('preparedBatches', () => {
     it('denies unauthenticated read and write', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       const context = testEnv.unauthenticatedContext();
       const db = context.firestore();
 
@@ -702,8 +786,8 @@ describe('firestore.rules', () => {
     });
 
     it('allows an active user to read but denies an arbitrary direct write', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(getDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID)));
@@ -712,15 +796,15 @@ describe('firestore.rules', () => {
       await assertFails(
         updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
           availableQuantity: 5,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
     });
 
     it("allows an active user's transaction-shaped reservation move (available down, reserved up by the same amount)", async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       // This is the exact single-document move `orderTransactions.reserveReadyOrder`
@@ -732,22 +816,39 @@ describe('firestore.rules', () => {
           availableQuantity: 2,
           reservedQuantity: 2,
           status: 'available',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
+          updatedBy: USER_UID,
+        }),
+      );
+    });
+
+    it('denies a zero-delta reservation "move" (T6.2): availableQuantity must strictly decrease', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
+      const db = context.firestore();
+
+      // Same shape as a valid reservation move, but availableQuantity and
+      // reservedQuantity are unchanged — not a real reservation.
+      await assertFails(
+        updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
+          availableQuantity: 4,
+          reservedQuantity: 0,
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
     });
 
     it("denies a user's move that changes an immutable field or breaks the counter-conservation delta", async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertFails(
         updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
           availableQuantity: 2,
           reservedQuantity: 3,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
@@ -756,7 +857,7 @@ describe('firestore.rules', () => {
           availableQuantity: 2,
           reservedQuantity: 2,
           dishId: 'other-dish',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
@@ -764,15 +865,15 @@ describe('firestore.rules', () => {
         updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
           availableQuantity: 2,
           reservedQuantity: 2,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: 'someone-else',
         }),
       );
     });
 
     it('allows an active admin to create and fully update a batch, but denies deletion', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(setDoc(doc(db, 'preparedBatches', 'batch-admin'), availableBatch));
@@ -781,7 +882,7 @@ describe('firestore.rules', () => {
           availableQuantity: 0,
           discardedQuantity: 4,
           status: 'discarded',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -789,7 +890,7 @@ describe('firestore.rules', () => {
     });
 
     it("allows an active user's transaction-shaped cancellation move (available up, reserved down by the same amount)", async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'preparedBatches', AVAILABLE_BATCH_ID), {
           ...availableBatch,
@@ -798,7 +899,7 @@ describe('firestore.rules', () => {
         });
       });
 
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       // This is the exact single-document move `orderTransactions.cancelOrder`
@@ -809,14 +910,14 @@ describe('firestore.rules', () => {
           availableQuantity: 4,
           reservedQuantity: 0,
           status: 'available',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
     });
 
     it('denies an inactive account from performing the same cancellation counter-restore move', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'preparedBatches', AVAILABLE_BATCH_ID), {
           ...availableBatch,
@@ -825,7 +926,7 @@ describe('firestore.rules', () => {
         });
       });
 
-      const context = testEnv.authenticatedContext(INACTIVE_UID, { email: INACTIVE_EMAIL });
+      const context = testEnv.authenticatedContext(INACTIVE_UID, { role: 'user', isActive: false });
       const db = context.firestore();
 
       await assertFails(
@@ -833,14 +934,14 @@ describe('firestore.rules', () => {
           availableQuantity: 4,
           reservedQuantity: 0,
           status: 'available',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: INACTIVE_UID,
         }),
       );
     });
 
     it('denies a cancellation-shaped move that breaks the counter delta, touches an immutable field, or forges the actor stamp', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'preparedBatches', AVAILABLE_BATCH_ID), {
           ...availableBatch,
@@ -849,7 +950,7 @@ describe('firestore.rules', () => {
         });
       });
 
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       // Mismatched delta: reserved drops by 2 but available only rises by 1.
@@ -857,7 +958,7 @@ describe('firestore.rules', () => {
         updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
           availableQuantity: 3,
           reservedQuantity: 0,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
@@ -867,7 +968,7 @@ describe('firestore.rules', () => {
           availableQuantity: 4,
           reservedQuantity: 0,
           dishName: 'Different dish',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
@@ -876,7 +977,7 @@ describe('firestore.rules', () => {
         updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
           availableQuantity: 4,
           reservedQuantity: 0,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: 'someone-else',
         }),
       );
@@ -884,15 +985,15 @@ describe('firestore.rules', () => {
       await assertFails(
         updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
           availableQuantity: 10,
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
     });
 
     it('rejects a batch write that breaks the conservation invariant or the field allowlist', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -915,11 +1016,105 @@ describe('firestore.rules', () => {
         }),
       );
     });
+
+    it('requires a positive integer batchNumber on create', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
+      const db = context.firestore();
+
+      await assertSucceeds(
+        setDoc(doc(db, 'preparedBatches', 'batch-valid-number'), { ...availableBatch, batchNumber: 2 }),
+      );
+
+      const withoutBatchNumber: Record<string, unknown> = { ...availableBatch };
+      delete withoutBatchNumber.batchNumber;
+      await assertFails(setDoc(doc(db, 'preparedBatches', 'batch-missing-number'), withoutBatchNumber));
+      await assertFails(setDoc(doc(db, 'preparedBatches', 'batch-zero-number'), { ...availableBatch, batchNumber: 0 }));
+      await assertFails(
+        setDoc(doc(db, 'preparedBatches', 'batch-string-number'), { ...availableBatch, batchNumber: '1' }),
+      );
+    });
+
+    it('denies an admin update that changes the immutable batchNumber', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
+      const db = context.firestore();
+
+      await assertFails(
+        updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
+          batchNumber: 99,
+          updatedAt: serverTimestamp(),
+          updatedBy: ADMIN_UID,
+        }),
+      );
+    });
+
+    it("allows a user's reservation/cancellation move that keeps batchNumber equal, but denies one that changes it", async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
+      const db = context.firestore();
+
+      await assertSucceeds(
+        updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
+          availableQuantity: 2,
+          reservedQuantity: 2,
+          status: 'available',
+          updatedAt: serverTimestamp(),
+          updatedBy: USER_UID,
+        }),
+      );
+
+      await assertFails(
+        updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
+          availableQuantity: 1,
+          reservedQuantity: 3,
+          batchNumber: 55,
+          status: 'available',
+          updatedAt: serverTimestamp(),
+          updatedBy: USER_UID,
+        }),
+      );
+    });
+  });
+
+  describe('counters', () => {
+    it('denies a non-admin write to counters/preparedBatchNumber but allows an active user to read it', async () => {
+      await testEnv.withSecurityRulesDisabled(async context => {
+        await setDoc(doc(context.firestore(), 'counters', 'preparedBatchNumber'), { value: 1 });
+      });
+
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
+      const db = context.firestore();
+
+      await assertSucceeds(getDoc(doc(db, 'counters', 'preparedBatchNumber')));
+      await assertFails(setDoc(doc(db, 'counters', 'preparedBatchNumber'), { value: 2 }));
+      await assertFails(updateDoc(doc(db, 'counters', 'preparedBatchNumber'), { value: 2 }));
+    });
+
+    it('allows an admin to create and strictly increment the counter, but denies a non-increasing update', async () => {
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
+      const db = context.firestore();
+
+      await assertSucceeds(setDoc(doc(db, 'counters', 'preparedBatchNumber'), { value: 1 }));
+      await assertSucceeds(updateDoc(doc(db, 'counters', 'preparedBatchNumber'), { value: 2 }));
+      await assertFails(updateDoc(doc(db, 'counters', 'preparedBatchNumber'), { value: 2 }));
+      await assertFails(updateDoc(doc(db, 'counters', 'preparedBatchNumber'), { value: 1 }));
+    });
+
+    it('denies deleting the counter and denies a malformed shape', async () => {
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
+      const db = context.firestore();
+
+      await assertSucceeds(setDoc(doc(db, 'counters', 'preparedBatchNumber'), { value: 1 }));
+      await assertFails(deleteDoc(doc(db, 'counters', 'preparedBatchNumber')));
+      await assertFails(setDoc(doc(db, 'counters', 'otherCounter'), { value: 0 }));
+      await assertFails(setDoc(doc(db, 'counters', 'otherCounter'), { value: 1, extra: 'nope' }));
+    });
   });
 
   describe('orders', () => {
     it('denies unauthenticated read and write', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       const context = testEnv.unauthenticatedContext();
       const db = context.firestore();
 
@@ -928,8 +1123,8 @@ describe('firestore.rules', () => {
     });
 
     it('allows an active user to create only their own order', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(setDoc(doc(db, 'orders', 'order-mine'), buildReadyOrder()));
@@ -937,8 +1132,8 @@ describe('firestore.rules', () => {
     });
 
     it('rejects an order create with an invalid enum, out-of-bounds quantity, or extra field', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertFails(setDoc(doc(db, 'orders', 'order-bad-kind'), buildReadyOrder({ kind: 'brunch' })));
@@ -950,8 +1145,8 @@ describe('firestore.rules', () => {
     });
 
     it('rejects creating a ready order as pending, or a cook order with allocations', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertFails(setDoc(doc(db, 'orders', 'order-ready-pending'), buildReadyOrder({ status: 'pending' })));
@@ -965,52 +1160,52 @@ describe('firestore.rules', () => {
     });
 
     it('allows a user to cancel their own reserved or pending order, changing only status and the update stamp', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'orders', 'order-to-cancel'), buildReadyOrder());
         await setDoc(doc(context.firestore(), 'orders', 'order-request-to-cancel'), buildCookOrder());
       });
 
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(
         updateDoc(doc(db, 'orders', 'order-to-cancel'), {
           status: 'cancelled',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
       await assertSucceeds(
         updateDoc(doc(db, 'orders', 'order-request-to-cancel'), {
           status: 'cancelled',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
     });
 
     it('denies a user updating another user’s order, an illegal transition, or an immutable field', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'orders', 'order-to-cancel'), buildReadyOrder());
         await setDoc(doc(context.firestore(), 'orders', OTHER_USER_ORDER_ID), buildReadyOrder({ userId: ADMIN_UID }));
       });
 
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertFails(
         updateDoc(doc(db, 'orders', OTHER_USER_ORDER_ID), {
           status: 'cancelled',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
       await assertFails(
         updateDoc(doc(db, 'orders', 'order-to-cancel'), {
           status: 'consumed',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
@@ -1018,7 +1213,7 @@ describe('firestore.rules', () => {
         updateDoc(doc(db, 'orders', 'order-to-cancel'), {
           quantity: 5,
           status: 'cancelled',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
@@ -1026,26 +1221,26 @@ describe('firestore.rules', () => {
         updateDoc(doc(db, 'orders', 'order-to-cancel'), {
           userId: ADMIN_UID,
           status: 'cancelled',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
     });
 
     it('allows an active admin full read/write over any order but never a physical delete', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'orders', 'order-admin-managed'), buildCookOrder());
       });
 
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(getDoc(doc(db, 'orders', 'order-admin-managed')));
       await assertSucceeds(
         updateDoc(doc(db, 'orders', 'order-admin-managed'), {
           status: 'approved',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -1053,25 +1248,25 @@ describe('firestore.rules', () => {
     });
 
     it('allows an admin to drive the full cook-request lifecycle (approve, start cooking, complete with allocations, correct with a reason)', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'orders', 'order-cook-lifecycle'), buildCookOrder());
       });
 
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(
         updateDoc(doc(db, 'orders', 'order-cook-lifecycle'), {
           status: 'approved',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
       await assertSucceeds(
         updateDoc(doc(db, 'orders', 'order-cook-lifecycle'), {
           status: 'cooking',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -1080,7 +1275,7 @@ describe('firestore.rules', () => {
           status: 'prepared',
           preparedBatchId: 'batch-from-cooking',
           allocations: [{ batchId: 'batch-from-cooking', quantity: 1 }],
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -1089,7 +1284,41 @@ describe('firestore.rules', () => {
         updateDoc(doc(db, 'orders', 'order-cook-lifecycle'), {
           status: 'cancelled',
           rejectionReason: 'Batch spoiled before pickup',
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
+          updatedBy: ADMIN_UID,
+        }),
+      );
+    });
+
+    it('allows an admin to consume a reserved order (T5.8): moves the order to consumed and the allocated batch reserved->consumed', async () => {
+      await seedFixtures();
+      await testEnv.withSecurityRulesDisabled(async context => {
+        await setDoc(
+          doc(context.firestore(), 'orders', 'order-reserved-to-consume'),
+          buildReadyOrder({ status: 'reserved' }),
+        );
+        await setDoc(doc(context.firestore(), 'preparedBatches', AVAILABLE_BATCH_ID), {
+          ...availableBatch,
+          availableQuantity: 2,
+          reservedQuantity: 2,
+        });
+      });
+
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
+      const db = context.firestore();
+
+      await assertSucceeds(
+        updateDoc(doc(db, 'preparedBatches', AVAILABLE_BATCH_ID), {
+          reservedQuantity: 0,
+          consumedQuantity: 2,
+          updatedAt: serverTimestamp(),
+          updatedBy: ADMIN_UID,
+        }),
+      );
+      await assertSucceeds(
+        updateDoc(doc(db, 'orders', 'order-reserved-to-consume'), {
+          status: 'consumed',
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
@@ -1109,42 +1338,42 @@ describe('firestore.rules', () => {
     });
 
     it('allows an active user to read but not write settings', async () => {
-      await seedProfilesAndIngredient();
+      await seedFixtures();
       await testEnv.withSecurityRulesDisabled(async context => {
         await setDoc(doc(context.firestore(), 'settings', 'general'), generalSettings);
       });
 
-      const context = testEnv.authenticatedContext(USER_UID, { email: USER_EMAIL });
+      const context = testEnv.authenticatedContext(USER_UID, { role: 'user', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(getDoc(doc(db, 'settings', 'general')));
       await assertFails(
         updateDoc(doc(db, 'settings', 'general'), {
           defaultMealTimes: { breakfast: '07:00', lunch: '12:00', dinner: '18:00' },
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: USER_UID,
         }),
       );
     });
 
     it('allows an active admin to create and update settings with a valid payload', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertSucceeds(setDoc(doc(db, 'settings', 'general'), generalSettings));
       await assertSucceeds(
         updateDoc(doc(db, 'settings', 'general'), {
           defaultMealTimes: { breakfast: '07:00', lunch: '12:00', dinner: '18:00' },
-          updatedAt: Timestamp.now(),
+          updatedAt: serverTimestamp(),
           updatedBy: ADMIN_UID,
         }),
       );
     });
 
     it('rejects an admin settings write with a malformed meal time or an extra field', async () => {
-      await seedProfilesAndIngredient();
-      const context = testEnv.authenticatedContext(ADMIN_UID, { email: ADMIN_EMAIL });
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
       const db = context.firestore();
 
       await assertFails(
@@ -1155,6 +1384,20 @@ describe('firestore.rules', () => {
       );
       await assertFails(setDoc(doc(db, 'settings', 'general'), { ...generalSettings, extraField: 'nope' }));
       await assertFails(deleteDoc(doc(db, 'settings', 'general')));
+    });
+
+    it('is not hardcoded to one timezone (T6.3): accepts another valid IANA zone, rejects an empty/malformed one', async () => {
+      await seedFixtures();
+      const context = testEnv.authenticatedContext(ADMIN_UID, { role: 'admin', isActive: true });
+      const db = context.firestore();
+
+      // A household outside Ukraine must be able to pick its own zone.
+      await assertSucceeds(
+        setDoc(doc(db, 'settings', 'general'), { ...generalSettings, timezone: 'America/New_York' }),
+      );
+
+      await assertFails(setDoc(doc(db, 'settings', 'general'), { ...generalSettings, timezone: '' }));
+      await assertFails(setDoc(doc(db, 'settings', 'general'), { ...generalSettings, timezone: 'not a timezone!' }));
     });
   });
 });

@@ -4,15 +4,16 @@ import Stack from '@mui/material/Stack';
 import { StatePlaceholder } from '../../../../shared/components/StatePlaceholder/StatePlaceholder';
 
 interface EmptyStateProps {
+  title: string;
   message: string;
   actionLabel: string;
   onAction: () => void;
 }
 
 /** No-dishes-for-this-slot state (docs/design/screens/menu-browse.md "empty"). */
-export const EmptyState = ({ message, actionLabel, onAction }: EmptyStateProps) => (
+export const EmptyState = ({ title, message, actionLabel, onAction }: EmptyStateProps) => (
   <Stack spacing={2}>
-    <StatePlaceholder variant="empty" message={message} />
+    <StatePlaceholder variant="empty" title={title} message={message} />
     <Button variant="outlined" color="primary" onClick={onAction}>
       {actionLabel}
     </Button>

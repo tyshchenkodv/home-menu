@@ -32,9 +32,10 @@ export const InventoryHistoryPage = () => {
   const ingredientId = searchParams.get('ingredientId') ?? undefined;
 
   const [typeFilter, setTypeFilter] = useState<MovementTypeFilterValue>('all');
+  const [reloadKey, setReloadKey] = useState(0);
 
   const { ingredients: allIngredients } = useAllIngredients();
-  const { status, movements } = useInventoryMovements(ingredientId);
+  const { status, movements } = useInventoryMovements(ingredientId, reloadKey);
 
   const filteredMovements = useMemo(
     () => (typeFilter === 'all' ? movements : movements.filter(movement => movement.type === typeFilter)),
@@ -69,7 +70,16 @@ export const InventoryHistoryPage = () => {
     }
 
     if (status === 'error') {
-      return <ErrorState message={t('inventory.history.error')} />;
+      return (
+        <ErrorState
+          message={t('inventory.history.error')}
+          body={t('inventory.errorBody')}
+          retryLabel={t('common.retry')}
+          onRetry={() => {
+            setReloadKey(key => key + 1);
+          }}
+        />
+      );
     }
 
     if (filteredMovements.length === 0) {

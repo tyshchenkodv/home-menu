@@ -4,31 +4,32 @@
   },
   "nav": {
     "login": "Вхід",
-    "admin": "Адміністрування",
     "inventory": "Запаси",
     "history": "Історія",
     "dashboard": "Панель",
     "menu": "Меню",
     "orders": "Замовлення",
     "myOrders": "Мої замовлення",
-    "batches": "Партії",
+    "batches": "Доступні порції",
     "dishes": "Страви",
-    "requests": "Заявки",
     "settings": "Налаштування",
-    "more": "Більше",
-    "landmark": "Основна навігація"
+    "landmark": "Основна навігація",
+    "cookingRequests": "Запити на готування",
+    "openMenu": "Відкрити меню"
   },
   "common": {
     "loading": "Завантаження...",
     "error": "Сталася помилка",
     "empty": "Немає даних",
-    "toggleDarkMode": "Перемкнути темну тему",
+    "darkMode": "Темна тема",
+    "lightMode": "Світла тема",
     "language": "Мова",
     "languageUk": "UK",
     "languageEn": "EN",
     "retry": "Повторити",
     "all": "Усі",
     "cancel": "Скасувати",
+    "back": "Назад",
     "keep": "Залишити",
     "yesterday": "Вчора",
     "save": "Зберегти",
@@ -49,17 +50,38 @@
   },
   "auth": {
     "login": {
-      "title": "Вхід до системи",
       "tagline": "Домашній облік їжі та меню родини",
-      "googleButton": "Увійти через Google",
       "signingIn": "Виконується вхід...",
-      "error": "Не вдалося увійти. Спробуйте ще раз."
+      "emailLabel": "Ел. пошта",
+      "passwordLabel": "Пароль",
+      "showPassword": "Показати пароль",
+      "hidePassword": "Приховати пароль",
+      "submit": "Увійти",
+      "noAccessHint": "Немає доступу? Зверніться до адміністратора",
+      "errors": {
+        "invalidCredentials": "Невірний email або пароль.",
+        "tooManyRequests": "Забагато спроб. Спробуйте пізніше.",
+        "network": "Помилка мережі. Перевірте з'єднання.",
+        "generic": "Не вдалося увійти. Спробуйте ще раз."
+      }
     },
-    "accessDenied": {
-      "title": "Доступ заборонено",
-      "description": "У вашого облікового запису немає активного доступу адміністратора до цієї сторінки."
+    "notActivated": {
+      "title": "Профіль ще не активовано",
+      "body": "Ви увійшли як {{email}}, але адміністратор ще не активував ваш профіль у домогосподарстві.",
+      "contactAdmin": "Зверніться до адміністратора вашого дому 🏠"
     },
-    "signOut": "Вийти"
+    "signOut": "Вийти",
+    "signedIn": "Ви увійшли",
+    "loadError": {
+      "title": "Не вдалося завантажити профіль",
+      "body": "Перевірте з'єднання і спробуйте ще раз.",
+      "retry": "Повторити"
+    }
+  },
+  "error": {
+    "forbiddenTitle": "403",
+    "notFoundTitle": "404",
+    "backHome": "На головну"
   },
   "screens": {
     "comingSoon": "Цей розділ ще в розробці. Заглядайте пізніше.",
@@ -67,7 +89,7 @@
       "menu": "Меню",
       "orders": "Замовлення",
       "adminOrders": "Замовлення",
-      "batches": "Партії",
+      "batches": "Доступні порції",
       "dishes": "Страви",
       "cookingRequests": "Заявки на приготування",
       "dashboard": "Панель"
@@ -94,12 +116,13 @@
     }
   },
   "inventory": {
-    "loading": "Завантаження інгредієнтів…",
+    "loading": "Перелічуємо запаси…",
     "error": "Не вдалося завантажити інгредієнти",
+    "errorBody": "Перевірте з'єднання.",
     "quantityWithUnit": "{{amount}} {{unit}}",
     "empty": {
       "activeTitle": "Інвентар порожній",
-      "active": "Активних інгредієнтів ще немає",
+      "active": "Додайте перший інгредієнт, щоб рецепти могли рахувати доступність.",
       "archived": "Архівних інгредієнтів немає"
     },
     "tabs": {
@@ -125,7 +148,7 @@
       "absent": "Відсутній"
     },
     "status": {
-      "inStock": "У наявності",
+      "inStock": "Є",
       "out": "Немає"
     },
     "units": {
@@ -136,7 +159,10 @@
       "piece": "шт"
     },
     "lowStock": {
-      "label": "Низький запас"
+      "label": "Мало"
+    },
+    "card": {
+      "zeroAmount": "0 {{unit}} — закінчилися"
     },
     "form": {
       "createTitle": "Новий інгредієнт",
@@ -167,11 +193,13 @@
       "title": "Поповнення запасу «{{name}}»",
       "submit": "Поповнити"
     },
-    "correctionDialog": {
-      "title": "Коригування запасу «{{name}}»",
-      "amountLabel": "Фактична кількість",
-      "reasonLabel": "Причина коригування",
-      "submit": "Зберегти коригування"
+    "correction": {
+      "title": "Коригування залишку",
+      "context": "{{name}} · зараз {{current}}",
+      "newQuantityLabel": "Нова кількість",
+      "reasonLabel": "Причина *",
+      "reasonPlaceholder": "Опишіть, чому змінюється залишок…",
+      "helper": "Запис додається до незмінного журналу руху."
     },
     "errors": {
       "invalidName": "Введіть назву інгредієнта",
@@ -239,7 +267,7 @@
     "required": "Обов'язкове поле",
     "incompleteRecipeRow": "Заповніть рядок або видаліть його",
     "mealTypeRequired": "Оберіть хоча б один прийом їжі",
-    "reservationMax": "Максимум {{max}} — стільки вільних порцій у партії",
+    "reservationMax": "Максимум {{max}} — стільки порцій зараз доступно",
     "quantityAtLeastOne": "Кількість має бути не менше 1",
     "correctionReasonRequired": "Вкажіть причину — поле обов'язкове",
     "dateNotInPast": "Дата не може бути в минулому",
@@ -263,24 +291,41 @@
       "readyCount": "{{count}} вільно",
       "zeroReady": "0 готово",
       "noCount": "—",
-      "recipeNotConfigured": "Рецепт ще не налаштовано."
+      "recipeNotConfigured": "Рецепт ще не налаштовано.",
+      "alreadyReserved": "Вже зарезервовано: {{count}}",
+      "alreadyRequested": "Запит на готування: {{count}}"
     },
     "actions": {
       "reserve": "Зарезервувати",
       "request": "Запит"
     },
     "past": {
-      "label": "Минув"
+      "label": "Минув",
+      "explanation": "Резервування на цей прийом закрито. Спробуйте {{nextMeal}}.",
+      "nextMealCta": "До {{nextMeal}} →"
     },
     "reservation": {
       "title": "Зарезервувати порції",
-      "subtitle": "{{dish}} · вільно {{count}} порцій",
+      "subtitle": "{{dish}} · {{date}} · {{portionsWord}}",
       "portionsLabel": "Кількість порцій",
       "confirm": "Зарезервувати",
       "submitting": "Резервування…",
       "error": {
-        "body": "Хтось випередив — залишилась {{available}} порція з {{requested}} потрібних."
-      }
+        "body": "Хтось випередив — залишилась {{available}} порція з {{requested}} потрібних.",
+        "title": "Не вдалося зарезервувати",
+        "refresh": "Оновити наявність"
+      },
+      "helper": "{{count}} з {{total}}",
+      "portionsWord_one": "вільно {{count}} порція",
+      "portionsWord_few": "вільно {{count}} порції",
+      "portionsWord_many": "вільно {{count}} порцій",
+      "portionsWord_other": "вільно {{count}} порцій"
+    },
+    "expiredBanner": {
+      "title": "Порція прострочена",
+      "chip": "⚠ Прострочено",
+      "body": "Порція від {{date}} прострочена — {{count}} порцій чекають утилізації в «Доступних порціях».",
+      "cta": "До доступних порцій →"
     }
   },
   "orders": {
@@ -301,8 +346,14 @@
       "body": "Не вдалося отримати ваші замовлення."
     },
     "meta": {
-      "request": "Запит · {{count}} порція · {{date}}, {{meal}}",
-      "reservation": "{{count}} порції · {{date}}, {{meal}}",
+      "request_one": "Запит · {{count}} порція · {{date}}, {{meal}}",
+      "request_few": "Запит · {{count}} порції · {{date}}, {{meal}}",
+      "request_many": "Запит · {{count}} порцій · {{date}}, {{meal}}",
+      "request_other": "Запит · {{count}} порцій · {{date}}, {{meal}}",
+      "reservation_one": "{{count}} порція · {{date}}, {{meal}}",
+      "reservation_few": "{{count}} порції · {{date}}, {{meal}}",
+      "reservation_many": "{{count}} порцій · {{date}}, {{meal}}",
+      "reservation_other": "{{count}} порцій · {{date}}, {{meal}}",
       "consumedAt": "спожито {{time}}",
       "cancelledByUser": "Скасовано користувачем · {{date}}"
     },
@@ -312,11 +363,14 @@
       "cancelUnavailable": "Скасувати — недоступно",
       "cancelUnavailableHelp": "Скасування вимкнено, щойно почалося готування."
     },
-    "preparedHelp": "Без кнопок — порції резервуються автоматично з партії.",
-    "batchWarning": "Пов'язана партія прострочена або утилізована. Зверніться до адміністратора.",
+    "preparedHelp": "Без кнопок — порції резервуються автоматично з доступних порцій.",
+    "batchWarning": "Пов'язана доступна порція прострочена або утилізована. Зверніться до адміністратора.",
     "cancelDialog": {
       "title": "Скасувати замовлення?",
-      "body": "{{count}} зарезервовані порції «{{dish}}» повернуться в спільну партію.",
+      "body_one": "{{count}} зарезервована порція «{{dish}}» повернеться в доступні порції.",
+      "body_few": "{{count}} зарезервовані порції «{{dish}}» повернуться в доступні порції.",
+      "body_many": "{{count}} зарезервованих порцій «{{dish}}» повернуться в доступні порції.",
+      "body_other": "{{count}} зарезервованих порцій «{{dish}}» повернуться в доступні порції.",
       "keep": "Залишити",
       "confirm": "Скасувати замовлення"
     },
@@ -338,8 +392,11 @@
       },
       "columnHeading": "{{status}} · {{count}}",
       "meta": {
-        "requester": "{{requester}} · {{count}} порція · {{date}}",
-        "batch": "{{requester}} · партія #{{batchNumber}}"
+        "requester_one": "{{requester}} · {{count}} порція · {{date}}",
+        "requester_few": "{{requester}} · {{count}} порції · {{date}}",
+        "requester_many": "{{requester}} · {{count}} порцій · {{date}}",
+        "requester_other": "{{requester}} · {{count}} порцій · {{date}}",
+        "batch": "{{requester}} · порція #{{number}}"
       },
       "actions": {
         "approve": "Підтвердити",
@@ -347,33 +404,41 @@
         "startCooking": "Почати готування",
         "markPrepared": "Позначити приготованим",
         "markConsumed": "Позначити спожитим",
+        "cancel": "Скасувати",
+        "cancelReason": "Скасовано адміністратором",
         "correct": "Скоригувати"
       },
       "rejection": {
         "title": "Відхилити запит?",
-        "context": "{{dish}} · {{requester}} · {{count}} порції · {{date}}",
+        "context_one": "{{dish}} · {{requester}} · {{count}} порція · {{date}}",
+        "context_few": "{{dish}} · {{requester}} · {{count}} порції · {{date}}",
+        "context_many": "{{dish}} · {{requester}} · {{count}} порцій · {{date}}",
+        "context_other": "{{dish}} · {{requester}} · {{count}} порцій · {{date}}",
         "reasonLabel": "Причина (необов'язково)",
         "helper": "Причину побачить автор запиту."
       },
       "correction": {
         "title": "Скоригувати замовлення?",
-        "context": "{{dish}} · {{requester}} · {{count}} порції · {{date}}",
+        "context_one": "{{dish}} · {{requester}} · {{count}} порція · {{date}}",
+        "context_few": "{{dish}} · {{requester}} · {{count}} порції · {{date}}",
+        "context_many": "{{dish}} · {{requester}} · {{count}} порцій · {{date}}",
+        "context_other": "{{dish}} · {{requester}} · {{count}} порцій · {{date}}",
         "reasonLabel": "Причина *",
         "reasonPlaceholder": "Опишіть, чому коригується це замовлення…",
         "helper": "Коригування додається до незмінної історії замовлення."
       },
       "completeCooking": {
-        "title": "Партію приготовано",
+        "title": "Порцію приготовано",
         "context": "{{dish}} · запит {{requester}}",
         "plannedLabel": "Планово, порцій",
         "actualLabel": "Фактично *",
         "preparedAtLabel": "Час приготування *",
         "bestBeforeLabel": "Придатна до",
-        "submit": "Зареєструвати партію",
+        "submit": "Зареєструвати порцію",
         "submitting": "Збереження…",
         "yieldBelowRequested": "Фактичний вихід має бути не менше запитаної кількості ({{requested}})"
       },
-      "batchWarning": "Пов'язана партія прострочена або утилізована. Скасуйте замовлення або перемістіть його до іншої партії."
+      "batchWarning": "Пов'язана доступна порція прострочена або утилізована. Скасуйте замовлення або перемістіть його до іншої порції."
     }
   },
   "requests": {
@@ -404,7 +469,10 @@
       "body": "Спробуйте ще раз."
     },
     "card": {
-      "ingredientCount": "{{count}} інгредієнтів",
+      "ingredientCount_one": "{{count}} інгредієнт",
+      "ingredientCount_few": "{{count}} інгредієнти",
+      "ingredientCount_many": "{{count}} інгредієнтів",
+      "ingredientCount_other": "{{count}} інгредієнтів",
       "missing": "Бракує: {{ingredients}}",
       "emptyRecipe": "Рецепт порожній — страва не з'являється в меню"
     },
@@ -439,11 +507,11 @@
     }
   },
   "batches": {
-    "title": "Партії",
+    "title": "Доступні порції",
     "loading": "Завантаження…",
     "empty": {
-      "title": "Немає готових партій",
-      "body": "Партія з'явиться, щойно ви позначите запит приготованим."
+      "title": "Немає доступних порцій",
+      "body": "Порція з'явиться, щойно ви позначите запит приготованим."
     },
     "error": {
       "title": "Не вдалося завантажити",
@@ -452,8 +520,11 @@
     "meta": {
       "cooked": "Приготовано {{date}} · {{time}}",
       "bestBefore": "{{date}} · {{time}} · придатна до {{bestBefore}}",
-      "expired": "Пн 7 · термін минув учора",
-      "discarded": "Утилізовано {{date}} · {{count}} порц."
+      "expired": "{{date}} · термін минув {{relativeDate}}",
+      "discarded_one": "Утилізовано {{date}} · {{count}} порція",
+      "discarded_few": "Утилізовано {{date}} · {{count}} порції",
+      "discarded_many": "Утилізовано {{date}} · {{count}} порцій",
+      "discarded_other": "Утилізовано {{date}} · {{count}} порцій"
     },
     "counters": {
       "available": "ВІЛЬНО",
@@ -463,27 +534,36 @@
     },
     "actions": {
       "discard": "Утилізувати…",
-      "discardCount": "Утилізувати {{count}} порції",
+      "discardCount_one": "Утилізувати {{count}} порцію",
+      "discardCount_few": "Утилізувати {{count}} порції",
+      "discardCount_many": "Утилізувати {{count}} порцій",
+      "discardCount_other": "Утилізувати {{count}} порцій",
       "discardDisabled": "Утилізувати — усі порції зарезервовані"
     },
     "expired": {
-      "notice": "Резервування заблоковано. {{count}} порції очікують утилізації."
+      "notice_one": "Резервування заблоковано. {{count}} порція очікує утилізації.",
+      "notice_few": "Резервування заблоковано. {{count}} порції очікують утилізації.",
+      "notice_many": "Резервування заблоковано. {{count}} порцій очікують утилізації.",
+      "notice_other": "Резервування заблоковано. {{count}} порцій очікують утилізації."
     },
     "discarded": {
       "helper": "Без кнопок · залишається в журналі руху."
     },
     "registration": {
-      "title": "Партію приготовано",
+      "title": "Порцію приготовано",
       "context": "{{dish}} · запит {{requester}}",
       "plannedLabel": "Планово, порцій",
       "actualLabel": "Фактично *",
       "bestBeforeLabel": "Придатна до *",
       "actualBelowPlan": "Фактичний вихід менший за плановий — інвентар спишеться за фактом.",
-      "submit": "Зареєструвати партію"
+      "submit": "Зареєструвати порцію"
     },
     "discardDialog": {
-      "title": "Утилізувати партію?",
-      "body": "{{dish}} · {{count}} вільні порції буде списано назавжди. Дію не можна скасувати.",
+      "title": "Утилізувати порцію?",
+      "body_one": "{{dish}} · {{count}} вільна порція буде списана назавжди. Дію не можна скасувати.",
+      "body_few": "{{dish}} · {{count}} вільні порції буде списано назавжди. Дію не можна скасувати.",
+      "body_many": "{{dish}} · {{count}} вільних порцій буде списано назавжди. Дію не можна скасувати.",
+      "body_other": "{{dish}} · {{count}} вільних порцій буде списано назавжди. Дію не можна скасувати.",
       "confirm": "Утилізувати"
     }
   },
@@ -493,7 +573,7 @@
     "loading": "Рахуємо порції…",
     "empty": {
       "title": "Усе спокійно",
-      "body": "Немає запитів, прострочених партій чи дефіциту. Котик задоволений."
+      "body": "Немає запитів, прострочених порцій чи дефіциту. Котик задоволений."
     },
     "error": {
       "title": "Дані недоступні",
@@ -503,8 +583,9 @@
       "pendingRequests": "Запити",
       "inProgress": "Готується",
       "lowStock": "Дефіцит",
-      "expiredBatch": "Прострочено",
-      "readyPortions": "Порцій вільно"
-    }
+      "expiredBatch": "Прострочено"
+    },
+    "readyPortions": "Порцій вільно",
+    "reviewRequests": "Переглянути запити на приготування"
   }
 }

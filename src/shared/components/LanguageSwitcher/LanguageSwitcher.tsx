@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next';
 
 import type { SupportedLanguage } from '../../../app/i18n';
 
-export const LanguageSwitcher = () => {
+interface LanguageSwitcherProps {
+  /** Stretch the group to fill its container, splitting the width across both options. */
+  fullWidth?: boolean;
+}
+
+export const LanguageSwitcher = ({ fullWidth = false }: LanguageSwitcherProps) => {
   const { t, i18n } = useTranslation();
 
   const handleChange = (_event: React.MouseEvent<HTMLElement>, value: SupportedLanguage | null) => {
@@ -14,7 +19,13 @@ export const LanguageSwitcher = () => {
   };
 
   return (
-    <ToggleButtonGroup value={i18n.language} exclusive onChange={handleChange} aria-label={t('common.language')}>
+    <ToggleButtonGroup
+      value={i18n.language}
+      exclusive
+      onChange={handleChange}
+      aria-label={t('common.language')}
+      fullWidth={fullWidth}
+    >
       <ToggleButton value="uk" aria-label={t('common.languageUk')}>
         {t('common.languageUk')}
       </ToggleButton>

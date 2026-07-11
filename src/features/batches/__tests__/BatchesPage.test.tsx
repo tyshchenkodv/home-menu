@@ -66,7 +66,7 @@ describe('BatchesPage', () => {
     render(<BatchesPage />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Партії' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Доступні порції' })).toBeInTheDocument();
     });
   });
 
@@ -94,7 +94,35 @@ describe('BatchesPage', () => {
     render(<BatchesPage />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Партія з'явиться/i)).toBeInTheDocument();
+      expect(screen.getByText(/Порція з'явиться/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows the empty-state headline alongside the body copy', async () => {
+    mockSubscribeAllBatches.mockImplementation((onNext: (batches: PreparedBatchWithId[]) => void) => {
+      onNext([]);
+      return vi.fn();
+    });
+
+    render(<BatchesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Немає доступних порцій')).toBeInTheDocument();
+    });
+  });
+
+  it('shows the error-state headline alongside the body copy', async () => {
+    mockSubscribeAllBatches.mockImplementation(
+      (_onNext: (batches: PreparedBatchWithId[]) => void, onError: (error: Error) => void) => {
+        onError(new Error('boom'));
+        return vi.fn();
+      },
+    );
+
+    render(<BatchesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Не вдалося завантажити')).toBeInTheDocument();
     });
   });
 });

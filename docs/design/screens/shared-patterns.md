@@ -30,6 +30,11 @@ Buttons never use all-caps; label font is Nunito 700.
 Pill chip with an 8px status dot + label (status never conveyed by color
 alone).
 
+> **Implementation note (`mvp-audit-remediation`, Slice 3).** Shipped as
+> specified: `StatusChip` renders the leading 8px dot plus label, using
+> light-tinted pastel fills (not saturated `.main` fills) in both light and
+> dark themes.
+
 | State | Ukrainian | English | Palette |
 | --- | --- | --- | --- |
 | Ready now | «Готово зараз» (short: «Готово») | "Ready now" ("Ready") | `success` (light bg, dark text, `success.main` dot) |
@@ -74,12 +79,24 @@ Canonical validation messages (uk · en equivalent):
 Submit button is disabled while the form is invalid («Кнопка вимкнена, поки є
 помилки валідації» — "Button disabled while validation errors exist").
 
-### Tabs / BottomNavigation
+### Tabs / navigation
 
 - Segmented tabs (filled pill on `action.hover` track) for Active/History.
 - Underline tabs (2.5px `primary.main` indicator) for meal filters.
-- BottomNavigation: white paper, top divider, 3 items; active item
-  `primary.main` icon+label, inactive `text.disabled`.
+- Navigation (`navigation-drawer-signout`, superseding the earlier
+  BottomNavigation described below): the left `Drawer` is the single
+  navigation surface on every viewport, listing every destination the current
+  role can reach. At `md`+ it stays permanent and always visible, as before.
+  Below `md` it is hidden by default and opens as a temporary overlay from a
+  hamburger `IconButton` in the header; it closes on destination selection,
+  backdrop tap, or `Escape`. The drawer carries a footer, pinned below the
+  navigation list and separated by a `Divider`, stacked top-to-bottom: a
+  full-width `LanguageSwitcher` (UK/EN), a full-width theme-toggle row
+  (`ColorSchemeMenuItem`, light↔dark with a labeled moon/sun row), then the
+  current account's email (falling back to display name, then to a generic
+  "Signed in" label) and a sign-out control. The language and theme controls
+  live here only — the header no longer carries them. There is no mobile
+  `BottomNavigation` anymore.
 
 ## OrderCard status matrix (05d) — every status × role
 
@@ -91,8 +108,19 @@ and batch number), status chip top-right, action row below.
 | 1 | pending | «Очікує» · Pending | `primary.light` | «Скасувати замовлення» (Cancel order, outlined error) | «Підтвердити» (Approve, contained primary) + «Відхилити» (Reject, outlined error) |
 | 2 | approved | «Підтверджено» · Approved | `info.light` | «Скасувати замовлення» | «Почати готування» (Start cooking, contained primary) + «Відхилити» |
 | 3 | cooking | «Готується» · Cooking | `warning.light` | Cancel button VISIBLE but DISABLED, label «Скасувати — недоступно» (Cancel — unavailable); helper «Скасування вимкнено, щойно почалося готування.» (Cancelling is disabled once cooking has started.) | «Позначити приготованим» (Mark as prepared, contained success) |
-| 4 | prepared | «Приготовано» · Prepared | `success.light` | no buttons; helper «Без кнопок — порції резервуються автоматично з партії.» (No buttons — portions are reserved automatically from the batch.) | «Зарезервувати за замовником» (Reserve for the requester, contained secondary); meta shows batch # |
+| 4 | prepared | «Приготовано» · Prepared | `success.light` | no buttons; helper «Без кнопок — порції резервуються автоматично з партії.» (No buttons — portions are reserved automatically from the batch.) | ~~«Зарезервувати за замовником» (Reserve for the requester, contained secondary)~~ **superseded — see below**; meta shows batch code |
 | 5 | reserved | «Зарезервовано» · Reserved | `secondary.light` | «Скасувати замовлення» | «Позначити спожитим» (Mark as consumed, contained success) + «Скасувати» (Cancel, outlined neutral) |
+
+> **Implementation note (`mvp-audit-remediation`, Slice 5).** Row 4's admin
+> "reserve for requester" action remains **superseded** by the resolved
+> decision recorded in `admin-orders.md` — not built as a distinct button.
+> Row 5 (`reserved`) is what shipped: an admin can Mark-consumed and Cancel a
+> `reserved` order directly, as this matrix already specifies. The prepared
+> row's admin meta shows a stable, human-readable **batch code** derived from
+> the batch document id (e.g. a 4-character upper-case suffix), not a
+> sequential number — real sequential batch numbering is deferred to a
+> forthcoming `batch-sequence-number` specification (a Firestore schema/
+> counter change out of this remediation's scope).
 | 6 | consumed | «Спожито» · Consumed | default grey filled | no buttons; identical for both roles; lives in the History tab; card slightly dimmed, meta includes consumption time «спожито 13:40» | same |
 | 7 | rejected | «Відхилено» · Rejected | `error.light` | no buttons; reason box shown if provided: «Причина: не вистачає борошна до суботи» (Reason: not enough flour until Saturday) — visible to the requester | same, no buttons |
 | 8 | cancelled | «Скасовано» · Cancelled | default outlined (dashed card border, dimmed) | no buttons; meta «Скасовано користувачем» (Cancelled by the user); helper: portions return to the batch; History tab | same |
@@ -179,6 +207,10 @@ Every list screen has exactly 4 states; CatArt sizes: ~70×63 inline loading,
 - **Empty** — CatArt `empty` (empty bowl), bold headline + one-line body +
   single CTA. Exact copies live in each screen file. Dashboard empty uses
   CatArt `idle` instead («Усе спокійно» — All calm; no CTA).
+
+> **Implementation note (`mvp-audit-remediation`, Slice 3).** Shipped:
+> `StatePlaceholder` now supports the `idle` pose and the dashboard's "all
+> calm" empty state renders it, matching this row.
 - **Error** — CatArt `confused`, headline (e.g. «Не вдалося завантажити» —
   Failed to load), body («Перевірте з'єднання і спробуйте ще раз.» — Check
   the connection and try again.), outlined retry button «Повторити» (Retry).
@@ -208,20 +240,28 @@ spinner, fields disabled) / server error banner «Невірна пошта аб
 
 ## Responsive rules (05i, 06b)
 
-- Mobile-first. Below `md`: BottomNavigation; at `md`+ it becomes a
-  persistent left Drawer; cards flow into a responsive grid; same tokens.
+- Mobile-first. Cards flow into a responsive grid; same tokens on every
+  viewport.
+- Navigation (`navigation-drawer-signout`): the left Drawer is the single
+  navigation surface on all viewports — persistent at `md`+ (unchanged from
+  before), and a temporary hamburger-triggered overlay below `md`, superseding
+  the earlier BottomNavigation model described below. Every role destination
+  is reachable from the drawer on mobile; there is no separate mobile-only
+  navigation surface or admin dashboard hub link block.
 - Dialogs: bottom sheet on mobile → centered modal on md+.
 - Admin orders Kanban: horizontal column scroll on mobile, full 4 columns
   («Очікує / Підтверджено / Готується / Приготовано») on desktop.
-- Desktop drawer (admin): Панель (Dashboard), Запити на готування (with
-  count badge), Страви (Dishes), Інвентар (Inventory, with low-stock badge),
-  Партії (Batches), Налаштування (Settings).
-- Mobile bottom nav has 3 slots (Меню / Замовлення / Адмін). Resolved
-  decision: the third slot for admins is a dedicated «Адмін · Admin» tab
-  (per the English mockups) leading to the admin area — NOT the
-  «Більше · More» bottom sheet shown in the Dishes-management mockups, which
-  is superseded. This amends the approved navigation-shell spec; a new
-  linked spec will cover it.
+- Drawer destinations (admin, same set on every viewport): Панель (Dashboard),
+  Запити на готування (with count badge), Страви (Dishes), Інвентар
+  (Inventory, with low-stock badge), Партії (Batches), Налаштування
+  (Settings).
+- **Superseded historical context.** Earlier mobile navigation used a
+  BottomNavigation with 3 slots (Меню / Замовлення / Адмін); the third slot
+  for admins was a dedicated «Адмін · Admin» tab leading to the admin area,
+  and a larger admin destination set beyond the 3 slots was reachable only
+  through a dashboard hub links block. Both the BottomNavigation and the hub
+  links block are removed; `navigation-drawer-signout` is the current
+  navigation model.
 - User cooking requests are NOT a separate nav destination: they live inside
   My Orders (`/orders`); there is no `/requests` route. Request creation
   starts from a dish card in Menu browse (resolved decision — see

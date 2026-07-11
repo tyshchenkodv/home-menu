@@ -17,8 +17,12 @@ type TaggedResult = UseInventoryMovementsResult & { ingredientId: string | undef
  * filter change reads as "loading" for the render(s) before the new
  * subscription's first snapshot arrives, without calling `setState`
  * synchronously inside the effect body.
+ *
+ * `reloadKey` is not read by the effect body; bumping it from the caller
+ * (e.g. the error state's retry action) forces a fresh re-subscription
+ * without introducing a separate imperative reload API.
  */
-export const useInventoryMovements = (ingredientId?: string): UseInventoryMovementsResult => {
+export const useInventoryMovements = (ingredientId?: string, reloadKey = 0): UseInventoryMovementsResult => {
   const [tagged, setTagged] = useState<TaggedResult>({ ingredientId, ...LOADING_RESULT });
 
   useEffect(() => {
@@ -33,7 +37,7 @@ export const useInventoryMovements = (ingredientId?: string): UseInventoryMoveme
     );
 
     return unsubscribe;
-  }, [ingredientId]);
+  }, [ingredientId, reloadKey]);
 
   if (tagged.ingredientId !== ingredientId) {
     return LOADING_RESULT;

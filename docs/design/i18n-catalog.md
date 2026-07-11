@@ -21,6 +21,51 @@ Resolved decisions applied here: Settings has no theme row; cooking requests
 live inside My Orders and have no route or navigation label; mobile navigation
 uses a dedicated Admin tab, not a More sheet.
 
+> **Implementation note (`mvp-audit-remediation`, Slice 1–7).** This catalog
+> was originally written before implementation and used illustrative key
+> names in some places. The tables below have been checked against the
+> shipped `src/locales/{uk,en}/translation.json` and updated where the
+> implementation used a different key or added i18next plural forms. Key
+> differences:
+>
+> - **Plural forms.** Counts of portions, ingredients, and hours use i18next
+>   plural suffixes — `_one/_few/_many/_other` for `uk`, `_one/_other` for
+>   `en` — with a `{{count}}` interpolation, instead of a single fixed string.
+>   Examples actually shipped: `menu.reservation.portionsWord_*`,
+>   `orders.meta.request_*` / `orders.meta.reservation_*`,
+>   `orders.cancelDialog.body_*`, `orders.admin.meta.requester_*`,
+>   `orders.admin.rejection.context_*`, `orders.admin.correction.context_*`,
+>   `batches.meta.discarded_*`, `batches.actions.discardCount_*`,
+>   `batches.expired.notice_*`, `batches.discardDialog.body_*`, and
+>   `dishes.card.ingredientCount_*`. When adding a new count-bearing string,
+>   follow this pattern rather than a single invariant key.
+> - **Removed keys.** `nav.requests` and `nav.more` are no longer referenced
+>   by any component (`AppShell`/`navigationDestinations.ts` uses
+>   `nav.dashboard`, `nav.cookingRequests`, `nav.admin`, etc. — see the
+>   Navigation table below). They are documented here as **gone**, not
+>   present, even though the raw JSON key removal is tracked separately (see
+>   Gaps).
+> - **New/renamed keys actually shipped**: `auth.loadError.title` / `.body` /
+>   `.retry` (the retryable profile-load-error state, distinct from
+>   `auth.accessDenied.*`); `menu.reservation.error.title` / `.refresh` /
+>   `.body` (renamed from `.action`); `menu.reservation.subtitle` now
+>   interpolates `{{portionsWord}}` (itself a plural key) instead of a fixed
+>   `{{count}}` clause; `menu.past.explanation` / `menu.past.nextMealCta`
+>   (renamed from `.description` / `.nextMealAction`); `orders.admin.actions
+>   .markConsumed` and `orders.admin.actions.cancel`; `common.back`;
+>   `inventory.card.zeroAmount`; `inventory.correction.*` (title, context,
+>   newQuantityLabel, reasonLabel, reasonPlaceholder, helper — canonical
+>   copy, nested under `inventory.correction`, not top-level
+>   `inventory.correction*` names used elsewhere in this document);
+>   `dashboard.readyPortions` (ready-portions banner label) /
+>   `dashboard.reviewRequests` (the one shipped quick-action row).
+
+**Key nesting caveat.** Where this catalog shows a flat key like
+`orders.admin.actions.approve`, the implementation nests every table's leaf
+keys under that path in the JSON (e.g. `orders.json → orders.admin.actions
+.approve`), which is equivalent — dot-paths below describe the resolved
+i18next key, not the JSON file's literal nesting.
+
 ## Login and inactive-profile onboarding
 
 | key | uk | en | notes |
@@ -39,6 +84,9 @@ uses a dedicated Admin tab, not a More sheet.
 | `auth.inactiveProfile.title` | Немає доступу | No access | PROPOSED headline required by the resolved StatePlaceholder decision. |
 | `auth.inactiveProfile.description` | Немає доступу? Зверніться до адміністратора | No access? Contact the administrator | Reuses accepted resolved-decision copy. |
 | `auth.signOut` | Вийти | Sign out | Existing key; inactive-profile affordance. |
+| `auth.loadError.title` | Не вдалося завантажити профіль | Couldn't load your profile | **Shipped.** New retryable-error state (`status: 'error'`), distinct from `auth.accessDenied.*`. |
+| `auth.loadError.body` | Перевірте з'єднання і спробуйте ще раз. | Check your connection and try again. | **Shipped.** |
+| `auth.loadError.retry` | Повторити | Retry | **Shipped.** Reuses `common.retry` semantics under its own key. |
 
 References: `common.languageUk`, `common.languageEn`, `validation.required`,
 and `validation.emailFormat`.
@@ -64,15 +112,16 @@ and `validation.emailFormat`.
 | `menu.actions.reserve` | Зарезервувати | Reserve |  |
 | `menu.actions.request` | Запит | Request |  |
 | `menu.past.label` | Минув | Passed | Past-meal chip. |
-| `menu.past.description` | Зараз {{now}} — резервування на цей прийом закрито. {{nextMeal}} о {{nextTime}} ще доступна. | It's {{now}} — reservations for this meal are closed. {{nextMeal}} at {{nextTime}} is still available. | Meal name is interpolated. |
-| `menu.past.nextMealAction` | До {{meal}} → | To {{meal}} → |  |
+| `menu.past.explanation` | Резервування на цей прийом закрито. Спробуйте {{nextMeal}}. | Reservations for this meal are closed. Try {{nextMeal}}. | **Shipped as `menu.past.explanation`** (renamed from `.description`); simplified copy, no `{{now}}`/`{{nextTime}}`. |
+| `menu.past.nextMealCta` | До {{nextMeal}} → | To {{nextMeal}} → | **Shipped as `menu.past.nextMealCta`** (renamed from `.nextMealAction`). |
 | `menu.expiredBatch.chip` | ⚠ Прострочено | ⚠ Expired | Admin-only menu banner. |
-| `menu.expiredBatch.body` | Партія від {{date}} прострочена — страва прихована з меню, порції чекають утилізації в «Партіях». | The batch from {{date}} has expired — the dish is hidden from the menu; portions await discarding in Batches. |  |
-| `menu.expiredBatch.action` | До партій → | To batches → |  |
+| `menu.expiredBatch.body` | Порція від {{date}} прострочена — страва прихована з меню, порції чекають утилізації в «Доступних порціях». | The portion from {{date}} has expired — the dish is hidden from the menu; portions await discarding in Available portions. |  |
+| `menu.expiredBatch.action` | До доступних порцій → | To available portions → |  |
 | `menu.reservation.title` | Зарезервувати порції | Reserve portions | Canonical title; supersedes short EN specimen “Reserve”. |
-| `menu.reservation.subtitle` | {{dish}} · {{date}} · вільно {{count}} порцій | {{dish}} · {{date}} · {{count}} portions ready |  |
+| `menu.reservation.subtitle` | {{dish}} · {{date}} · {{portionsWord}} | {{dish}} · {{date}} · {{portionsWord}} | **Shipped:** interpolates `{{portionsWord}}` (a plural key, see below) rather than a fixed `{{count}} порцій` clause; includes the date as required. |
+| `menu.reservation.portionsWord_one` | вільно {{count}} порція | {{count}} ready | **Shipped, new plural key.** Both `uk` (`_one/_few/_many/_other`) and `en` (`_one/_other`, `en` text is invariant "ready" across forms) are split. |
 | `menu.reservation.portionsLabel` | Кількість порцій | Portions |  |
-| `menu.reservation.remaining` | Залишиться {{remaining}} з {{available}} | {{remaining}} of {{available}} left | Ukrainian is PROPOSED; only EN semantics were sourced. |
+| `menu.reservation.helper` | {{count}} з {{total}} | {{count}} of {{total}} | **Shipped**, replaces `.remaining`; "N of M left" stepper helper (SPEC Goal 13). |
 | `menu.reservation.noteLabel` | Нотатка (необов'язково) | Note (optional) |  |
 | `menu.reservation.notePlaceholder` | Менше солі, будь ласка | Less salt, please |  |
 | `menu.reservation.confirm` | Зарезервувати | Confirm reservation | Dialog submit. |
@@ -80,9 +129,9 @@ and `validation.emailFormat`.
 | `menu.reservation.taken.title` | Вільних порцій не залишилось | No free portions left | CatArt `empty` sheet state. |
 | `menu.reservation.taken.body` | Щойно всі розібрали. Можна надіслати запит на готування. | They were just all taken. You can send a cooking request. |  |
 | `menu.reservation.taken.action` | Запит на готування | Cooking request |  |
-| `menu.reservation.error.title` | Не вдалося зарезервувати | Couldn't reserve | CatArt `confused`. |
-| `menu.reservation.error.body` | Хтось випередив — залишилась {{available}} порція з {{requested}} потрібних. | Someone was faster — {{available}} portion left of the {{requested}} requested. | Implement plural handling separately if needed. |
-| `menu.reservation.error.action` | Оновити наявність | Refresh availability |  |
+| `menu.reservation.error.title` | Не вдалося зарезервувати | Couldn't reserve | CatArt `confused`. **Shipped.** |
+| `menu.reservation.error.body` | Хтось випередив — залишилась {{available}} порція з {{requested}} потрібних. | Someone was faster — {{available}} portion left of the {{requested}} requested. | **Shipped** as a single interpolated string (not split into plural forms). |
+| `menu.reservation.error.refresh` | Оновити наявність | Refresh availability | **Shipped as `.refresh`** (renamed from `.action`), per SPEC Goal 13's "refresh CTA". |
 
 References: `common.cancel`, `common.retry`, `common.meals.*`,
 `status.dishAvailability.*`, `validation.reservationMax`, and navigation keys.
@@ -101,8 +150,8 @@ References: `common.cancel`, `common.retry`, `common.meals.*`,
 | `orders.empty.action` | До меню | Browse menu |  |
 | `orders.error.title` | Щось пішло не так | Something went wrong | CatArt `confused`. |
 | `orders.error.body` | Не вдалося отримати ваші замовлення. | Couldn't fetch your orders. |  |
-| `orders.meta.request` | Запит · {{count}} порція · {{date}}, {{meal}} | Cooking request · {{count}} portion · {{date}}, {{meal}} | Count is an interpolation; plural variants may be added during implementation. |
-| `orders.meta.reservation` | {{count}} порції · {{date}}, {{meal}} | Reserved · {{count}} portions · {{date}}, {{meal}} |  |
+| `orders.meta.request_one` | Запит · {{count}} порція · {{date}}, {{meal}} | Cooking request · {{count}} portion · {{date}}, {{meal}} | **Shipped as plural keys** `orders.meta.request_one/_few/_many/_other` (uk) and `_one/_other` (en), as anticipated. |
+| `orders.meta.reservation_one` | {{count}} порція · {{date}}, {{meal}} | Reserved · {{count}} portions · {{date}}, {{meal}} | **Shipped as plural keys** `orders.meta.reservation_*`. |
 | `orders.meta.consumedAt` | спожито {{time}} | consumed {{time}} |  |
 | `orders.meta.cancelledByUser` | Скасовано користувачем · {{date}} | Cancelled by user · {{date}} |  |
 | `orders.reason` | Причина: {{reason}} | Reason: {{reason}} |  |
@@ -110,9 +159,9 @@ References: `common.cancel`, `common.retry`, `common.meals.*`,
 | `orders.actions.cancelUnavailable` | Скасувати — недоступно | Cancel — not available | Canonical disabled label. |
 | `orders.actions.cancelUnavailableHelp` | Скасування вимкнено, щойно почалося готування. | Cancellation is disabled once cooking has started. |  |
 | `orders.preparedHelp` | Без кнопок — порції резервуються автоматично з партії. | No buttons — portions are reserved automatically from the batch. |  |
-| `orders.batchWarning` | Пов'язана партія прострочена або утилізована. Зверніться до адміністратора. | The linked batch has expired or was discarded. Contact an administrator. | PROPOSED warning required by a resolved decision; exact copy absent. |
+| `orders.batchWarning` | Пов'язана доступна порція прострочена або утилізована. Зверніться до адміністратора. | The linked available portion has expired or was discarded. Contact an administrator. | PROPOSED warning required by a resolved decision; exact copy absent. |
 | `orders.cancelDialog.title` | Скасувати замовлення? | Cancel this order? |  |
-| `orders.cancelDialog.body` | {{count}} зарезервовані порції «{{dish}}» повернуться в спільну партію. | Your {{count}} reserved portions of {{dish}} will be released back to the household. |  |
+| `orders.cancelDialog.body_one` | {{count}} зарезервована порція «{{dish}}» повернеться в спільну партію. | Your {{count}} reserved portions of {{dish}} will be released back to the household. | **Shipped as plural keys** `orders.cancelDialog.body_one/_few/_many/_other`. |
 | `orders.cancelDialog.keep` | Залишити | Keep |  |
 
 References: `common.retry`, `common.meals.*`, and `status.order.*`.
@@ -146,23 +195,28 @@ References: `common.cancel`, `common.retry`, `common.meals.*`,
 | `dashboard.title` | Панель | Dashboard |  |
 | `dashboard.loading` | Рахуємо порції… | Counting portions… | CatArt `sleep`. |
 | `dashboard.empty.title` | Усе спокійно | All calm | CatArt `idle`; no CTA. |
-| `dashboard.empty.body` | Немає запитів, прострочених партій чи дефіциту. Котик задоволений. | No requests, expired batches, or shortages. Kotyk is content. |  |
+| `dashboard.empty.body` | Немає запитів, прострочених порцій чи дефіциту. Котик задоволений. | No requests, expired portions, or shortages. Kotyk is content. |  |
 | `dashboard.error.title` | Дані недоступні | Data unavailable | CatArt `confused`. |
 | `dashboard.error.body` | Не вдалося отримати зведення. | Couldn't fetch the summary. |  |
 | `dashboard.tiles.pendingRequests` | Запити | Pending requests |  |
 | `dashboard.tiles.inProgress` | Готується | In progress |  |
 | `dashboard.tiles.lowStock` | Дефіцит | Low-stock items |  |
-| `dashboard.tiles.expiredBatch` | Прострочено | Expired batch |  |
-| `dashboard.tiles.readyPortions` | Порцій вільно | Portions ready to reserve |  |
-| `dashboard.quickActions.title` | Швидкі дії | Quick actions | PROPOSED UK; mockup source is English-only. |
-| `dashboard.quickActions.reviewRequests` | Переглянути запити на готування | Review cooking requests | PROPOSED UK. |
-| `dashboard.quickActions.restock` | Поповнити інгредієнти | Restock ingredients | PROPOSED UK. |
-| `dashboard.pendingPanel.title` | Запити на готування, що очікують | Pending cooking requests | PROPOSED UK. |
-| `dashboard.pendingPanel.viewAll` | Переглянути всі › | View all › | PROPOSED UK. |
-| `dashboard.pendingPanel.approve` | Підтвердити | Approve |  |
-| `dashboard.attention.title` | ⚠ Потребує уваги | ⚠ Needs attention | PROPOSED UK. |
-| `dashboard.attention.expired` | Прострочено | Expired | PROPOSED UK pairing. |
-| `dashboard.attention.lowAmount` | Залишилось {{amount}} {{unit}} | {{amount}} {{unit}} low | PROPOSED UK. |
+| `dashboard.tiles.expiredBatch` | Прострочено | Expired batch | The "⚠" glyph is a rendered element, not baked into the string. |
+| `dashboard.readyPortions` | Порцій вільно | Portions ready to reserve | **Shipped as a top-level key** (banner label; no longer nested under `tiles`, since ready portions render as a banner, not a tile). |
+| `dashboard.reviewRequests` | Переглянути запити на приготування | Review cooking requests | **Shipped as a top-level key.** The one quick-action row; badged with the pending count, links to `/admin/orders`. |
+
+The earlier `dashboard.quickActions.*`, `dashboard.attention.*`, and
+`dashboard.hub.title` keys were removed: the "Restock ingredients" quick
+action, the "⚠ Needs attention" counts panel, and the mobile "Admin sections"
+hub are not shipped. `navigation-drawer-signout` made the left Drawer the
+single navigation surface, so the dashboard renders no navigation block of its
+own.
+
+The `dashboard.pendingPanel.*` keys described in the original transcription
+(pending-requests list with per-item Approve) were **not shipped as a
+separate panel**; the dashboard surfaces pending-request and low-stock/
+expired-batch **counts** via tiles and the `attention.*` panel rather than
+item-level rows. See the `admin-dashboard.md` implementation note.
 
 Reference: `common.retry` and admin navigation keys.
 
@@ -180,57 +234,59 @@ Reference: `common.retry` and admin navigation keys.
 | `orders.admin.error.title` | Дошка не завантажилась | The board didn't load |  |
 | `orders.admin.error.body` | Спробуйте оновити. | Try refreshing. |  |
 | `orders.admin.columnHeading` | {{status}} · {{count}} | {{status}} · {{count}} |  |
-| `orders.admin.meta.requester` | {{requester}} · {{count}} порція · {{date}} | {{requester}} · {{count}} portion · {{date}} |  |
-| `orders.admin.meta.batch` | {{requester}} · партія #{{batchNumber}} | {{requester}} · batch #{{batchNumber}} |  |
+| `orders.admin.meta.requester_one` | {{requester}} · {{count}} порція · {{date}} | {{requester}} · {{count}} portion · {{date}} | **Shipped as plural keys** `orders.admin.meta.requester_*`. |
+| `orders.admin.meta.batch` | {{requester}} · партія {{code}} | {{requester}} · batch {{code}} | **Shipped with `{{code}}`** (interim batch code, not `{{batchNumber}}`); see `admin-orders.md` for the batch-code note. Real sequential numbering is deferred to the forthcoming `batch-sequence-number` SPEC. |
 | `orders.admin.actions.approve` | Підтвердити | Approve |  |
 | `orders.admin.actions.reject` | Відхилити | Reject |  |
 | `orders.admin.actions.startCooking` | Почати готування | Start cooking |  |
 | `orders.admin.actions.markPrepared` | Позначити приготованим | Mark as prepared |  |
-| `orders.admin.actions.reserveForRequester` | Зарезервувати за замовником | Reserve for the requester |  |
-| `orders.admin.actions.markConsumed` | Позначити спожитим | Mark as consumed |  |
+| `orders.admin.actions.reserveForRequester` | Зарезервувати за замовником | Reserve for the requester | Superseded — no longer a distinct action; see `admin-orders.md`. |
+| `orders.admin.actions.markConsumed` | Позначити спожитим | Mark as consumed | **Shipped** (SPEC Goal 14 — admin can mark a `reserved` order consumed). |
+| `orders.admin.actions.cancel` | Скасувати | Cancel | **Shipped, new key** — admin cancel action on a `reserved` order (SPEC Goal 14). |
 | `orders.admin.rejection.title` | Відхилити запит? | Reject the request? |  |
-| `orders.admin.rejection.context` | {{dish}} · {{requester}} · {{count}} порції · {{date}} | {{dish}} · {{requester}} · {{count}} portions · {{date}} |  |
+| `orders.admin.rejection.context_one` | {{dish}} · {{requester}} · {{count}} порція · {{date}} | {{dish}} · {{requester}} · {{count}} portion · {{date}} | **Shipped as plural keys** `orders.admin.rejection.context_*`. |
 | `orders.admin.rejection.reasonLabel` | Причина (необов'язково) | Reason (optional) |  |
 | `orders.admin.rejection.helper` | Причину побачить автор запиту. | The requester will see the reason. |  |
-| `orders.admin.batchWarning` | Пов'язана партія прострочена або утилізована. Скасуйте замовлення або перемістіть його до іншої партії. | The linked batch has expired or was discarded. Cancel the order or move it to another batch. | PROPOSED exact copy for resolved workflow. |
+| `common.back` | Назад | Back | **Shipped, new key.** Used as the rejection dialog's secondary button label per SPEC Goal 14 ("«Назад»/\"Back\""), instead of `common.cancel`. |
+| `orders.admin.batchWarning` | Пов'язана доступна порція прострочена або утилізована. Скасуйте замовлення або перемістіть його до іншої порції. | The linked available portion has expired or was discarded. Cancel the order or move it to another portion. | PROPOSED exact copy for resolved workflow. |
 | `orders.admin.batchCorrection.cancelOrder` | Скасувати замовлення | Cancel order | PROPOSED correction option. |
 | `orders.admin.batchCorrection.moveBatch` | Перемістити до іншої партії | Move to another batch | PROPOSED correction option. |
 
 References: `common.back`, `common.cancel`, `common.retry`, `common.save`,
 `common.saving`, `status.order.*`, and `validation.correctionReasonRequired`.
 
-## Prepared batches
+## Available portions
 
 | key | uk | en | notes |
 | --- | --- | --- | --- |
-| `batches.title` | Партії | Prepared batches |  |
+| `batches.title` | Доступні порції | Available portions |  |
 | `batches.loading` | Завантаження… | Loading… | CatArt `sleep`. |
-| `batches.empty.title` | Немає готових партій | No prepared batches | CatArt `empty`. |
-| `batches.empty.body` | Партія з'явиться, щойно ви позначите запит приготованим. | A batch will appear as soon as you mark a request as prepared. |  |
+| `batches.empty.title` | Немає доступних порцій | No available portions | CatArt `empty`. |
+| `batches.empty.body` | Порція з'явиться, щойно ви позначите запит приготованим. | A portion will appear as soon as you mark a request as prepared. |  |
 | `batches.error.title` | Не вдалося завантажити | Couldn't load | CatArt `confused`. |
 | `batches.error.body` | Спробуйте ще раз. | Try again. |  |
 | `batches.meta.cooked` | Приготовано {{date}} · {{time}} | Cooked {{date}} · {{time}} |  |
 | `batches.meta.bestBefore` | {{date}} · {{time}} · придатна до {{bestBefore}} | {{date}} · {{time}} · best before {{bestBefore}} |  |
 | `batches.meta.expired` | {{date}} · термін минув {{relativeDate}} | Cooked {{date}} · expired {{relativeDate}} |  |
-| `batches.meta.discarded` | Утилізовано {{date}} · {{actor}} · {{count}} порції | Discarded {{date}} · {{actor}} · {{count}} portions |  |
+| `batches.meta.discarded_one` | Утилізовано {{date}} · {{count}} порція | Discarded {{date}} · {{count}} portions | **Shipped as plural keys** `batches.meta.discarded_*`; shipped copy has no `{{actor}}` interpolation. |
 | `batches.counters.available` | ВІЛЬНО | AVAIL | Compact card label. |
 | `batches.counters.reserved` | РЕЗЕРВ | RESV |  |
 | `batches.counters.consumed` | СПОЖИТО | USED |  |
 | `batches.counters.discarded` | УТИЛІЗ. | DISC |  |
 | `batches.actions.discard` | Утилізувати… | Discard… |  |
-| `batches.actions.discardCount` | Утилізувати {{count}} порції | Discard {{count}} portions |  |
+| `batches.actions.discardCount_one` | Утилізувати {{count}} порцію | Discard {{count}} portions | **Shipped as plural keys** `batches.actions.discardCount_*`. |
 | `batches.actions.discardDisabled` | Утилізувати — усі порції зарезервовані | Discard — all portions are reserved | Disabled explanatory label. |
-| `batches.expired.notice` | Резервування заблоковано. {{count}} порції очікують утилізації. | Reserving is blocked. {{count}} portions await disposal. |  |
+| `batches.expired.notice_one` | Резервування заблоковано. {{count}} порція очікує утилізації. | Reserving is blocked. {{count}} portions await disposal. | **Shipped as plural keys** `batches.expired.notice_*`. |
 | `batches.discarded.helper` | Без кнопок · залишається в журналі руху. | No buttons · stays in the movement log. |  |
-| `batches.registration.title` | Партію приготовано | Batch prepared |  |
+| `batches.registration.title` | Порцію приготовано | Portion prepared |  |
 | `batches.registration.context` | {{dish}} · запит {{requester}} | {{dish}} · request by {{requester}} |  |
 | `batches.registration.plannedLabel` | Планово, порцій | Planned, portions | Read-only. |
 | `batches.registration.actualLabel` | Фактично * | Actual * |  |
 | `batches.registration.bestBeforeLabel` | Придатна до * | Best before * |  |
 | `batches.registration.actualBelowPlan` | Фактичний вихід менший за плановий — інвентар спишеться за фактом. | Actual yield is lower than planned — inventory is deducted by the actual amount. |  |
-| `batches.registration.submit` | Зареєструвати партію | Register batch |  |
-| `batches.discardDialog.title` | Утилізувати партію? | Discard the batch? |  |
-| `batches.discardDialog.body` | {{dish}} · {{count}} вільні порції буде списано назавжди. Дію не можна скасувати. | {{dish}} · {{count}} available portions will be written off permanently. This cannot be undone. |  |
+| `batches.registration.submit` | Зареєструвати порцію | Register portion |  |
+| `batches.discardDialog.title` | Утилізувати порцію? | Discard the portion? |  |
+| `batches.discardDialog.body_one` | {{dish}} · {{count}} вільна порція буде списана назавжди. Дію не можна скасувати. | {{dish}} · {{count}} available portions will be written off permanently. This cannot be undone. | **Shipped as plural keys** `batches.discardDialog.body_*`. |
 | `batches.discardDialog.confirm` | Утилізувати | Discard |  |
 
 References: `common.cancel`, `common.keep`, `common.retry`, `common.saving`,
@@ -250,7 +306,7 @@ References: `common.cancel`, `common.keep`, `common.retry`, `common.saving`,
 | `dishes.empty.action` | + Додати страву | + Add dish |  |
 | `dishes.error.title` | Не вдалося завантажити | Failed to load | CatArt `confused`. |
 | `dishes.error.body` | Спробуйте ще раз. | Try again. |  |
-| `dishes.card.portionIngredients` | Порція {{amount}} {{unit}} · {{count}} інгредієнти | Portion {{amount}} {{unit}} · {{count}} ingredients |  |
+| `dishes.card.ingredientCount_one` | {{count}} інгредієнт | {{count}} ingredient | **Shipped as `dishes.card.ingredientCount_one/_few/_many/_other`**, a standalone plural count (not `.portionIngredients`'s combined "portion · N ingredients" string — the portion-size clause is composed separately). |
 | `dishes.card.missing` | Бракує: {{ingredients}} | Missing: {{ingredients}} |  |
 | `dishes.card.emptyRecipe` | Рецепт порожній — страва не з'являється в меню | Recipe is empty — the dish does not appear in the menu |  |
 | `dishes.actions.edit` | Редагувати | Edit |  |
@@ -296,7 +352,7 @@ References: `common.cancel`, `common.retry`, `common.saving`, `common.meals.*`,
 | `inventory.error.body` | Перевірте з'єднання. | Check the connection. |  |
 | `inventory.card.amountLeft` | Залишилось {{amount}} {{unit}} | {{amount}} {{unit}} left |  |
 | `inventory.card.trackedByPresence` | Облік за наявністю | Tracked by presence | UK PROPOSED; EN-only mockup. |
-| `inventory.card.zeroAmount` | 0 {{unit}} — закінчилися | 0 {{unit}} — ran out |  |
+| `inventory.card.zeroAmount` | 0 {{unit}} — закінчилися | 0 {{unit}} — ran out | **Shipped**, rendered in error tone for the zero-quantity row (SPEC Goal 17). |
 | `inventory.stock.low` | Мало | Low stock |  |
 | `inventory.stock.inStock` | Є | In stock |  |
 | `inventory.stock.out` | Немає | Out |  |
@@ -313,12 +369,12 @@ References: `common.cancel`, `common.retry`, `common.saving`, `common.meals.*`,
 | `inventory.history.entryMeta` | {{type}} · {{actor}} · {{time}} | {{type}} · {{actor}} · {{time}} |  |
 | `inventory.history.presenceOut` | Наявність → Немає | Presence → Out |  |
 | `inventory.history.setOut` | позначено відсутнім | set out | PROPOSED UK. |
-| `inventory.correction.title` | Коригування залишку | Stock correction |  |
-| `inventory.correction.context` | {{ingredient}} · зараз {{amount}} {{unit}} | {{ingredient}} · current {{amount}} {{unit}} |  |
-| `inventory.correction.amountLabel` | Нова кількість | New quantity |  |
-| `inventory.correction.reasonLabel` | Причина * | Reason * required |  |
+| `inventory.correction.title` | Коригування залишку | Stock correction | **Shipped, canonical copy** (SPEC Goal 17). |
+| `inventory.correction.context` | {{name}} · зараз {{current}} | {{name}} · current {{current}} | **Shipped** with `{{name}}`/`{{current}}` (pre-formatted "amount unit" string), not `{{ingredient}}`/`{{amount}}`/`{{unit}}` separately. |
+| `inventory.correction.newQuantityLabel` | Нова кількість | New quantity | **Shipped as `.newQuantityLabel`** (not `.amountLabel`). |
+| `inventory.correction.reasonLabel` | Причина * | Reason * |  |
 | `inventory.correction.reasonPlaceholder` | Опишіть, чому змінюється залишок… | Describe why the stock changes… |  |
-| `inventory.correction.helper` | Запис додається до незмінного журналу руху. | Logged to the append-only movement history. |  |
+| `inventory.correction.helper` | Запис додається до незмінного журналу руху. | Logged to the append-only movement history. | Save is disabled until this required reason is filled (SPEC Goal 17). |
 
 References: `common.cancel`, `common.retry`, `common.save`, `common.saving`,
 `common.units.*`, and `validation.correctionReasonRequired`.
@@ -363,6 +419,8 @@ References: `common.retry`, `common.languageUk`, `common.languageEn`, and
 | `common.submitDisabledHelp` | Кнопка вимкнена, поки є помилки валідації. | Button is disabled while validation errors exist. |  |
 | `common.languageUk` | UA | UA | Display label only; locale code remains `uk`. |
 | `common.languageEn` | EN | EN |  |
+| `common.darkMode` | Темна тема | Dark mode | Nav-drawer theme row label while the light scheme is active (switches to dark). |
+| `common.lightMode` | Світла тема | Light mode | Nav-drawer theme row label while the dark scheme is active (switches to light). |
 | `common.moreCount` | …ще {{count}} | …{{count}} more | Long-list fade. |
 | `common.meals.breakfast` | Сніданок | Breakfast |  |
 | `common.meals.lunch` | Обід | Lunch |  |
@@ -382,11 +440,24 @@ References: `common.retry`, `common.languageUk`, `common.languageEn`, and
 | `nav.cookingRequests` | Запити на готування | Cooking requests | Admin drawer only. |
 | `nav.dishes` | Страви | Dishes |  |
 | `nav.inventory` | Інвентар | Inventory |  |
-| `nav.batches` | Партії | Batches |  |
+| `nav.batches` | Доступні порції | Available portions |  |
 | `nav.settings` | Налаштування | Settings |  |
 | `nav.landmark` | Основна навігація | Primary navigation | Existing accessible label. |
 
 No `nav.requests` or `nav.more` key is part of the target design.
+
+> **Verification note (`mvp-audit-remediation`, T7.1).** Checked against the
+> shipped `src/locales/{uk,en}/translation.json` on 2026-07-11:
+> `navigationDestinations.ts` references `nav.dashboard`, `nav.cookingRequests`,
+> and `nav.admin` (mobile label) as designed, and the drawer/bottom-nav order
+> matches. However the locale files still carry the now-unused `nav.requests`
+> and `nav.more` entries (dead keys, not read by any component — safe to
+> delete in a follow-up cleanup rather than re-adding to the catalog), `nav
+> .admin` still holds the pre-remediation value `"Адміністрування"`/`"Admin"`
+> rather than the canonical `"Адмін"` mobile-tab label, and `nav
+> .cookingRequests` itself is **absent** from both locale files even though
+> the drawer references it as `labelKey`. This is flagged here as a known gap
+> for a follow-up fix, not silently corrected in this documentation-only pass.
 
 ## Status namespace
 

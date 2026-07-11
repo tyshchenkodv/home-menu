@@ -104,6 +104,20 @@ DishChip and 06b desktop grid):
 Status is never conveyed by color alone: every chip carries a colored dot +
 text label.
 
+**Implementation note — own-holdings hint**
+(`docs/specifications/menu-own-reservation-hint/SPEC.md`): under the
+portions counter, `DishAvailabilityCard` renders up to two additional
+`text.secondary` info lines showing the signed-in user's own outstanding
+holdings for that exact dish + the currently selected calendar day + meal
+(never other members' orders): «Вже зарезервовано: {{count}}» / "Already
+reserved: {{count}}" when the user holds one or more `reserved` ready orders
+for the slot, and «Запит на готування: {{count}}» / "Cooking requested:
+{{count}}" when the user has one or more active (non-terminal) cooking
+requests for the slot. Each line renders only when its count is `> 0`;
+switching the selected day or meal recomputes and can clear the hint. The
+counter and Reserve/Request action are unchanged — the hint is additive and
+does not block re-reserving up to availability.
+
 ## Edge cases (05h)
 
 - **Long dish name**: max 2 lines then ellipsis; chip never compresses.
@@ -122,6 +136,19 @@ text label.
   from Mon 7 has expired — the dish is hidden from the menu; portions await
   discarding in Batches.", contained `error` CTA «До партій →» / "To batches
   →".
+
+> **Implementation note (`menu-expired-batch-banner`).** The admin-only
+> expired-batch banner is implemented
+> (`src/features/menu/components/ExpiredBatchBanner/ExpiredBatchBanner.tsx`),
+> fed by `src/domain/menu/selectExpiredBackingBatches.ts` over the batch data
+> already subscribed in `useDishAvailability`, and gated in `MenuPage` to
+> `profile?.role === 'admin' && profile.active`. **Scope caveat:**
+> availability is intentionally unchanged — an expired, non-discarded batch's
+> `availableQuantity` still counts toward the dish's readiness exactly as
+> before, so the dish is **not** hidden from users; only the admin banner is
+> new. The "users simply do not see the dish" line above describes a future
+> business-rule change (excluding expired batches from availability), tracked
+> as a separate, not-yet-approved specification.
 - **20+ items**: alphabetical order, list virtualization; search appears
   from 10 items, sticky letter group headers from 20 (rule stated on the
   inventory edge-case card; apply to long lists generally).

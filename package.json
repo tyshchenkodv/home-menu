@@ -17,8 +17,7 @@
     "test:rules": "firebase emulators:exec --only firestore \"vitest run --config vitest.rules.config.ts\"",
     "test:rules:docker": "FIRESTORE_EMULATOR_HOST=localhost:8080 vitest run --config vitest.rules.config.ts",
     "emulators": "docker compose up -d firebase-emulators",
-    "emulators:stop": "docker compose down",
-    "seed:admin": "node scripts/seedEmulatorAdmin.mjs"
+    "emulators:stop": "docker compose down"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

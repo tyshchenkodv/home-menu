@@ -41,6 +41,8 @@ describe('RootRedirect', () => {
       status: 'authenticated',
       user: null,
       profile: buildProfile({ role: 'admin' }),
+      role: 'admin',
+      isActive: true,
     });
 
     renderRootRedirect();
@@ -53,6 +55,8 @@ describe('RootRedirect', () => {
       status: 'authenticated',
       user: null,
       profile: buildProfile({ role: 'user' }),
+      role: 'user',
+      isActive: true,
     });
 
     renderRootRedirect();
@@ -65,6 +69,8 @@ describe('RootRedirect', () => {
       status: 'unauthenticated',
       user: null,
       profile: null,
+      role: undefined,
+      isActive: undefined,
     });
 
     renderRootRedirect();
@@ -77,6 +83,8 @@ describe('RootRedirect', () => {
       status: 'authenticated',
       user: null,
       profile: null,
+      role: undefined,
+      isActive: undefined,
     });
 
     renderRootRedirect();
@@ -89,6 +97,8 @@ describe('RootRedirect', () => {
       status: 'loading',
       user: null,
       profile: null,
+      role: undefined,
+      isActive: undefined,
     });
 
     renderRootRedirect();

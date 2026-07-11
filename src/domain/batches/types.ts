@@ -21,6 +21,14 @@ export interface DomainTimestamp {
 export interface PreparedBatch<TTimestamp = DomainTimestamp> {
   dishId: string;
   dishName: string;
+  /**
+   * Global, monotonically increasing, gap-tolerant sequential batch number
+   * allocated atomically inside the batch-creation transaction (see
+   * `docs/specifications/batch-sequence-number/SPEC.md`). `null` only for
+   * legacy documents written before this field existed; every freshly
+   * created batch always carries a real positive integer.
+   */
+  batchNumber: number | null;
   producedQuantity: number;
   availableQuantity: number;
   reservedQuantity: number;

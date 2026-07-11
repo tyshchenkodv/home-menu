@@ -50,13 +50,18 @@ The **design system foundation** slice is implemented (see
   button — see `screens/login.md` for the full, as-built spec (Google
   Sign-In only; no email/password form).
 - The responsive navigation shell is implemented (see
-  `docs/specifications/navigation-shell/`): `AppShell`
+  `docs/specifications/navigation-shell/`, superseded on the mobile side by
+  `docs/specifications/navigation-drawer-signout/`): `AppShell`
   (`src/shared/components/AppShell/`) is a layout route rendering `AppHeader`
-  plus role-aware navigation and the routed `Outlet`. Below the `md`
-  breakpoint it renders a `BottomNavigation` (admin: four primary
-  destinations; user: three destinations directly); at `md` and above it
-  promotes to a persistent `Drawer` listing every destination. The active
-  destination is emphasized with `primary` and exposed to assistive tech.
+  plus role-aware navigation and the routed `Outlet`. The left `Drawer` is
+  now the single navigation surface on every viewport, listing every
+  destination the role can reach: permanent at `md`+ (unchanged), and a
+  temporary overlay below `md`, opened from a header hamburger and closed on
+  destination selection, backdrop tap, or `Escape` — there is no
+  `BottomNavigation` anymore. The active destination is emphasized with
+  `primary` and exposed to assistive tech. The drawer also carries a footer
+  with the signed-in account's email (falling back to display name, then a
+  generic label) and a sign-out control.
 - The **MVP completion** slice is implemented (`docs/specifications/mvp-completion/`):
   all feature screens are now functional including Menu (`/menu`), Orders
   (`/orders`, user + admin flavors), Dashboard (`/admin`), Batches
@@ -131,6 +136,30 @@ export const theme = createTheme({
 });
 ```
 
+**Implementation note (post-audit, MVP remediation Slice 2):** the mockup
+handoff above transcribes only the variants the "07 MUI theme mapping" screen
+called out explicitly. In practice, feature components also render
+`variant="h4"` (dish/order/batch card titles), `variant="h6"` (dialog titles,
+the `AppHeader` wordmark), `subtitle2` (small bold section labels), and
+`caption` (meta text) — none of which the canon block above defines, so they
+silently fell back to MUI's unstyled defaults (e.g. `h4` at `2.125rem`/400,
+not Nunito). `src/app/theme.ts` now defines all four explicitly:
+
+- `h4`: Nunito Variable, weight 800, `1.125rem`/`1.25` line-height — a compact
+  card-title heading sized between `h5` (1rem) and `h3` (1.25rem).
+- `h6`: Nunito Variable, weight 700, `1.125rem`/`1.3` line-height.
+- `subtitle2`: global Nunito Sans Variable family (not Nunito), weight 700,
+  `0.8125rem`/`1.3` line-height.
+- `caption`: global Nunito Sans Variable family, `0.75rem`/`1.4` line-height.
+
+Also, `MuiCard.styleOverrides.root` and `MuiBottomNavigation.styleOverrides.root`
+now resolve their border through `theme.vars.palette.divider` (function-form
+`styleOverrides`) instead of the hardcoded light-mode hex, so dark mode's own
+divider value (`rgba(255,255,255,0.09)`) applies instead of leaking the light
+pink border. `MuiButton.contained` and `MuiCard.root` box-shadows use
+`theme.applyStyles('dark', {...})` to swap in a neutral dark-mode shadow
+rather than persisting the light pink-tinted shadow.
+
 ## Semantic color usage
 
 The palette is pastel-forward, led by rose. Every value maps to a MUI palette
@@ -166,6 +195,11 @@ an icon):
 - Font sourcing is an open decision (see below) — the mockup embeds the font,
   but self-hosting vs. any external source must respect the repo's
   public/privacy rules.
+- `h4`, `h6`, `subtitle2`, and `caption` are used by feature components (card
+  titles, dialog titles, the header wordmark, small section labels, and meta
+  text) but were absent from the transcribed canon block; `theme.ts` now
+  defines them explicitly (see the implementation note above) so they render
+  in the correct family/weight instead of MUI's unstyled defaults.
 
 ## Shape & spacing
 

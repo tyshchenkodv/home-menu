@@ -20,8 +20,12 @@ type TaggedResult = UseIngredientsResult & { tab: InventoryTab };
  * reads as "loading" for the render(s) before the new subscription's first
  * snapshot arrives, without calling `setState` synchronously inside the
  * effect body.
+ *
+ * `reloadKey` is not read by the effect body; bumping it from the caller
+ * (e.g. the error state's retry action) forces a fresh re-subscription
+ * without introducing a separate imperative reload API.
  */
-export const useIngredients = (tab: InventoryTab): UseIngredientsResult => {
+export const useIngredients = (tab: InventoryTab, reloadKey = 0): UseIngredientsResult => {
   const [tagged, setTagged] = useState<TaggedResult>({ tab, ...LOADING_RESULT });
 
   useEffect(() => {
@@ -37,7 +41,7 @@ export const useIngredients = (tab: InventoryTab): UseIngredientsResult => {
     );
 
     return unsubscribe;
-  }, [tab]);
+  }, [tab, reloadKey]);
 
   if (tagged.tab !== tab) {
     return LOADING_RESULT;

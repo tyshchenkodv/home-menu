@@ -45,6 +45,8 @@ beforeEach(() => {
   mockedUseAuth.mockReturnValue({
     user: { uid: 'test-user-uid' } as unknown as User,
     profile: { role: 'admin', active: true } as unknown as UserProfile,
+    role: 'admin',
+    isActive: true,
     status: 'authenticated',
   });
 });
@@ -56,38 +58,19 @@ describe('SettingsPage', () => {
     expect(screen.getByRole('heading', { name: i18n.t('settings.title'), level: 1 })).toBeInTheDocument();
   });
 
-  it('renders the language control', () => {
+  it('does not render language or theme controls (those live in the nav drawer)', () => {
     renderPage();
 
-    expect(screen.getByRole('group', { name: i18n.t('common.language') })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: i18n.t('common.languageUk') })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: i18n.t('common.languageEn') })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: i18n.t('common.language') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: i18n.t('common.darkMode') })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: i18n.t('common.lightMode') })).not.toBeInTheDocument();
   });
 
-  it('does not render the theme control', () => {
-    renderPage();
-
-    expect(screen.queryByRole('button', { name: i18n.t('common.toggleDarkMode') })).not.toBeInTheDocument();
-  });
-
-  it('renders the meal-times form for admin users', async () => {
+  it('renders the meal-times form', async () => {
     renderPage();
 
     // Wait for the form to load
     expect(await screen.findByText(i18n.t('settings.mealTimes.title'))).toBeInTheDocument();
     expect(screen.getByLabelText(i18n.t('common.meals.breakfast'))).toBeInTheDocument();
-  });
-
-  it('does not render meal-times form for regular users', () => {
-    mockedUseAuth.mockReturnValue({
-      user: { uid: 'test-user-uid' } as unknown as User,
-      profile: { role: 'user', active: true } as unknown as UserProfile,
-      status: 'authenticated',
-    });
-
-    renderPage();
-
-    expect(screen.queryByText(i18n.t('settings.mealTimes.title'))).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(i18n.t('common.meals.breakfast'))).not.toBeInTheDocument();
   });
 });

@@ -45,10 +45,14 @@ export const IngredientCard = ({
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const isMenuOpen = menuAnchor !== null;
 
+  const isZeroQuantity = display.kind === 'quantity' && display.amount === 0;
+
   const quantityText =
     display.kind === 'presence'
       ? t(display.isPresent ? 'inventory.presence.present' : 'inventory.presence.absent')
-      : t('inventory.quantityWithUnit', { amount: display.amount, unit: t(`inventory.units.${display.unit}`) });
+      : isZeroQuantity
+        ? t('inventory.card.zeroAmount', { unit: t(`inventory.units.${display.unit}`) })
+        : t('inventory.quantityWithUnit', { amount: display.amount, unit: t(`inventory.units.${display.unit}`) });
 
   const openMenu = (event: MouseEvent<HTMLElement>) => {
     setMenuAnchor(event.currentTarget);
@@ -72,7 +76,7 @@ export const IngredientCard = ({
               {ingredient.name}
             </Typography>
             <Stack direction="row" spacing={1} sx={styles.quantityRow}>
-              <Typography color="text.secondary">{quantityText}</Typography>
+              <Typography color={isZeroQuantity ? 'error.main' : 'text.secondary'}>{quantityText}</Typography>
               <StatusChip label={t(status.labelKey)} color={status.color} />
             </Stack>
           </Stack>

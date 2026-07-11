@@ -66,7 +66,7 @@ export const BatchCard = ({ batch, now, onDiscard }: BatchCardProps) => {
         date: new Intl.DateTimeFormat(i18n.language, { month: 'short', day: 'numeric' }).format(
           batch.preparedAt.toDate(),
         ),
-        relativeDate: t('common.yesterday'), // Simplified; real impl would calculate relative date
+        relativeDate: t('common.yesterday'), // Simplified; real impl would calculate the relative day
       });
     }
 
@@ -100,6 +100,18 @@ export const BatchCard = ({ batch, now, onDiscard }: BatchCardProps) => {
   const canDiscard = !isFullyReserved && !isDiscarded && batch.availableQuantity > 0;
   const disableReason = isFullyReserved ? t('batches.actions.discardDisabled') : undefined;
 
+  // 05d BatchCard status matrix discard-button mapping: only the expired
+  // card uses the portion-count label with a contained error button; fresh
+  // uses an outlined neutral button, expiring soon an outlined warning
+  // button, and fully reserved is disabled with the explanatory label.
+  const discardButtonLabel = isFullyReserved
+    ? t('batches.actions.discardDisabled')
+    : isExpired
+      ? t('batches.actions.discardCount', { count: batch.availableQuantity })
+      : t('batches.actions.discard');
+  const discardButtonVariant = isExpired ? 'contained' : 'outlined';
+  const discardButtonColor: 'error' | 'warning' | 'inherit' = isExpired ? 'error' : isExpiringS ? 'warning' : 'inherit';
+
   // Determine chip label and color based on status
   const getChipLabel = () => {
     if (statusChipType === 'discarded') return t('status.batch.discarded');
@@ -130,7 +142,11 @@ export const BatchCard = ({ batch, now, onDiscard }: BatchCardProps) => {
               {formatMetadata()}
             </Typography>
           </Stack>
-          <StatusChip label={getChipLabel()} color={getChipColor()} />
+          <StatusChip
+            label={getChipLabel()}
+            color={getChipColor()}
+            variant={statusChipType === 'discarded' ? 'outlined' : 'filled'}
+          />
         </Stack>
 
         {/* Expired warning notice - replaces counters */}
@@ -148,8 +164,8 @@ export const BatchCard = ({ batch, now, onDiscard }: BatchCardProps) => {
           <Tooltip title={disableReason ?? ''}>
             <span>
               <Button
-                variant="outlined"
-                color={isExpired ? 'error' : 'inherit'}
+                variant={discardButtonVariant}
+                color={discardButtonColor}
                 fullWidth
                 disabled={!canDiscard}
                 onClick={() => {
@@ -158,9 +174,7 @@ export const BatchCard = ({ batch, now, onDiscard }: BatchCardProps) => {
                   }
                 }}
               >
-                {batch.availableQuantity > 0 && canDiscard
-                  ? t('batches.actions.discardCount', { count: batch.availableQuantity })
-                  : t('batches.actions.discardDisabled')}
+                {discardButtonLabel}
               </Button>
             </span>
           </Tooltip>

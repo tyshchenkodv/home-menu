@@ -27,13 +27,13 @@ flowchart TD
 
 | Component | Responsibility |
 | --- | --- |
-| `AppHeader` | Brand mascot, wordmark, language and theme controls; rendered inside `AppShell` only (not on `/login`) |
+| `AppHeader` | Brand mascot, wordmark, and (on mobile) the nav hamburger; rendered inside `AppShell` only (not on `/login`). Language and theme controls live in `AppNavDrawer`, not here |
 | `AppShell` | Layout route: header, role-aware responsive navigation (`AppNavDrawer` at `md`+, `AppNavBottom` below it), routed `Outlet` |
 | `FeaturePlaceholder` | Localized title plus a shared "coming soon" `StatePlaceholder`, used by every not-yet-built feature screen |
 | `RequireActiveProfile` | Wait for Auth and reject unauthenticated or inactive profiles; does not check role |
 | `RequireAdmin` | Require the `admin` role |
-| `LanguageSwitcher` | Switch `uk`/`en` (UK/EN) and persist the local preference |
-| `ColorSchemeToggle` | Toggle binary light↔dark mode and persist it |
+| `LanguageSwitcher` | Switch `uk`/`en` (UK/EN) and persist the local preference; `fullWidth` variant used in the nav drawer |
+| `ColorSchemeMenuItem` | Full-width nav-drawer row toggling binary light↔dark mode and persisting it |
 | `CatArt` | Brand cat illustration (`idle`/`empty`/`sleeping`/`confused`/`logo`) |
 | `StatusChip` | Semantic status pill (`success`/`warning`/`default`) |
 | `StatePlaceholder` | Pairs a `CatArt` beat with a message for loading/empty/error |
@@ -53,7 +53,7 @@ The application theme (`src/app/theme.ts`) is derived from the design canon in
 `docs/design/README.md`: MUI CSS-variable `light` and `dark` color schemes
 (default light, user-toggled and persisted), self-hosted Nunito / Nunito Sans
 typography, an 8px spacing base, per-surface radii, and component overrides.
-`AppHeader`, `LanguageSwitcher`, `ColorSchemeToggle`, and `CatArt` live under
+`AppHeader`, `LanguageSwitcher`, `ColorSchemeMenuItem`, and `CatArt` live under
 `src/shared/components/` (one component per folder). See the
 `design-system-foundation` specification for scope and follow-ups.
 
@@ -67,10 +67,13 @@ filtered by `selectDestinations`):
   (`/admin/orders`), Batches (`/admin/batches`), Dishes (`/admin/dishes`),
   Inventory (`/admin/inventory`, with Inventory History reachable as a
   sub-page rather than its own destination), Settings (`/settings`).
-- **User**: Menu (`/menu`), My orders (`/orders`), Settings (`/settings`).
+- **User**: Menu (`/menu`), My orders (`/orders`).
+
+Settings is administrator-only. Language and theme controls live in the nav
+drawer for every role, so users retain those without a Settings destination.
 
 Below the `md` breakpoint, `AppNavBottom` shows the mobile-primary
-destinations directly (Dashboard, Menu, Orders for admin; Menu, Orders, Settings for user). At `md` and above, `AppNavDrawer`
+destinations directly (Dashboard, Menu, Orders for admin; Menu, Orders for user). At `md` and above, `AppNavDrawer`
 lists every destination for the role. The active route is emphasized and
 exposes a current state to assistive technology.
 
@@ -174,12 +177,10 @@ Provides a status-filtered list or Kanban view with only valid actions:
 
 ### `SettingsPage`
 
-A single screen shared by both roles, reachable at `/settings`. Reuses
-`LanguageSwitcher` and `ColorSchemeToggle` for language and theme — the same
-controls and shared state as `AppHeader`, so header and Settings never
-diverge — and renders a "default meal times" section as a `comingSoon`
-placeholder with no control; persisted default meal times are a future
-feature slice.
+An administrator-only screen, reachable at `/settings` behind the
+`RequireAdmin` route guard and hidden from the user navigation set. Renders the
+default meal-times form (`MealTimesForm`). Language and theme controls are not
+shown here; they live in the nav drawer for every role.
 
 ## Prepared-food sequence
 

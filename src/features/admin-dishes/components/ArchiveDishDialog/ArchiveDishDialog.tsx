@@ -1,3 +1,5 @@
+import FolderIcon from '@mui/icons-material/Folder';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -7,11 +9,14 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
 import type { ArchiveDishDialogProps } from '../../types/archiveDishDialogProps';
+import { styles } from './styles';
 
 /** Confirmation dialog required before archiving a dish (05e·7). */
 export const ArchiveDishDialog = ({ open, dishName, onConfirm, onCancel }: ArchiveDishDialogProps) => {
   const { t } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
 
   // Retain the last non-empty dish name so the body text does not flash an
   // empty «» while the dialog plays its close transition (the caller clears
@@ -22,9 +27,12 @@ export const ArchiveDishDialog = ({ open, dishName, onConfirm, onCancel }: Archi
   }
 
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby="archive-dish-title">
+    <Dialog open={open} onClose={onCancel} aria-labelledby="archive-dish-title" slotProps={{ paper: paperProps }}>
       <DialogTitle id="archive-dish-title">{t('dishes.archiveDialog.title')}</DialogTitle>
       <DialogContent>
+        <Box sx={styles.iconBadge} data-testid="archive-dish-dialog-badge" aria-hidden="true">
+          <FolderIcon fontSize="small" />
+        </Box>
         <DialogContentText>{t('dishes.archiveDialog.body', { dish: displayName })}</DialogContentText>
       </DialogContent>
       <DialogActions>

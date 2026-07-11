@@ -16,6 +16,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     allocations: [{ batchId: 'batch-1', quantity: 2 }],
     rejectionReason: null,
     preparedBatchId: null,
+    preparedBatchNumber: null,
     createdAt: { toMillis: () => 0 },
     createdBy: 'user-1',
     updatedAt: { toMillis: () => 0 },

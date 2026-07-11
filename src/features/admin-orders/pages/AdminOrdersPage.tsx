@@ -54,6 +54,7 @@ export const AdminOrdersPage = () => {
     if (result.status === 'error') {
       return (
         <ErrorState
+          title={t('orders.admin.error.title')}
           message={t('orders.admin.error.body')}
           retryLabel={t('common.retry')}
           onRetry={() => {
@@ -65,7 +66,7 @@ export const AdminOrdersPage = () => {
 
     if (tab === 'board') {
       if (result.orders.length === 0) {
-        return <EmptyState message={t('orders.admin.empty.body')} />;
+        return <EmptyState title={t('orders.admin.empty.title')} message={t('orders.admin.empty.body')} />;
       }
 
       return (
@@ -80,7 +81,15 @@ export const AdminOrdersPage = () => {
       );
     }
 
-    return <HistoryList orders={result.orders} filter={historyFilter} onFilterChange={setHistoryFilter} />;
+    return (
+      <HistoryList
+        orders={result.orders}
+        filter={historyFilter}
+        onFilterChange={setHistoryFilter}
+        onConsume={order => void commands.consume(order.id)}
+        onCancel={order => void commands.cancel(order.id, t('orders.admin.actions.cancelReason'))}
+      />
+    );
   };
 
   return (

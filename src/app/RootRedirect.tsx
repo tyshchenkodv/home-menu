@@ -12,17 +12,17 @@ import { StatePlaceholder } from '../shared/components/StatePlaceholder/StatePla
  */
 export const RootRedirect = () => {
   const { t } = useTranslation();
-  const { status, profile } = useAuth();
+  const { status, role } = useAuth();
 
   if (status === 'loading') {
     return <StatePlaceholder variant="sleeping" message={t('common.loading')} />;
   }
 
-  if (profile?.role === 'admin') {
+  if (role === 'admin') {
     return <Navigate to="/admin" replace />;
   }
 
-  if (profile?.role === 'user') {
+  if (role === 'user') {
     return <Navigate to="/menu" replace />;
   }
 

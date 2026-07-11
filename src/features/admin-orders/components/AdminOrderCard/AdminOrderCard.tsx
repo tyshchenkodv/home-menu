@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 
+import { formatBatchNumber } from '../../../../domain/batches/formatBatchNumber';
 import type { OrderStatus } from '../../../../domain/orders/types';
 import { StatusChip, type StatusChipProps } from '../../../../shared/components/StatusChip/StatusChip';
 import type { AdminOrderCardProps } from '../../types/adminOrderCardProps';
@@ -41,6 +42,8 @@ export const AdminOrderCard = ({
   onStartCooking,
   onMarkPrepared,
   onCorrect,
+  onConsume,
+  onCancel,
 }: AdminOrderCardProps) => {
   const { t, i18n } = useTranslation();
 
@@ -50,11 +53,19 @@ export const AdminOrderCard = ({
     count: order.quantity,
     date: dateLabel,
   });
+  // The stored, sequential `batchNumber` (`docs/specifications/batch-sequence-number/SPEC.md`)
+  // is preferred, formatted as `#NNN`. Legacy batches created before that
+  // field existed have `preparedBatchNumber: null`; those fall back to the
+  // prior interim id-derived code so no historical order loses its
+  // reference.
   const batchMetaLine =
     order.preparedBatchId &&
     t('orders.admin.meta.batch', {
       requester: order.userDisplayName,
-      batchNumber: order.preparedBatchId.slice(0, 6),
+      number:
+        order.preparedBatchNumber !== null
+          ? formatBatchNumber(order.preparedBatchNumber)
+          : order.preparedBatchId.slice(-4).toUpperCase(),
     });
 
   return (
@@ -150,6 +161,31 @@ export const AdminOrderCard = ({
             >
               {t('orders.admin.actions.markPrepared')}
             </Button>
+          )}
+
+          {order.status === 'reserved' && onConsume && onCancel && (
+            <Stack direction="row" spacing={1}>
+              <Button
+                variant="contained"
+                color="success"
+                sx={styles.actionButton}
+                onClick={() => {
+                  onConsume(order);
+                }}
+              >
+                {t('orders.admin.actions.markConsumed')}
+              </Button>
+              <Button
+                variant="outlined"
+                color="inherit"
+                sx={styles.actionButton}
+                onClick={() => {
+                  onCancel(order);
+                }}
+              >
+                {t('orders.admin.actions.cancel')}
+              </Button>
+            </Stack>
           )}
 
           {onCorrect &&

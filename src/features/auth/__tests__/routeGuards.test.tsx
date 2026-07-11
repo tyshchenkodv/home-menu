@@ -6,7 +6,7 @@ import type { UserProfile } from '../../../shared/types/userProfile';
 
 vi.mock('../../../infrastructure/firebase/authAdapter', () => ({
   subscribeToAuthState: vi.fn(),
-  signInWithGoogle: vi.fn(),
+  signInWithEmailAndPassword: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -69,7 +69,12 @@ const mockedLoadUserProfile = vi.mocked(loadUserProfile);
 const ADMIN_UID = 'test-admin-uid';
 const ADMIN_EMAIL = 'admin@example.test';
 
-const TEST_USER = { uid: ADMIN_UID, email: ADMIN_EMAIL } as unknown as User;
+const buildUser = (claims: Record<string, unknown>) =>
+  ({
+    uid: ADMIN_UID,
+    email: ADMIN_EMAIL,
+    getIdTokenResult: vi.fn().mockResolvedValue({ claims }),
+  }) as unknown as User;
 
 const buildProfile = (overrides: Partial<UserProfile>): UserProfile => ({
   displayName: 'Test Admin',
@@ -100,49 +105,49 @@ describe('route guards', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Вхід до системи' })).toBeInTheDocument();
+      expect(screen.getByText('Домашнє меню')).toBeInTheDocument();
     });
     expect(screen.queryByRole('heading', { name: 'Запаси' })).not.toBeInTheDocument();
   });
 
-  it('shows access-denied for an authenticated but unprovisioned user', async () => {
-    emitAuthUser(TEST_USER);
+  it('shows the unified not-activated screen for an unprovisioned account (no role claim)', async () => {
+    emitAuthUser(buildUser({}));
     mockedLoadUserProfile.mockResolvedValue(null);
 
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Доступ заборонено' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Профіль ще не активовано' })).toBeInTheDocument();
     });
     expect(screen.queryByRole('heading', { name: 'Запаси' })).not.toBeInTheDocument();
   });
 
-  it('shows access-denied for an inactive profile', async () => {
-    emitAuthUser(TEST_USER);
-    mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: false, role: 'admin' }));
+  it('shows the unified not-activated screen for an inactive account', async () => {
+    emitAuthUser(buildUser({ role: 'user', isActive: false }));
+    mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: false, role: 'user' }));
 
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Доступ заборонено' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Профіль ще не активовано' })).toBeInTheDocument();
     });
     expect(screen.queryByRole('heading', { name: 'Запаси' })).not.toBeInTheDocument();
   });
 
-  it('shows access-denied for an active non-admin profile', async () => {
-    emitAuthUser(TEST_USER);
+  it('redirects an active non-admin account to /403 on an admin route', async () => {
+    emitAuthUser(buildUser({ role: 'user', isActive: true }));
     mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: true, role: 'user' }));
 
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Доступ заборонено' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '403' })).toBeInTheDocument();
     });
     expect(screen.queryByRole('heading', { name: 'Запаси' })).not.toBeInTheDocument();
   });
 
   it('reaches the inventory placeholder for an active admin', async () => {
-    emitAuthUser(TEST_USER);
+    emitAuthUser(buildUser({ role: 'admin', isActive: true }));
     mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: true, role: 'admin' }));
 
     render(<App />);
@@ -152,9 +157,21 @@ describe('route guards', () => {
     });
   });
 
+  it('redirects an active non-admin account to /403 on /settings', async () => {
+    window.location.hash = '#/settings';
+    emitAuthUser(buildUser({ role: 'user', isActive: true }));
+    mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: true, role: 'user' }));
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '403' })).toBeInTheDocument();
+    });
+  });
+
   it('shows the Menu screen for an active user visiting /menu', async () => {
     window.location.hash = '#/menu';
-    emitAuthUser(TEST_USER);
+    emitAuthUser(buildUser({ role: 'user', isActive: true }));
     mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: true, role: 'user' }));
 
     render(<App />);
@@ -162,24 +179,12 @@ describe('route guards', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: 'Меню на сьогодні' })).toBeInTheDocument();
     });
-    expect(screen.queryByRole('heading', { name: 'Доступ заборонено' })).not.toBeInTheDocument();
-  });
-
-  it('shows access-denied for an active user visiting /admin/inventory', async () => {
-    window.location.hash = '#/admin/inventory';
-    emitAuthUser(TEST_USER);
-    mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: true, role: 'user' }));
-
-    render(<App />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Доступ заборонено' })).toBeInTheDocument();
-    });
+    expect(screen.queryByRole('heading', { name: '403' })).not.toBeInTheDocument();
   });
 
   it('redirects an active admin from / to the Dashboard', async () => {
     window.location.hash = '';
-    emitAuthUser(TEST_USER);
+    emitAuthUser(buildUser({ role: 'admin', isActive: true }));
     mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: true, role: 'admin' }));
 
     render(<App />);
@@ -191,7 +196,7 @@ describe('route guards', () => {
 
   it('redirects an active user from / to Menu', async () => {
     window.location.hash = '';
-    emitAuthUser(TEST_USER);
+    emitAuthUser(buildUser({ role: 'user', isActive: true }));
     mockedLoadUserProfile.mockResolvedValue(buildProfile({ active: true, role: 'user' }));
 
     render(<App />);

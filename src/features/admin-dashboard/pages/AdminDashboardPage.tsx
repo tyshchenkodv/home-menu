@@ -1,21 +1,33 @@
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
+import { DashboardHeader } from '../components/DashboardHeader/DashboardHeader';
 import { EmptyState } from '../components/EmptyState/EmptyState';
 import { ErrorState } from '../components/ErrorState/ErrorState';
 import { LoadingState } from '../components/LoadingState/LoadingState';
+import { ReadyPortionsBanner } from '../components/ReadyPortionsBanner/ReadyPortionsBanner';
+import { ReviewRequestsCard } from '../components/ReviewRequestsCard/ReviewRequestsCard';
 import { SummaryTiles } from '../components/SummaryTiles/SummaryTiles';
 import { useDashboardData } from '../hooks/useDashboardData';
 
+/** Maps a summary tile key to the admin destination it should navigate to. */
+const TILE_ROUTES: Record<string, string> = {
+  pendingRequests: '/admin/orders',
+  inProgress: '/admin/orders',
+  lowStock: '/admin/inventory',
+  expiredBatches: '/admin/batches',
+};
+
 /**
- * Admin dashboard (`/admin`): displays summary tiles for pending requests,
- * in-progress cooking, low-stock items, expired batches, and ready portions.
- * Implements docs/design/screens/admin-dashboard.md.
+ * Admin dashboard (`/admin`): a page header with mascot, a 2×2 grid of summary
+ * tiles, the "Portions ready to reserve" banner, and a "Manage" section with
+ * onward links. Implements docs/design/screens/admin-dashboard.md.
  */
 export const AdminDashboardPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [retryToken, setRetryToken] = useState(0);
 
   const result = useDashboardData(retryToken);
@@ -27,7 +39,9 @@ export const AdminDashboardPage = () => {
     result.data.lowStockCount === 0 &&
     result.data.expiredBatchCount === 0;
 
-  const renderContent = () => {
+  const pendingRequests = result.status === 'ready' ? result.data.pendingRequests : 0;
+
+  const renderSummary = () => {
     if (result.status === 'loading') {
       return <LoadingState message={t('dashboard.loading')} />;
     }
@@ -49,14 +63,29 @@ export const AdminDashboardPage = () => {
       return <EmptyState title={t('dashboard.empty.title')} message={t('dashboard.empty.body')} />;
     }
 
-    return <SummaryTiles data={result.data} />;
+    return (
+      <Stack spacing={3}>
+        <SummaryTiles
+          data={result.data}
+          onTileClick={tileKey => {
+            void navigate(TILE_ROUTES[tileKey] ?? '/admin');
+          }}
+        />
+        <ReadyPortionsBanner
+          count={result.data.readyPortionsTotal}
+          onClick={() => {
+            void navigate('/menu');
+          }}
+        />
+      </Stack>
+    );
   };
 
   return (
     <Stack spacing={3}>
-      <Typography variant="h1">{t('dashboard.title')}</Typography>
-
-      {renderContent()}
+      <DashboardHeader />
+      {renderSummary()}
+      <ReviewRequestsCard pendingRequests={pendingRequests} />
     </Stack>
   );
 };

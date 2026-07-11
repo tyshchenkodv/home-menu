@@ -133,13 +133,14 @@ afterEach(() => {
 });
 
 describe('OrdersPage data states', () => {
-  it('shows a loading state before the subscription resolves', () => {
+  it('shows a loading state before the subscription resolves, with two skeleton order cards', () => {
     renderPage();
 
     expect(screen.getByText('Завантажуємо замовлення…')).toBeInTheDocument();
+    expect(screen.getAllByTestId('orders-loading-skeleton-card')).toHaveLength(2);
   });
 
-  it('shows an error state (with retry) when the subscription fails', async () => {
+  it('shows an error state (with title and retry) when the subscription fails', async () => {
     const user = userEvent.setup();
     mockedSubscribeOwnOrders.mockImplementation((_userId, _onNext, onError): Unsubscribe => {
       onError(new Error('boom'));
@@ -148,7 +149,8 @@ describe('OrdersPage data states', () => {
 
     renderPage();
 
-    expect(await screen.findByText('Не вдалося отримати ваші замовлення.')).toBeInTheDocument();
+    expect(await screen.findByText('Щось пішло не так')).toBeInTheDocument();
+    expect(screen.getByText('Не вдалося отримати ваші замовлення.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Повторити' }));
 
     await waitFor(() => {
@@ -156,15 +158,14 @@ describe('OrdersPage data states', () => {
     });
   });
 
-  it('shows an empty state with a CTA that navigates to the menu', async () => {
+  it('shows an empty state (with title) and a CTA that navigates to the menu', async () => {
     const user = userEvent.setup();
     emitOrders([]);
 
     renderPage();
 
-    expect(
-      await screen.findByText('Миска Котика порожня. Загляньте в меню й зарезервуйте страву.'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('Ще немає замовлень')).toBeInTheDocument();
+    expect(screen.getByText('Миска Котика порожня. Загляньте в меню й зарезервуйте страву.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'До меню' }));
 
     expect(await screen.findByText('Menu screen')).toBeInTheDocument();
@@ -198,7 +199,7 @@ describe('OrdersPage status matrix', () => {
 
     expect(await screen.findByText('Приготовано')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Скасувати/ })).not.toBeInTheDocument();
-    expect(screen.getByText('Без кнопок — порції резервуються автоматично з партії.')).toBeInTheDocument();
+    expect(screen.getByText('Без кнопок — порції резервуються автоматично з доступних порцій.')).toBeInTheDocument();
   });
 
   it('renders a reserved order with an enabled cancel action and a batch-expired warning', async () => {
@@ -210,7 +211,7 @@ describe('OrdersPage status matrix', () => {
     expect(await screen.findByText('Зарезервовано')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Скасувати замовлення' })).toBeEnabled();
     expect(
-      await screen.findByText("Пов'язана партія прострочена або утилізована. Зверніться до адміністратора."),
+      await screen.findByText("Пов'язана доступна порція прострочена або утилізована. Зверніться до адміністратора."),
     ).toBeInTheDocument();
   });
 
@@ -273,5 +274,17 @@ describe('OrdersPage cancellation flow', () => {
     await waitFor(() => {
       expect(mockedCancelOrder).toHaveBeenCalledWith({ orderId: 'order-1', userId: USER_UID });
     });
+  });
+
+  it('renders a warning icon badge in the cancel confirmation dialog', async () => {
+    const user = userEvent.setup();
+    emitOrders([buildOrder({ id: 'order-1', status: 'reserved' })]);
+
+    renderPage();
+
+    await user.click(await screen.findByRole('button', { name: 'Скасувати замовлення' }));
+    const dialog = await screen.findByRole('dialog');
+
+    expect(within(dialog).getByTestId('cancel-order-dialog-badge')).toBeInTheDocument();
   });
 });

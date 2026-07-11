@@ -50,6 +50,7 @@ const mockRunTransaction = vi.fn(async (_db: unknown, updateFunction: (tx: typeo
 );
 const mockTimestampNow = vi.fn(() => ({ toMillis: () => 1_700_000_000_000 }) as never);
 const mockTimestampFromMillis = vi.fn((millis: number) => ({ toMillis: () => millis }) as never);
+const mockServerTimestamp = vi.fn(() => ({ __serverTimestamp: true }) as never);
 
 vi.mock('firebase/firestore', () => ({
   getFirestore: mockGetFirestore,
@@ -60,6 +61,7 @@ vi.mock('firebase/firestore', () => ({
   orderBy: mockOrderBy,
   getDocs: mockGetDocs,
   runTransaction: mockRunTransaction,
+  serverTimestamp: mockServerTimestamp,
   Timestamp: { now: mockTimestampNow, fromMillis: mockTimestampFromMillis },
 }));
 
@@ -398,6 +400,74 @@ describe('cancelOrder', () => {
 
 const { approveRequest, rejectRequest, startCooking, completeCooking, correctOrder, normalizeConsumedOrders } =
   await import('../services/orderTransactions');
+const { consumeOrder } = await import('../services/orderTransactions');
+
+describe('consumeOrder', () => {
+  it('moves reserved to consumed on every allocated batch and sets the order to consumed, regardless of scheduledFor', async () => {
+    stubCancelRound(buildReadyOrder({ status: 'reserved', scheduledFor: FUTURE_SCHEDULED_FOR }), [
+      { id: 'batch-a', availableQuantity: 0, reservedQuantity: 2, preparedAt: millis(100) },
+      { id: 'batch-b', availableQuantity: 3, reservedQuantity: 1, preparedAt: millis(200) },
+    ]);
+
+    await consumeOrder({ orderId: ORDER_ID, adminUid: 'consume-admin-uid' });
+
+    expect(mockRunTransaction).toHaveBeenCalledTimes(1);
+    expect(mockTransaction.get).toHaveBeenCalledTimes(3);
+    expect(mockTransaction.update).toHaveBeenCalledTimes(3);
+
+    const [batchARef, batchAPatch] = mockTransaction.update.mock.calls[0] as [
+      { __args: unknown[] },
+      Record<string, unknown>,
+    ];
+    const [batchBRef, batchBPatch] = mockTransaction.update.mock.calls[1] as [
+      { __args: unknown[] },
+      Record<string, unknown>,
+    ];
+    const [orderRef, orderPatch] = mockTransaction.update.mock.calls[2] as [
+      { __args: unknown[] },
+      Record<string, unknown>,
+    ];
+
+    expect(batchARef.__args).toContain('batch-a');
+    expect(batchAPatch).toMatchObject({ reservedQuantity: 0, consumedQuantity: 2 });
+
+    expect(batchBRef.__args).toContain('batch-b');
+    expect(batchBPatch).toMatchObject({ reservedQuantity: 0, consumedQuantity: 1 });
+
+    expect(orderRef.__args).toContain(ORDER_ID);
+    expect(orderPatch).toMatchObject({ status: 'consumed', updatedBy: 'consume-admin-uid' });
+  });
+
+  it('consumes a prepared cook order with a single allocation', async () => {
+    stubCancelRound(buildCookOrder({ status: 'prepared', allocations: [{ batchId: 'batch-c', quantity: 3 }] }), [
+      { id: 'batch-c', availableQuantity: 0, reservedQuantity: 3, preparedAt: millis(100) },
+    ]);
+
+    await consumeOrder({ orderId: ORDER_ID, adminUid: 'consume-admin-uid' });
+
+    expect(mockTransaction.update).toHaveBeenCalledTimes(2);
+    const [, batchPatch] = mockTransaction.update.mock.calls[0] as [{ __args: unknown[] }, Record<string, unknown>];
+    expect(batchPatch).toMatchObject({ reservedQuantity: 0, consumedQuantity: 3 });
+  });
+
+  it('rejects an order in any other status, with no writes', async () => {
+    stubCancelRound(buildCookOrder({ status: 'pending' }), []);
+
+    await expect(consumeOrder({ orderId: ORDER_ID, adminUid: 'consume-admin-uid' })).rejects.toMatchObject({
+      code: 'order/invalid-transition',
+    });
+    expect(mockTransaction.update).not.toHaveBeenCalled();
+  });
+
+  it('fails with a domain error and no writes when the order does not exist', async () => {
+    stubCancelRound(null, []);
+
+    await expect(consumeOrder({ orderId: ORDER_ID, adminUid: 'consume-admin-uid' })).rejects.toBeInstanceOf(
+      OrderTransactionError,
+    );
+    expect(mockTransaction.update).not.toHaveBeenCalled();
+  });
+});
 
 const ADMIN_UID = 'admin-uid';
 
@@ -545,6 +615,8 @@ function stubKeyedTransactionGet(byCollection: {
   dishes?: Record<string, FakeDish | null>;
   ingredients?: Record<string, FakeIngredient | null>;
   preparedBatches?: Record<string, FakeBatch | null>;
+  /** `counters/preparedBatchNumber`; defaults to absent (next allocation is 1) when omitted. */
+  counters?: Record<string, { value: number } | null>;
 }) {
   mockTransaction.get.mockImplementation(
     (ref: { __args: unknown[] }): Promise<{ exists: () => boolean; data: () => unknown }> => {
@@ -563,6 +635,10 @@ function stubKeyedTransactionGet(byCollection: {
       if (collectionPath === 'preparedBatches') {
         const batch = byCollection.preparedBatches?.[id];
         return Promise.resolve(batch ? stubBatchSnapshot(batch) : { exists: () => false, data: () => null });
+      }
+      if (collectionPath === 'counters') {
+        const counter = byCollection.counters?.[id] ?? null;
+        return Promise.resolve({ exists: () => counter !== null, data: () => counter });
       }
 
       throw new Error(`Unexpected collection in test: ${collectionPath}`);
@@ -616,9 +692,10 @@ describe('completeCooking', () => {
 
     const batchId = await completeCooking(baseCompleteCookingInput);
 
-    // One ingredient update + one movement set (rice only) + one batch set + one order update.
+    // One ingredient update + one movement set (rice only) + one batch set +
+    // one counter set + one order update.
     expect(mockTransaction.update).toHaveBeenCalledTimes(2);
-    expect(mockTransaction.set).toHaveBeenCalledTimes(2);
+    expect(mockTransaction.set).toHaveBeenCalledTimes(3);
 
     const [ingredientRef, ingredientPatch] = mockTransaction.update.mock.calls[0] as [
       { __args: unknown[] },
@@ -640,6 +717,7 @@ describe('completeCooking', () => {
 
     const [, batch] = mockTransaction.set.mock.calls[1] as [unknown, Record<string, unknown>];
     expect(batch).toMatchObject({
+      batchNumber: 1,
       producedQuantity: 6,
       availableQuantity: 2,
       reservedQuantity: 4,
@@ -651,6 +729,13 @@ describe('completeCooking', () => {
     // Conservation: produced == available + reserved + consumed + discarded.
     expect((batch.availableQuantity as number) + (batch.reservedQuantity as number)).toBe(batch.producedQuantity);
 
+    const [counterRef, counterPatch] = mockTransaction.set.mock.calls[2] as [
+      { __args: unknown[] },
+      Record<string, unknown>,
+    ];
+    expect(counterRef.__args).toContain('counters');
+    expect(counterPatch).toMatchObject({ value: 1 });
+
     const [orderRef, orderPatch] = mockTransaction.update.mock.calls[1] as [
       { __args: unknown[] },
       Record<string, unknown>,
@@ -659,6 +744,7 @@ describe('completeCooking', () => {
     expect(orderPatch).toMatchObject({
       status: 'prepared',
       preparedBatchId: batchId,
+      preparedBatchNumber: 1,
       allocations: [{ batchId, quantity: 4 }],
     });
   });
@@ -942,9 +1028,9 @@ describe('registerBatch', () => {
       adminUid: ADMIN_UID,
     });
 
-    // One ingredient update (rice) + one movement (rice) + one batch set.
+    // One ingredient update (rice) + one movement (rice) + one batch set + one counter set.
     expect(mockTransaction.update).toHaveBeenCalledTimes(1);
-    expect(mockTransaction.set).toHaveBeenCalledTimes(2);
+    expect(mockTransaction.set).toHaveBeenCalledTimes(3);
 
     const [ingredientRef, ingredientPatch] = mockTransaction.update.mock.calls[0] as [
       { __args: unknown[] },
@@ -965,6 +1051,7 @@ describe('registerBatch', () => {
 
     const [, batch] = mockTransaction.set.mock.calls[1] as [unknown, Record<string, unknown>];
     expect(batch).toMatchObject({
+      batchNumber: 1,
       producedQuantity: 8,
       availableQuantity: 8, // Full yield available for ad-hoc cooking
       reservedQuantity: 0,
@@ -975,6 +1062,39 @@ describe('registerBatch', () => {
     });
     // Conservation: produced == available + reserved + consumed + discarded.
     expect(batch.availableQuantity).toBe(batch.producedQuantity);
+
+    const [counterRef, counterPatch] = mockTransaction.set.mock.calls[2] as [
+      { __args: unknown[] },
+      Record<string, unknown>,
+    ];
+    expect(counterRef.__args).toContain('counters');
+    expect(counterPatch).toMatchObject({ value: 1 });
+  });
+
+  it('allocates the next batch number as counter.value + 1 when the counter already has a value', async () => {
+    const REGISTER_DISH_ID = 'dish-register-2';
+    stubKeyedTransactionGet({
+      dishes: { [REGISTER_DISH_ID]: RECIPE_DISH },
+      ingredients: {
+        rice: { name: 'Rice', quantity: 500, isPresent: null },
+        salt: { name: 'Salt', quantity: null, isPresent: true },
+      },
+      counters: { preparedBatchNumber: { value: 41 } },
+    });
+
+    await registerBatch({
+      dishId: REGISTER_DISH_ID,
+      actualYield: 8,
+      preparedAtMillis: 1_700_050_000_000,
+      expiresAtMillis: 1_700_500_000_000,
+      adminUid: ADMIN_UID,
+    });
+
+    const [, batch] = mockTransaction.set.mock.calls[1] as [unknown, Record<string, unknown>];
+    expect(batch).toMatchObject({ batchNumber: 42 });
+
+    const [, counterPatch] = mockTransaction.set.mock.calls[2] as [unknown, Record<string, unknown>];
+    expect(counterPatch).toMatchObject({ value: 42 });
   });
 
   it('fails atomically with insufficient inventory', async () => {

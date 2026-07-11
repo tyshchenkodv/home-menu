@@ -174,6 +174,23 @@ describe('DishesPage data states', () => {
     renderPage();
 
     expect(screen.getByText('Ще немає страв')).toBeInTheDocument();
+    expect(
+      screen.getByText("Додайте першу страву з рецептом — і вона з'явиться в меню, щойно будуть інгредієнти."),
+    ).toBeInTheDocument();
+  });
+
+  it('opens the create-dish form from the empty-state CTA', async () => {
+    const user = userEvent.setup();
+    emitActive([]);
+    emitIngredients([]);
+
+    renderPage();
+
+    const ctaButtons = screen.getAllByRole('button', { name: '+ Додати страву' });
+    await user.click(ctaButtons[0]);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText('Нова страва')).toBeInTheDocument();
   });
 
   it('renders the populated list with a status chip per dish', () => {
@@ -184,6 +201,33 @@ describe('DishesPage data states', () => {
 
     expect(screen.getByText('Грибне різото')).toBeInTheDocument();
     expect(screen.getByText('Можна приготувати')).toBeInTheDocument();
+  });
+
+  it('pluralizes the ingredient-count meta line per Ukrainian plural rules', () => {
+    const buildRecipeItems = (count: number) =>
+      Array.from({ length: count }, (_unused, index) => ({
+        ingredientId: `ingredient-${String(index)}`,
+        ingredientName: `Інгредієнт ${String(index)}`,
+        requiredQuantity: 100,
+        requiresPresence: null,
+      }));
+
+    emitActive([
+      buildDish({ id: 'dish-1', recipeItems: buildRecipeItems(1) }),
+      buildDish({ id: 'dish-2', recipeItems: buildRecipeItems(2) }),
+      buildDish({ id: 'dish-5', recipeItems: buildRecipeItems(5) }),
+    ]);
+    emitIngredients(
+      Array.from({ length: 5 }, (_unused, index) =>
+        buildIngredient({ id: `ingredient-${String(index)}`, name: `Інгредієнт ${String(index)}` }),
+      ),
+    );
+
+    renderPage();
+
+    expect(screen.getByText('1 інгредієнт')).toBeInTheDocument();
+    expect(screen.getByText('2 інгредієнти')).toBeInTheDocument();
+    expect(screen.getByText('5 інгредієнтів')).toBeInTheDocument();
   });
 
   it('shows the not-configured chip and single configure action for a dish with an empty recipe', () => {
@@ -246,7 +290,7 @@ describe('DishesPage create dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: '+ Додати страву' }));
+    await user.click(screen.getAllByRole('button', { name: '+ Додати страву' })[0]);
     await user.type(screen.getByLabelText('Назва *'), 'Млинці');
     await user.click(screen.getByRole('button', { name: 'Сніданок' }));
     await user.click(screen.getByRole('button', { name: 'Зберегти страву' }));
@@ -267,7 +311,7 @@ describe('DishesPage create dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: '+ Додати страву' }));
+    await user.click(screen.getAllByRole('button', { name: '+ Додати страву' })[0]);
     await user.click(screen.getByRole('button', { name: 'Сніданок' }));
 
     expect(screen.getByRole('button', { name: 'Зберегти страву' })).toBeDisabled();
@@ -281,7 +325,7 @@ describe('DishesPage create dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: '+ Додати страву' }));
+    await user.click(screen.getAllByRole('button', { name: '+ Додати страву' })[0]);
     await user.type(screen.getByLabelText('Назва *'), 'Млинці');
 
     expect(screen.getByRole('button', { name: 'Зберегти страву' })).toBeDisabled();
@@ -295,7 +339,7 @@ describe('DishesPage create dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: '+ Додати страву' }));
+    await user.click(screen.getAllByRole('button', { name: '+ Додати страву' })[0]);
     await user.type(screen.getByLabelText('Назва *'), 'Млинці');
     await user.click(screen.getByRole('button', { name: 'Сніданок' }));
     await user.click(screen.getByRole('button', { name: '+ Додати інгредієнт' }));
@@ -311,7 +355,7 @@ describe('DishesPage create dialog', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: '+ Додати страву' }));
+    await user.click(screen.getAllByRole('button', { name: '+ Додати страву' })[0]);
     const saveButton = screen.getByRole('button', { name: 'Зберегти страву' });
     expect(saveButton).toBeDisabled();
 

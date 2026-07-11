@@ -45,12 +45,6 @@ export const SummaryTiles = ({ data, onTileClick }: SummaryTilesProps) => {
       count: data.expiredBatchCount,
       color: 'error' as const,
     },
-    {
-      key: 'readyPortions',
-      label: t('dashboard.tiles.readyPortions'),
-      count: data.readyPortionsTotal,
-      color: 'success' as const,
-    },
   ];
 
   return (
@@ -58,13 +52,21 @@ export const SummaryTiles = ({ data, onTileClick }: SummaryTilesProps) => {
       {tiles.map(tile => (
         <Paper
           key={tile.key}
-          variant="outlined"
+          elevation={0}
+          component={onTileClick ? 'button' : 'div'}
+          type={onTileClick ? 'button' : undefined}
           onClick={() => onTileClick?.(tile.key)}
           sx={tileSx(tile.color, Boolean(onTileClick))}
         >
           <Stack spacing={1}>
             <Typography variant="h3" sx={tileCountSx(tile.color)}>
               {tile.count}
+              {tile.key === 'expiredBatches' ? (
+                <Box component="span" aria-hidden="true">
+                  {' '}
+                  ⚠
+                </Box>
+              ) : null}
             </Typography>
             <Typography variant="caption" color="textSecondary">
               {tile.label}

@@ -314,7 +314,7 @@ export const DishFormDialog = ({
                 return (
                   <Chip
                     key={mealType}
-                    label={t(`common.meals.${mealType}`)}
+                    label={selected ? `✓ ${t(`common.meals.${mealType}`)}` : t(`common.meals.${mealType}`)}
                     color={selected ? 'primary' : 'default'}
                     onClick={() => {
                       toggleMealType(mealType);

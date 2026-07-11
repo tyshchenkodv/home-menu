@@ -1,3 +1,4 @@
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -8,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
 import { resolveErrorTranslationKey } from '../../errorMessages';
 import type { CancelOrderDialogProps } from '../../types/cancelOrderDialogProps';
 import { styles } from './styles';
@@ -20,6 +22,7 @@ import { styles } from './styles';
  */
 export const CancelOrderDialog = ({ open, dishName, quantity, onCancel, onConfirm }: CancelOrderDialogProps) => {
   const { t } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
 
@@ -39,9 +42,17 @@ export const CancelOrderDialog = ({ open, dishName, quantity, onCancel, onConfir
   };
 
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby="cancel-order-dialog-title">
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      aria-labelledby="cancel-order-dialog-title"
+      slotProps={{ paper: paperProps }}
+    >
       <DialogTitle id="cancel-order-dialog-title">{t('orders.cancelDialog.title')}</DialogTitle>
       <DialogContent>
+        <Box sx={styles.iconBadge} data-testid="cancel-order-dialog-badge" aria-hidden="true">
+          !
+        </Box>
         <DialogContentText>{t('orders.cancelDialog.body', { count: quantity, dish: dishName })}</DialogContentText>
         {errorKey && (
           <Typography color="error.main" sx={styles.errorText}>

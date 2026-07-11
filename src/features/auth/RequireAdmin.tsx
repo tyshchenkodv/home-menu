@@ -1,22 +1,25 @@
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 
-import { AccessDeniedState } from './components/AccessDeniedState';
 import { AuthLoadingState } from './components/AuthLoadingState';
+import { NotActivatedState } from './components/NotActivatedState';
 import { useAuth } from './useAuth';
+import { usePermissions } from './usePermissions';
 
 interface RequireAdminProps {
   children: ReactNode;
 }
 
 /**
- * UX-only route guard for administrator-only content. Missing profile,
- * inactive profile, or a non-admin role all render the localized
- * access-denied state instead of `children`. Firestore Security Rules
- * remain the authorization boundary.
+ * UX-only route guard for administrator-only content. Uses `usePermissions`
+ * as the single source of the role/activation route check. A not-yet-active
+ * account renders the unified `NotActivatedState`; an authenticated,
+ * non-admin account is redirected to `/403`. Firestore Security Rules remain
+ * the authorization boundary.
  */
 export const RequireAdmin = ({ children }: RequireAdminProps) => {
-  const { status, profile } = useAuth();
+  const { status } = useAuth();
+  const { isAdmin } = usePermissions();
 
   if (status === 'loading') {
     return <AuthLoadingState />;
@@ -26,10 +29,12 @@ export const RequireAdmin = ({ children }: RequireAdminProps) => {
     return <Navigate to="/login" replace />;
   }
 
-  const isActiveAdmin = profile !== null && profile.active && profile.role === 'admin';
+  if (status === 'notActivated') {
+    return <NotActivatedState />;
+  }
 
-  if (!isActiveAdmin) {
-    return <AccessDeniedState />;
+  if (!isAdmin) {
+    return <Navigate to="/403" replace />;
   }
 
   return children;

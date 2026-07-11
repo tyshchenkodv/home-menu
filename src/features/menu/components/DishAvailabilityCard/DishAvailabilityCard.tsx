@@ -1,3 +1,4 @@
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -43,7 +44,13 @@ const CHIP_LABEL_KEY: Record<AvailabilityState, string> = {
  * matching primary action — Reserve for a ready dish, Request for a
  * cookable-only dish, disabled otherwise.
  */
-export const DishAvailabilityCard = ({ view, onReserve, onRequestCooking }: DishAvailabilityCardProps) => {
+export const DishAvailabilityCard = ({
+  view,
+  onReserve,
+  onRequestCooking,
+  reservedQuantity = 0,
+  requestedQuantity = 0,
+}: DishAvailabilityCardProps) => {
   const { t } = useTranslation();
   const { dish, availability } = view;
   const state = resolveState(availability.configured, availability.readyQuantity, availability.canCook);
@@ -61,7 +68,9 @@ export const DishAvailabilityCard = ({ view, onReserve, onRequestCooking }: Dish
         <Typography variant="h4" component="h3" sx={styles.title}>
           {dish.name}
         </Typography>
-        <StatusChip label={t(CHIP_LABEL_KEY[state])} color={CHIP_COLOR[state]} />
+        <Box sx={styles.chip}>
+          <StatusChip label={t(CHIP_LABEL_KEY[state])} color={CHIP_COLOR[state]} />
+        </Box>
       </Stack>
 
       {dish.description && (
@@ -71,9 +80,23 @@ export const DishAvailabilityCard = ({ view, onReserve, onRequestCooking }: Dish
       )}
 
       <Stack direction="row" sx={styles.footer}>
-        <Typography variant="body2" color={state === 'readyNow' ? 'primary.dark' : 'text.secondary'}>
-          {counterLabel}
-        </Typography>
+        <Stack spacing={0.25}>
+          <Typography variant="body2" color={state === 'readyNow' ? 'primary.dark' : 'text.secondary'}>
+            {counterLabel}
+          </Typography>
+
+          {reservedQuantity > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              {t('menu.card.alreadyReserved', { count: reservedQuantity })}
+            </Typography>
+          )}
+
+          {requestedQuantity > 0 && (
+            <Typography variant="body2" color="text.secondary">
+              {t('menu.card.alreadyRequested', { count: requestedQuantity })}
+            </Typography>
+          )}
+        </Stack>
 
         {state === 'readyNow' && (
           <Button

@@ -15,7 +15,7 @@ const FILTER_OPTIONS: HistoryStatusFilter[] = ['all', 'reserved', 'consumed', 'r
  * `consumed`, `rejected`, `cancelled`), rendered read-only — every
  * `AdminOrderCard` action prop is omitted here.
  */
-export const HistoryList = ({ orders, filter, onFilterChange }: HistoryListProps) => {
+export const HistoryList = ({ orders, filter, onFilterChange, onConsume, onCancel }: HistoryListProps) => {
   const { t } = useTranslation();
 
   const filteredOrders = filter === 'all' ? orders : orders.filter(order => order.status === filter);
@@ -40,7 +40,12 @@ export const HistoryList = ({ orders, filter, onFilterChange }: HistoryListProps
 
       <Stack spacing={1.5}>
         {filteredOrders.map(order => (
-          <AdminOrderCard key={order.id} order={order} />
+          <AdminOrderCard
+            key={order.id}
+            order={order}
+            onConsume={order.status === 'reserved' ? onConsume : undefined}
+            onCancel={order.status === 'reserved' ? onCancel : undefined}
+          />
         ))}
       </Stack>
     </Stack>

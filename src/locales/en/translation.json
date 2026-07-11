@@ -4,31 +4,32 @@
   },
   "nav": {
     "login": "Login",
-    "admin": "Admin",
     "inventory": "Inventory",
     "history": "History",
     "dashboard": "Dashboard",
     "menu": "Menu",
     "orders": "Orders",
     "myOrders": "My orders",
-    "batches": "Batches",
+    "batches": "Available portions",
     "dishes": "Dishes",
-    "requests": "Requests",
     "settings": "Settings",
-    "more": "More",
-    "landmark": "Primary navigation"
+    "landmark": "Primary navigation",
+    "cookingRequests": "Cooking requests",
+    "openMenu": "Open menu"
   },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
     "empty": "No data",
-    "toggleDarkMode": "Toggle dark mode",
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
     "language": "Language",
     "languageUk": "UK",
     "languageEn": "EN",
     "retry": "Retry",
     "all": "All",
     "cancel": "Cancel",
+    "back": "Back",
     "keep": "Keep",
     "save": "Save",
     "saving": "Saving…",
@@ -49,17 +50,38 @@
   },
   "auth": {
     "login": {
-      "title": "Sign in",
       "tagline": "Your household's food inventory & menu",
-      "googleButton": "Sign in with Google",
       "signingIn": "Signing in...",
-      "error": "Failed to sign in. Please try again."
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Sign in",
+      "noAccessHint": "No access? Contact the administrator",
+      "errors": {
+        "invalidCredentials": "Incorrect email or password.",
+        "tooManyRequests": "Too many attempts. Try again later.",
+        "network": "Network error. Check your connection.",
+        "generic": "Failed to sign in. Please try again."
+      }
     },
-    "accessDenied": {
-      "title": "Access denied",
-      "description": "Your account does not have active administrator access to this page."
+    "notActivated": {
+      "title": "Profile not activated yet",
+      "body": "You're signed in as {{email}}, but an administrator hasn't activated your profile in the household yet.",
+      "contactAdmin": "Contact your household administrator 🏠"
     },
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "signedIn": "Signed in",
+    "loadError": {
+      "title": "Couldn't load your profile",
+      "body": "Check your connection and try again.",
+      "retry": "Retry"
+    }
+  },
+  "error": {
+    "forbiddenTitle": "403",
+    "notFoundTitle": "404",
+    "backHome": "Go home"
   },
   "screens": {
     "comingSoon": "This screen is still in development. Check back soon.",
@@ -67,7 +89,7 @@
       "menu": "Menu",
       "orders": "Orders",
       "adminOrders": "Orders",
-      "batches": "Batches",
+      "batches": "Available portions",
       "dishes": "Dishes",
       "cookingRequests": "Cooking requests",
       "dashboard": "Dashboard"
@@ -94,12 +116,13 @@
     }
   },
   "inventory": {
-    "loading": "Loading ingredients…",
+    "loading": "Counting the supplies…",
     "error": "Failed to load ingredients",
+    "errorBody": "Check the connection.",
     "quantityWithUnit": "{{amount}} {{unit}}",
     "empty": {
       "activeTitle": "Inventory is empty",
-      "active": "No active ingredients yet",
+      "active": "Add the first ingredient so recipes can compute availability.",
       "archived": "No archived ingredients"
     },
     "tabs": {
@@ -138,6 +161,9 @@
     "lowStock": {
       "label": "Low stock"
     },
+    "card": {
+      "zeroAmount": "0 {{unit}} — ran out"
+    },
     "form": {
       "createTitle": "New ingredient",
       "editTitle": "Edit ingredient",
@@ -167,11 +193,13 @@
       "title": "Restock \"{{name}}\"",
       "submit": "Restock"
     },
-    "correctionDialog": {
-      "title": "Correct \"{{name}}\"",
-      "amountLabel": "Actual amount",
-      "reasonLabel": "Reason for correction",
-      "submit": "Save correction"
+    "correction": {
+      "title": "Stock correction",
+      "context": "{{name}} · current {{current}}",
+      "newQuantityLabel": "New quantity",
+      "reasonLabel": "Reason *",
+      "reasonPlaceholder": "Describe why the stock changes…",
+      "helper": "Logged to the append-only movement history."
     },
     "errors": {
       "invalidName": "Enter an ingredient name",
@@ -239,7 +267,7 @@
     "required": "Required field",
     "incompleteRecipeRow": "Complete the row or remove it",
     "mealTypeRequired": "Select at least one meal type",
-    "reservationMax": "Maximum {{max}} — that's how many free portions the batch has",
+    "reservationMax": "Maximum {{max}} — that's how many portions are currently available",
     "quantityAtLeastOne": "Quantity must be at least 1",
     "correctionReasonRequired": "Provide a reason — the field is required",
     "dateNotInPast": "Date cannot be in the past",
@@ -263,24 +291,41 @@
       "readyCount": "{{count}} ready",
       "zeroReady": "0 ready",
       "noCount": "—",
-      "recipeNotConfigured": "Recipe not configured yet."
+      "recipeNotConfigured": "Recipe not configured yet.",
+      "alreadyReserved": "Already reserved: {{count}}",
+      "alreadyRequested": "Cooking requested: {{count}}"
     },
     "actions": {
       "reserve": "Reserve",
       "request": "Request"
     },
     "past": {
-      "label": "Passed"
+      "label": "Passed",
+      "explanation": "Reservations for this meal are closed. Try {{nextMeal}}.",
+      "nextMealCta": "To {{nextMeal}} →"
     },
     "reservation": {
       "title": "Reserve portions",
-      "subtitle": "{{dish}} · {{count}} portions ready",
+      "subtitle": "{{dish}} · {{date}} · {{portionsWord}}",
       "portionsLabel": "Portions",
       "confirm": "Confirm reservation",
       "submitting": "Reserving…",
       "error": {
-        "body": "Someone was faster — {{available}} portion left of the {{requested}} requested."
-      }
+        "body": "Someone was faster — {{available}} portion left of the {{requested}} requested.",
+        "title": "Couldn't reserve",
+        "refresh": "Refresh availability"
+      },
+      "helper": "{{count}} of {{total}}",
+      "portionsWord_one": "{{count}} ready",
+      "portionsWord_few": "{{count}} ready",
+      "portionsWord_many": "{{count}} ready",
+      "portionsWord_other": "{{count}} ready"
+    },
+    "expiredBanner": {
+      "title": "Portion expired",
+      "chip": "⚠ Expired",
+      "body": "The portion from {{date}} has expired — {{count}} portions await discarding in Available portions.",
+      "cta": "To available portions →"
     }
   },
   "orders": {
@@ -301,8 +346,14 @@
       "body": "Couldn't fetch your orders."
     },
     "meta": {
-      "request": "Cooking request · {{count}} portion · {{date}}, {{meal}}",
-      "reservation": "Reserved · {{count}} portions · {{date}}, {{meal}}",
+      "request_one": "Cooking request · {{count}} portion · {{date}}, {{meal}}",
+      "request_few": "Cooking request · {{count}} portions · {{date}}, {{meal}}",
+      "request_many": "Cooking request · {{count}} portions · {{date}}, {{meal}}",
+      "request_other": "Cooking request · {{count}} portions · {{date}}, {{meal}}",
+      "reservation_one": "Reserved · {{count}} portion · {{date}}, {{meal}}",
+      "reservation_few": "Reserved · {{count}} portions · {{date}}, {{meal}}",
+      "reservation_many": "Reserved · {{count}} portions · {{date}}, {{meal}}",
+      "reservation_other": "Reserved · {{count}} portions · {{date}}, {{meal}}",
       "consumedAt": "consumed {{time}}",
       "cancelledByUser": "Cancelled by user · {{date}}"
     },
@@ -312,11 +363,14 @@
       "cancelUnavailable": "Cancel — not available",
       "cancelUnavailableHelp": "Cancellation is disabled once cooking has started."
     },
-    "preparedHelp": "No buttons — portions are reserved automatically from the batch.",
-    "batchWarning": "The linked batch has expired or was discarded. Contact an administrator.",
+    "preparedHelp": "No buttons — portions are reserved automatically from the available portions.",
+    "batchWarning": "The linked available portion has expired or was discarded. Contact an administrator.",
     "cancelDialog": {
       "title": "Cancel this order?",
-      "body": "Your {{count}} reserved portions of {{dish}} will be released back to the household.",
+      "body_one": "Your {{count}} reserved portion of {{dish}} will be released back to the household.",
+      "body_few": "Your {{count}} reserved portions of {{dish}} will be released back to the household.",
+      "body_many": "Your {{count}} reserved portions of {{dish}} will be released back to the household.",
+      "body_other": "Your {{count}} reserved portions of {{dish}} will be released back to the household.",
       "keep": "Keep",
       "confirm": "Cancel order"
     },
@@ -338,8 +392,11 @@
       },
       "columnHeading": "{{status}} · {{count}}",
       "meta": {
-        "requester": "{{requester}} · {{count}} portion · {{date}}",
-        "batch": "{{requester}} · batch #{{batchNumber}}"
+        "requester_one": "{{requester}} · {{count}} portion · {{date}}",
+        "requester_few": "{{requester}} · {{count}} portions · {{date}}",
+        "requester_many": "{{requester}} · {{count}} portions · {{date}}",
+        "requester_other": "{{requester}} · {{count}} portions · {{date}}",
+        "batch": "{{requester}} · portion #{{number}}"
       },
       "actions": {
         "approve": "Approve",
@@ -347,33 +404,41 @@
         "startCooking": "Start cooking",
         "markPrepared": "Mark as prepared",
         "markConsumed": "Mark as consumed",
+        "cancel": "Cancel",
+        "cancelReason": "Cancelled by administrator",
         "correct": "Correct"
       },
       "rejection": {
         "title": "Reject the request?",
-        "context": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "context_one": "{{dish}} · {{requester}} · {{count}} portion · {{date}}",
+        "context_few": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "context_many": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "context_other": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
         "reasonLabel": "Reason (optional)",
         "helper": "The requester will see the reason."
       },
       "correction": {
         "title": "Correct the order?",
-        "context": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "context_one": "{{dish}} · {{requester}} · {{count}} portion · {{date}}",
+        "context_few": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "context_many": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
+        "context_other": "{{dish}} · {{requester}} · {{count}} portions · {{date}}",
         "reasonLabel": "Reason *",
         "reasonPlaceholder": "Describe why this order is being corrected…",
         "helper": "The correction is appended to the immutable order history."
       },
       "completeCooking": {
-        "title": "Batch prepared",
+        "title": "Portion prepared",
         "context": "{{dish}} · request by {{requester}}",
         "plannedLabel": "Planned, portions",
         "actualLabel": "Actual *",
         "preparedAtLabel": "Prepared at *",
         "bestBeforeLabel": "Best before",
-        "submit": "Register batch",
+        "submit": "Register portion",
         "submitting": "Saving…",
         "yieldBelowRequested": "Actual yield must be at least the requested quantity ({{requested}})"
       },
-      "batchWarning": "The linked batch has expired or was discarded. Cancel the order or move it to another batch."
+      "batchWarning": "The linked available portion has expired or was discarded. Cancel the order or move it to another portion."
     }
   },
   "requests": {
@@ -404,7 +469,10 @@
       "body": "Try again."
     },
     "card": {
-      "ingredientCount": "{{count}} ingredients",
+      "ingredientCount_one": "{{count}} ingredient",
+      "ingredientCount_few": "{{count}} ingredients",
+      "ingredientCount_many": "{{count}} ingredients",
+      "ingredientCount_other": "{{count}} ingredients",
       "missing": "Missing: {{ingredients}}",
       "emptyRecipe": "Recipe is empty — the dish does not appear in the menu"
     },
@@ -439,11 +507,11 @@
     }
   },
   "batches": {
-    "title": "Prepared batches",
+    "title": "Available portions",
     "loading": "Loading…",
     "empty": {
-      "title": "No prepared batches",
-      "body": "A batch will appear as soon as you mark a request as prepared."
+      "title": "No available portions",
+      "body": "A portion will appear as soon as you mark a request as prepared."
     },
     "error": {
       "title": "Couldn't load",
@@ -453,7 +521,10 @@
       "cooked": "Cooked {{date}} · {{time}}",
       "bestBefore": "{{date}} · {{time}} · best before {{bestBefore}}",
       "expired": "Cooked {{date}} · expired {{relativeDate}}",
-      "discarded": "Discarded {{date}} · {{count}} portions"
+      "discarded_one": "Discarded {{date}} · {{count}} portion",
+      "discarded_few": "Discarded {{date}} · {{count}} portions",
+      "discarded_many": "Discarded {{date}} · {{count}} portions",
+      "discarded_other": "Discarded {{date}} · {{count}} portions"
     },
     "counters": {
       "available": "AVAIL",
@@ -463,27 +534,36 @@
     },
     "actions": {
       "discard": "Discard…",
-      "discardCount": "Discard {{count}} portions",
+      "discardCount_one": "Discard {{count}} portion",
+      "discardCount_few": "Discard {{count}} portions",
+      "discardCount_many": "Discard {{count}} portions",
+      "discardCount_other": "Discard {{count}} portions",
       "discardDisabled": "Discard — all portions are reserved"
     },
     "expired": {
-      "notice": "Reserving is blocked. {{count}} portions await disposal."
+      "notice_one": "Reserving is blocked. {{count}} portion awaits disposal.",
+      "notice_few": "Reserving is blocked. {{count}} portions await disposal.",
+      "notice_many": "Reserving is blocked. {{count}} portions await disposal.",
+      "notice_other": "Reserving is blocked. {{count}} portions await disposal."
     },
     "discarded": {
       "helper": "No buttons · stays in the movement log."
     },
     "registration": {
-      "title": "Batch prepared",
+      "title": "Portion prepared",
       "context": "{{dish}} · request by {{requester}}",
       "plannedLabel": "Planned, portions",
       "actualLabel": "Actual *",
       "bestBeforeLabel": "Best before *",
       "actualBelowPlan": "Actual yield is lower than planned — inventory is deducted by the actual amount.",
-      "submit": "Register batch"
+      "submit": "Register portion"
     },
     "discardDialog": {
-      "title": "Discard the batch?",
-      "body": "{{dish}} · {{count}} available portions will be written off permanently. This cannot be undone.",
+      "title": "Discard the portion?",
+      "body_one": "{{dish}} · {{count}} available portion will be written off permanently. This cannot be undone.",
+      "body_few": "{{dish}} · {{count}} available portions will be written off permanently. This cannot be undone.",
+      "body_many": "{{dish}} · {{count}} available portions will be written off permanently. This cannot be undone.",
+      "body_other": "{{dish}} · {{count}} available portions will be written off permanently. This cannot be undone.",
       "confirm": "Discard"
     }
   },
@@ -493,7 +573,7 @@
     "loading": "Counting portions…",
     "empty": {
       "title": "All calm",
-      "body": "No requests, expired batches, or shortages. Kotyk is content."
+      "body": "No requests, expired portions, or shortages. Kotyk is content."
     },
     "error": {
       "title": "Data unavailable",
@@ -503,8 +583,9 @@
       "pendingRequests": "Pending requests",
       "inProgress": "In progress",
       "lowStock": "Low-stock items",
-      "expiredBatch": "Expired batch",
-      "readyPortions": "Portions ready to reserve"
-    }
+      "expiredBatch": "Expired portion"
+    },
+    "readyPortions": "Portions ready to reserve",
+    "reviewRequests": "Review cooking requests"
   }
 }

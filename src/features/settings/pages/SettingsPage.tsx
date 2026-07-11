@@ -5,20 +5,17 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../auth/useAuth';
 import { MealTimesForm } from '../components/MealTimesForm/MealTimesForm';
 import { useGeneralSettings } from '../hooks/useGeneralSettings';
-import { LanguageSwitcher } from '../../../shared/components/LanguageSwitcher/LanguageSwitcher';
 import { styles } from './SettingsPage.styles';
 
 /**
- * User settings screen. Language section reuses the shared header control
- * so state stays single-sourced. The theme toggle lives only in AppHeader.
- * Meal-times form is admin-only; regular users see language only.
+ * Admin-only settings screen, reached exclusively through the `RequireAdmin`
+ * route guard. Regular users never see this destination; language and theme
+ * controls live in the app navigation drawer for everyone.
  */
 export const SettingsPage = () => {
   const { t } = useTranslation();
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { settings, status, error, isSaving, hasNeverBeenSaved, save } = useGeneralSettings();
-
-  const isAdmin = profile?.role === 'admin';
 
   const handleSave = async (newTimes: typeof settings.defaultMealTimes) => {
     if (!user?.uid) {
@@ -31,27 +28,18 @@ export const SettingsPage = () => {
     <Stack spacing={3} sx={styles.page}>
       <Typography variant="h1">{t('settings.title')}</Typography>
 
-      {isAdmin && (
-        <Stack spacing={1}>
-          <Typography variant="h2" sx={styles.sectionTitle}>
-            {t('settings.mealTimes.title')}
-          </Typography>
-          <MealTimesForm
-            initialTimes={settings.defaultMealTimes}
-            hasNeverBeenSaved={hasNeverBeenSaved}
-            isSaving={isSaving}
-            error={error}
-            isLoading={status === 'loading'}
-            onSave={handleSave}
-          />
-        </Stack>
-      )}
-
       <Stack spacing={1}>
         <Typography variant="h2" sx={styles.sectionTitle}>
-          {t('settings.language.title')}
+          {t('settings.mealTimes.title')}
         </Typography>
-        <LanguageSwitcher />
+        <MealTimesForm
+          initialTimes={settings.defaultMealTimes}
+          hasNeverBeenSaved={hasNeverBeenSaved}
+          isSaving={isSaving}
+          error={error}
+          isLoading={status === 'loading'}
+          onSave={handleSave}
+        />
       </Stack>
     </Stack>
   );

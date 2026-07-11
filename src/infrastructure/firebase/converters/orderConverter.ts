@@ -24,6 +24,7 @@ export const orderConverter: FirestoreDataConverter<OrderDoc> = {
       allocations: (data.allocations ?? []) as OrderAllocation[],
       rejectionReason: (data.rejectionReason ?? null) as string | null,
       preparedBatchId: (data.preparedBatchId ?? null) as string | null,
+      preparedBatchNumber: (data.preparedBatchNumber ?? null) as number | null,
       createdAt: data.createdAt as Timestamp,
       createdBy: data.createdBy as string,
       updatedAt: data.updatedAt as Timestamp,

@@ -140,11 +140,11 @@ describe('InventoryPage states', () => {
   it('shows a loading state before the active subscription emits', () => {
     const { container } = renderPage();
 
-    expect(screen.getByText('Завантаження інгредієнтів…')).toBeInTheDocument();
+    expect(screen.getByText('Перелічуємо запаси…')).toBeInTheDocument();
     expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
-  it('shows an error state when the active subscription fails', () => {
+  it('shows an error state with body copy and a retry action when the active subscription fails', () => {
     mockedSubscribeActive.mockImplementation((_onNext, onError): Unsubscribe => {
       onError(new Error('boom'));
       return vi.fn();
@@ -153,16 +153,51 @@ describe('InventoryPage states', () => {
     const { container } = renderPage();
 
     expect(screen.getByText('Не вдалося завантажити інгредієнти')).toBeInTheDocument();
+    expect(screen.getByText("Перевірте з'єднання.")).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Повторити' })).toBeInTheDocument();
     expect(container.querySelector('svg')).toBeInTheDocument();
   });
 
-  it('shows an empty state when there are no active ingredients', () => {
+  it('re-subscribes when the error state retry action is clicked', async () => {
+    const user = userEvent.setup();
+    let attempt = 0;
+    mockedSubscribeActive.mockImplementation((onNext, onError): Unsubscribe => {
+      attempt += 1;
+      if (attempt === 1) {
+        onError(new Error('boom'));
+      } else {
+        onNext([]);
+      }
+      return vi.fn();
+    });
+
+    renderPage();
+    await user.click(await screen.findByRole('button', { name: 'Повторити' }));
+
+    await waitFor(() => {
+      expect(mockedSubscribeActive).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('shows an empty state with the canonical body copy and an add-ingredient CTA', () => {
     emitActive([]);
 
     const { container } = renderPage();
 
-    expect(screen.getByText('Активних інгредієнтів ще немає')).toBeInTheDocument();
+    expect(screen.getByText('Інвентар порожній')).toBeInTheDocument();
+    expect(screen.getByText('Додайте перший інгредієнт, щоб рецепти могли рахувати доступність.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '+ Додати інгредієнт' })).toBeInTheDocument();
     expect(container.querySelector('svg')).toBeInTheDocument();
+  });
+
+  it('opens the create dialog from the empty-state CTA', async () => {
+    const user = userEvent.setup();
+    emitActive([]);
+
+    renderPage();
+    await user.click(screen.getByRole('button', { name: '+ Додати інгредієнт' }));
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
   });
 
   it('renders the ready list of active ingredients', () => {
@@ -459,7 +494,26 @@ describe('InventoryPage restock dialog', () => {
 });
 
 describe('InventoryPage correction dialog', () => {
-  it('blocks submit and shows a localized error when the reason is empty', async () => {
+  it('shows the canonical title, current-quantity subtitle, placeholder, and helper text', async () => {
+    const user = userEvent.setup();
+    emitActive([
+      buildIngredient({ id: 'q-1', name: 'Борошно', trackingMode: 'quantity', baseUnit: 'gram', quantity: 120 }),
+    ]);
+
+    renderPage();
+
+    const cardMenu = await openCardMenu(user, 'Борошно');
+    await user.click(within(cardMenu).getByRole('menuitem', { name: 'Скоригувати «Борошно»' }));
+    const dialog = await screen.findByRole('dialog');
+
+    expect(within(dialog).getByText('Коригування залишку')).toBeInTheDocument();
+    expect(within(dialog).getByText('Борошно · зараз 120 г')).toBeInTheDocument();
+    expect(within(dialog).getByLabelText('Нова кількість')).toBeInTheDocument();
+    expect(within(dialog).getByPlaceholderText('Опишіть, чому змінюється залишок…')).toBeInTheDocument();
+    expect(within(dialog).getByText('Запис додається до незмінного журналу руху.')).toBeInTheDocument();
+  });
+
+  it('keeps Save disabled until a reason is entered, and re-disables it when the reason is cleared', async () => {
     const user = userEvent.setup();
     emitActive([buildIngredient({ id: 'q-1', name: 'Борошно', trackingMode: 'quantity', baseUnit: 'gram' })]);
 
@@ -468,10 +522,16 @@ describe('InventoryPage correction dialog', () => {
     const cardMenu = await openCardMenu(user, 'Борошно');
     await user.click(within(cardMenu).getByRole('menuitem', { name: 'Скоригувати «Борошно»' }));
     const dialog = await screen.findByRole('dialog');
-    await user.type(within(dialog).getByLabelText('Фактична кількість'), '1.5');
-    await user.click(within(dialog).getByRole('button', { name: 'Зберегти коригування' }));
+    const saveButton = within(dialog).getByRole('button', { name: 'Зберегти' });
 
-    expect(await within(dialog).findByText('Вкажіть причину коригування')).toBeInTheDocument();
+    expect(saveButton).toBeDisabled();
+
+    const reasonField = within(dialog).getByLabelText('Причина *');
+    await user.type(reasonField, 'Звірка залишків');
+    expect(saveButton).toBeEnabled();
+
+    await user.clear(reasonField);
+    expect(saveButton).toBeDisabled();
     expect(mockedCorrectIngredientQuantity).not.toHaveBeenCalled();
   });
 
@@ -484,10 +544,10 @@ describe('InventoryPage correction dialog', () => {
     const cardMenu = await openCardMenu(user, 'Борошно');
     await user.click(within(cardMenu).getByRole('menuitem', { name: 'Скоригувати «Борошно»' }));
     const dialog = await screen.findByRole('dialog');
-    await user.type(within(dialog).getByLabelText('Фактична кількість'), '1.5');
+    await user.type(within(dialog).getByLabelText('Нова кількість'), '1.5');
     await user.selectOptions(within(dialog).getByLabelText('Одиниця'), 'kg');
-    await user.type(within(dialog).getByLabelText('Причина коригування'), 'Звірка залишків');
-    await user.click(within(dialog).getByRole('button', { name: 'Зберегти коригування' }));
+    await user.type(within(dialog).getByLabelText('Причина *'), 'Звірка залишків');
+    await user.click(within(dialog).getByRole('button', { name: 'Зберегти' }));
 
     await waitFor(() => {
       expect(mockedCorrectIngredientQuantity).toHaveBeenCalledTimes(1);
@@ -553,7 +613,7 @@ describe('InventoryPage low-stock indicator', () => {
 
     renderPage();
 
-    expect(screen.getByText('Низький запас')).toBeInTheDocument();
+    expect(screen.getByText('Мало')).toBeInTheDocument();
   });
 
   it('does not show the low-stock label when quantity is above the threshold', () => {
@@ -562,6 +622,6 @@ describe('InventoryPage low-stock indicator', () => {
 
     renderPage();
 
-    expect(screen.queryByText('Низький запас')).not.toBeInTheDocument();
+    expect(screen.queryByText('Мало')).not.toBeInTheDocument();
   });
 });

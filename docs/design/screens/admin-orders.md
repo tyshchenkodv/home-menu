@@ -107,6 +107,19 @@ slot tone) + grey count.
   consumption" in `docs/04-business-logic.md`), surfaced through the
   History tab.
 - **Mark consumed** ("Позначити спожитим"): `reserved` → `consumed`.
+
+> **Implementation note (`mvp-audit-remediation`, T5.8).** Shipped: an admin
+> can Mark-consumed and Cancel a `reserved` order directly from its card
+> (both buttons render on the `reserved` row), via a new
+> `computeManualConsumption` domain function and `consumeOrder` transaction.
+> These actions also appear in the History tab for a `reserved` order (not
+> only in the active Kanban), matching the acceptance criterion that an admin
+> can act on a reserved order wherever it's shown. Prepared/reserved admin
+> meta shows a stable, human-readable **batch code** (a short id-derived
+> string) rather than a literal "партія #N" sequential number — the real
+> sequential batch number is carved out to a forthcoming
+> `batch-sequence-number` specification (a Firestore schema/counter change),
+> per the approved PLAN's scope decision.
 - **Reject** ("Відхилити") — **rejection dialog, reason optional** (dialog 3):
   - Title: uk "Відхилити запит?" (en "Reject the request?").
   - Context line: e.g. uk "Млинці · Ігор · 3 порції · Пт 11".

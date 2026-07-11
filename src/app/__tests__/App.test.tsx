@@ -6,7 +6,7 @@ vi.mock('../../infrastructure/firebase/authAdapter', () => ({
     onChange(null);
     return () => undefined;
   }),
-  signInWithGoogle: vi.fn(),
+  signInWithEmailAndPassword: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -21,7 +21,17 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Вхід до системи' })).toBeInTheDocument();
+      expect(screen.getByText('Домашнє меню')).toBeInTheDocument();
+    });
+  });
+
+  it('renders the 404 page for an unknown path', async () => {
+    window.location.hash = '#/some/unknown/path';
+
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '404' })).toBeInTheDocument();
     });
   });
 });

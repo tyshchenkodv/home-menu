@@ -218,7 +218,21 @@ the `md` breakpoint and above, `AppNavBottom` below it), and the routed
 The index route (`/`) renders `RootRedirect` (`src/app/RootRedirect.tsx`),
 which reads `useAuth()` and navigates an `admin` profile to `/admin` and a
 `user` profile to `/menu`, showing a loading placeholder while auth status is
-still resolving.
+still resolving. `LoginPage` uses the same admin→`/admin`, user→`/menu`
+redirect target for an already-active profile, so the two entry points land
+consistently.
+
+`AuthStatus` (`src/features/auth/authContextValue.ts`) is
+`'loading' | 'authenticated' | 'unauthenticated' | 'error'`. `AuthContext`
+sets `'error'` (not `'authenticated'`) when the `users/{uid}` profile read
+itself rejects (offline, `permission-denied`, aborted) and logs the failure
+via `import.meta.env.DEV`-gated `console.error` — development only, no PII
+beyond the Firebase error code/message. A missing document still resolves to
+`'authenticated'` with `profile: null`, which the route guards render as
+access-denied. `RequireActiveProfile` renders a distinct, retryable error
+state (`StatePlaceholder` `confused` + retry) for `status === 'error'`,
+keeping "profile not provisioned" and "profile failed to load" visually and
+semantically separate.
 
 ## Atomic operations
 
@@ -233,6 +247,15 @@ Use `runTransaction` whenever one action changes multiple documents:
 
 A transaction re-reads current documents, validates invariants, and then writes.
 Disabling a submit button improves UX but is not the concurrency guarantee.
+
+All client writes that carry an audit timestamp (`createdAt`, `updatedAt`) use
+Firestore's `serverTimestamp()` rather than a client-generated `Date`/
+`Timestamp.now()`, across every service in
+`src/infrastructure/firebase/services/*`. This is required, not just
+convention: Security Rules validate those fields against `request.time` (see
+`docs/06-auth-and-security.md`), so a client-forged value is rejected.
+Fields that represent a chosen instant rather than "now" (`scheduledFor`,
+`preparedAt`, `expiresAt`) are unaffected and stay client-supplied.
 
 ## Time-based state without a scheduler
 

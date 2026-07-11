@@ -1,7 +1,9 @@
+import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Typography from '@mui/material/Typography';
 import { useTranslation } from 'react-i18next';
 
 import type { MealType } from '../../../../domain/orders/types';
@@ -25,6 +27,9 @@ export const DateMealSelector = ({
   pastMeals,
 }: DateMealSelectorProps) => {
   const { t, i18n } = useTranslation();
+
+  const isSelectedMealPast = pastMeals.includes(mealType);
+  const nextMeal = MEAL_TYPES.find(candidate => !pastMeals.includes(candidate));
 
   return (
     <Stack spacing={1.5}>
@@ -62,6 +67,23 @@ export const DateMealSelector = ({
           />
         ))}
       </Tabs>
+
+      {isSelectedMealPast && nextMeal && (
+        <Stack spacing={1} sx={{ alignItems: 'flex-start' }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('menu.past.explanation', { nextMeal: t(`common.meals.${nextMeal}`) })}
+          </Typography>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => {
+              onSelectMeal(nextMeal);
+            }}
+          >
+            {t('menu.past.nextMealCta', { nextMeal: t(`common.meals.${nextMeal}`) })}
+          </Button>
+        </Stack>
+      )}
     </Stack>
   );
 };

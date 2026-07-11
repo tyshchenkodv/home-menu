@@ -1,4 +1,5 @@
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -11,9 +12,17 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
+import { StatePlaceholder } from '../../../../shared/components/StatePlaceholder/StatePlaceholder';
 import { resolveErrorTranslationKey } from '../../errorMessages';
 import type { ReserveDialogProps } from '../../types/reserveDialogProps';
 import { styles } from './styles';
+
+interface ReservationFailure {
+  translationKey: string;
+  available: number;
+  requested: number;
+}
 
 /**
  * Reservation confirmation dialog (`docs/design/screens/menu-browse.md`
@@ -21,11 +30,20 @@ import { styles } from './styles';
  * (SPEC rule 3, "additionally bounded by total available prepared portions
  * for ready orders"), confirming via `reserveReadyOrder`.
  */
-export const ReserveDialog = ({ open, dishName, availableQuantity, onCancel, onConfirm }: ReserveDialogProps) => {
+export const ReserveDialog = ({
+  open,
+  dishName,
+  availableQuantity,
+  mealType,
+  dateLabel,
+  onCancel,
+  onConfirm,
+}: ReserveDialogProps) => {
   const { t } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [failure, setFailure] = useState<ReservationFailure | null>(null);
 
   const atMax = quantity >= availableQuantity;
   const atMin = quantity <= 1;
@@ -34,24 +52,57 @@ export const ReserveDialog = ({ open, dishName, availableQuantity, onCancel, onC
     if (isSubmitting) {
       return;
     }
-    setErrorKey(null);
+    setFailure(null);
     setIsSubmitting(true);
     try {
       await onConfirm(quantity);
     } catch (error) {
-      setErrorKey(resolveErrorTranslationKey(error));
+      // Best-known local values at the moment of the race (the actual live
+      // remaining count is not returned by the transaction error; see
+      // menu-browse.md "reservation flow states · error").
+      setFailure({
+        translationKey: resolveErrorTranslationKey(error),
+        available: availableQuantity,
+        requested: quantity,
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (failure) {
+    return (
+      <Dialog open={open} onClose={onCancel} aria-labelledby="reserve-dialog-title" slotProps={{ paper: paperProps }}>
+        <DialogTitle id="reserve-dialog-title">{t('menu.reservation.title')}</DialogTitle>
+        <DialogContent>
+          <StatePlaceholder
+            variant="confused"
+            title={t('menu.reservation.error.title')}
+            message={t(failure.translationKey, { available: failure.available, requested: failure.requested })}
+            action={{ label: t('menu.reservation.error.refresh'), onClick: onCancel }}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby="reserve-dialog-title">
-      <DialogTitle id="reserve-dialog-title">{t('menu.reservation.title')}</DialogTitle>
+    <Dialog open={open} onClose={onCancel} aria-labelledby="reserve-dialog-title" slotProps={{ paper: paperProps }}>
+      <DialogTitle id="reserve-dialog-title">
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <span>{t('menu.reservation.title')}</span>
+          <Chip size="small" label={t(`common.meals.${mealType}`)} />
+        </Stack>
+      </DialogTitle>
       <DialogContent>
         <Stack spacing={2}>
           <Typography color="text.secondary">
-            {t('menu.reservation.subtitle', { dish: dishName, date: '', count: availableQuantity })}
+            {t('menu.reservation.subtitle', {
+              dish: dishName,
+              date: dateLabel,
+              count: availableQuantity,
+              portionsWord: t('menu.reservation.portionsWord', { count: availableQuantity }),
+            })}
           </Typography>
 
           <Stack spacing={1}>
@@ -79,14 +130,15 @@ export const ReserveDialog = ({ open, dishName, availableQuantity, onCancel, onC
                 <AddIcon />
               </IconButton>
             </Stack>
+            <Typography variant="caption" color="secondary.main" sx={styles.helper}>
+              {t('menu.reservation.helper', { count: quantity, total: availableQuantity })}
+            </Typography>
             {atMax && (
               <Typography variant="caption" color="error.main">
                 {t('validation.reservationMax', { max: availableQuantity })}
               </Typography>
             )}
           </Stack>
-
-          {errorKey && <Typography color="error.main">{t(errorKey)}</Typography>}
         </Stack>
       </DialogContent>
       <DialogActions>

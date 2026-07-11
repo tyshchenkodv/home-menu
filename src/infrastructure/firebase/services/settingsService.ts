@@ -1,4 +1,4 @@
-import { Timestamp, doc, getDoc, getFirestore, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, getFirestore, serverTimestamp, updateDoc, type WithFieldValue } from 'firebase/firestore';
 
 import { getFirebaseApp } from '../firebaseApp';
 import type { GeneralSettings, GeneralSettingsDoc } from '../../../shared/types/generalSettings';
@@ -54,9 +54,9 @@ export const updateGeneralSettings = async (
     generalSettingsConverter,
   );
 
-  const payload: GeneralSettingsDoc = {
+  const payload: WithFieldValue<GeneralSettingsDoc> = {
     ...settings,
-    updatedAt: Timestamp.now(),
+    updatedAt: serverTimestamp(),
     updatedBy: userId,
   };
 

@@ -1,3 +1,4 @@
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -8,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
 import type { PreparedBatchWithId } from '../../../../shared/types/preparedBatch';
 import { styles } from './styles';
 
@@ -24,6 +26,7 @@ interface DiscardBatchDialogProps {
  */
 export const DiscardBatchDialog = ({ open, batch, onCancel, onConfirm }: DiscardBatchDialogProps) => {
   const { t } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirm = async () => {
@@ -40,10 +43,13 @@ export const DiscardBatchDialog = ({ open, batch, onCancel, onConfirm }: Discard
   if (!batch) return null;
 
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="sm">
+    <Dialog open={open} onClose={onCancel} maxWidth="sm" slotProps={{ paper: paperProps }}>
       <DialogTitle>{t('batches.discardDialog.title')}</DialogTitle>
 
       <DialogContent>
+        <Box sx={styles.iconBadge} data-testid="discard-batch-dialog-badge" aria-hidden="true">
+          !
+        </Box>
         <Stack spacing={2} sx={styles.body}>
           <Typography variant="body2" color="textSecondary">
             {t('batches.discardDialog.body', { dish: batch.dishName, count: batch.availableQuantity })}

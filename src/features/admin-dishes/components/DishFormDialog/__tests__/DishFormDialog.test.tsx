@@ -58,6 +58,17 @@ beforeEach(() => {
   void i18n.changeLanguage('uk');
 });
 
+describe('DishFormDialog meal-type chips', () => {
+  it('shows a leading check on selected meal-type chips, not color alone', () => {
+    renderDialog({
+      initialValues: { ...emptyInitialValues, mealTypes: ['lunch'] },
+    });
+
+    expect(screen.getByRole('button', { name: '✓ Обід' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Сніданок' })).toBeInTheDocument();
+  });
+});
+
 describe('DishFormDialog submit button validity', () => {
   it('is disabled when the name is empty', () => {
     renderDialog({

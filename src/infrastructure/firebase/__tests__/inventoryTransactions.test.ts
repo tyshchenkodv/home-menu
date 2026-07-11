@@ -32,12 +32,14 @@ const mockRunTransaction = vi.fn(async (_db: unknown, updateFunction: (tx: typeo
   updateFunction(mockTransaction),
 );
 const mockTimestampNow = vi.fn(() => ({ toMillis: () => 1000 }) as never);
+const mockServerTimestamp = vi.fn(() => ({ __serverTimestamp: true }) as never);
 
 vi.mock('firebase/firestore', () => ({
   getFirestore: mockGetFirestore,
   collection: mockCollection,
   doc: mockDoc,
   runTransaction: mockRunTransaction,
+  serverTimestamp: mockServerTimestamp,
   Timestamp: { now: mockTimestampNow },
 }));
 

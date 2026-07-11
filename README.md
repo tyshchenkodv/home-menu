@@ -77,7 +77,6 @@ npm test             # Vitest unit and component tests
 npm run test:rules   # Firestore emulator Rules tests, requires local Java 21+
 npm run emulators    # start Dockerized Firestore + Auth emulators
 npm run test:rules:docker # Rules tests against the Docker emulators
-npm run seed:admin   # promote emulator accounts to active admins
 npm run emulators:stop    # stop the Docker emulators
 ```
 
@@ -121,23 +120,38 @@ npm run dev
 ```
 
 Sign in with a fake emulator Google account (you will land on the
-access-denied screen — expected for an unprovisioned user), then run
-`npm run seed:admin` and reload. See `docker/firebase-emulators/README.md`.
+not-authorized screen — expected for an unprovisioned account), then set the
+account's custom claims as described below and sign in again. See
+`docker/firebase-emulators/README.md`.
 
-### Provisioning an admin user
+### Provisioning a user (custom claims)
 
-The application does not self-provision roles. After a user signs in once
-with Google, manually create their `users/{uid}` document in the Firebase
-Console (or the Emulator UI) with placeholder-shaped values, for example:
+Authorization state — `role` (`admin` | `user`) and `active` — lives in
+Firebase Auth **custom claims** on the ID token, not in a Firestore document.
+An account with no `role` claim is not provisioned and is denied everywhere:
+the app signs it out and shows a not-authorized screen, and Security Rules
+deny all data access. There is no self-registration; the owner provisions
+every account.
 
-```text
-users/<uid>
-  role: "admin"
-  active: true
-```
+There is currently no bundled CLI for this: call the Firebase Admin SDK's
+`getAuth().setCustomUserClaims(uid, { role, active })` yourself, for example
+from a short ad hoc Node script using `firebase-admin`, against the emulator
+(`FIREBASE_AUTH_EMULATOR_HOST=localhost:9099`) locally or a service-account
+key (`GOOGLE_APPLICATION_CREDENTIALS`, never committed) in production. A
+dedicated `scripts/setUserRole.mjs` wrapper is planned — see
+`docs/specifications/auth-custom-claims-migration/PLAN.md` (task T2.2) — but
+not yet implemented.
 
-Use your own project's real `uid`; never commit a real `uid` or email to this
-repository.
+**Re-login required:** claims only take effect on the next ID token refresh.
+An already signed-in user must sign out and back in (or the client must call
+`getIdToken(true)`) to pick up a changed role.
+
+**Bootstrapping the first admin:** the owner sets custom claims in production
+mode with their own service-account key. Because the Admin SDK bypasses
+Security Rules, this works even before any account has a role claim.
+
+Use your own project's real `uid`/email only in your local environment; never
+commit a real `uid`, email, or service-account key to this repository.
 
 ## Create your own deployment
 
@@ -148,8 +162,9 @@ repository.
 5. Store the deployment service-account credential only in GitHub Secrets.
 6. Enable GitHub Pages with GitHub Actions as the source.
 7. Deploy the Firestore rules and indexes.
-8. Sign in once, then create your own `users/{uid}` documents in Firebase
-   Console with `admin` and `user` roles.
+8. Sign in once, then set custom claims (`role`, `active`) for each real
+   account with your own service-account key, starting with your own admin
+   account (see "Provisioning a user" above).
 
 Never reuse the original author's Firebase project or identity data. Detailed
 instructions are in the [deployment guide](docs/08-deployment.md).

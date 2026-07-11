@@ -7,17 +7,20 @@ import {
   orderBy,
   query,
   runTransaction,
+  serverTimestamp,
   where,
 } from 'firebase/firestore';
 
 import { allocateReadyBatchesFifo } from '../../../domain/batches/allocateReadyBatchesFifo';
 import { assertBatchConservation } from '../../../domain/batches/batchInvariants';
+import { nextBatchNumber, type PreparedBatchNumberCounter } from '../../../domain/batches/nextBatchNumber';
 import type { AllocatableBatch } from '../../../domain/batches/types';
 import type { AvailabilityIngredient } from '../../../domain/dishes/types';
 import { evaluateDishAvailability } from '../../../domain/dishes/evaluateDishAvailability';
 import { canUserCancelOrder } from '../../../domain/orders/cancellationRules';
 import { canTransitionOrder } from '../../../domain/orders/canTransitionOrder';
 import { OrderDomainError } from '../../../domain/orders/errors';
+import { computeManualConsumption } from '../../../domain/orders/manualConsumption';
 import { computeConsumedNormalization } from '../../../domain/orders/normalization';
 import { isValidOrderQuantity } from '../../../domain/orders/scheduledFor';
 import type { MealType, Order } from '../../../domain/orders/types';
@@ -34,8 +37,29 @@ const BATCHES_COLLECTION = 'preparedBatches';
 const ORDERS_COLLECTION = 'orders';
 const INGREDIENTS_COLLECTION = 'ingredients';
 const MOVEMENTS_COLLECTION = 'inventoryMovements';
+const COUNTERS_COLLECTION = 'counters';
+const PREPARED_BATCH_NUMBER_COUNTER_ID = 'preparedBatchNumber';
 
 const getDb = () => getFirestore(getFirebaseApp());
+
+/**
+ * Reads the `counters/preparedBatchNumber` document (see
+ * `docs/specifications/batch-sequence-number/SPEC.md`) and returns the next
+ * batch number to allocate. Must be called before any write in the caller's
+ * transaction — Firestore requires all transaction reads to precede all
+ * writes — and the caller must also `transaction.set` the same ref with
+ * `{ value: next }` to persist the allocation.
+ */
+async function readNextBatchNumber(
+  db: ReturnType<typeof getDb>,
+  transaction: Parameters<Parameters<typeof runTransaction>[1]>[0],
+): Promise<{ counterRef: ReturnType<typeof doc>; next: number }> {
+  const counterRef = doc(db, COUNTERS_COLLECTION, PREPARED_BATCH_NUMBER_COUNTER_ID);
+  const counterSnapshot = await transaction.get(counterRef);
+  const counterData = counterSnapshot.exists() ? (counterSnapshot.data() as PreparedBatchNumberCounter) : null;
+
+  return { counterRef, next: nextBatchNumber(counterData) };
+}
 
 /**
  * Stable, locale-independent error codes for admin order-mutation
@@ -184,8 +208,6 @@ export async function reserveReadyOrder(input: ReserveReadyOrderInput): Promise<
     // in that case because every write below is queued after this call.
     const allocations = allocateReadyBatchesFifo(allocatableBatches, input.quantity);
 
-    const now = Timestamp.now();
-
     for (const allocation of allocations) {
       const batchData = freshBatchDataById.get(allocation.batchId);
       /* istanbul ignore next -- defensive: allocation.batchId always comes from allocatableBatches, built from freshBatchDataById's own keys */
@@ -212,7 +234,7 @@ export async function reserveReadyOrder(input: ReserveReadyOrderInput): Promise<
         availableQuantity: nextAvailable,
         reservedQuantity: nextReserved,
         status: nextStatus,
-        updatedAt: now,
+        updatedAt: serverTimestamp(),
         updatedBy: input.userId,
       });
     }
@@ -230,9 +252,10 @@ export async function reserveReadyOrder(input: ReserveReadyOrderInput): Promise<
       allocations,
       rejectionReason: null,
       preparedBatchId: null,
-      createdAt: now,
+      preparedBatchNumber: null,
+      createdAt: serverTimestamp(),
       createdBy: input.userId,
-      updatedAt: now,
+      updatedAt: serverTimestamp(),
       updatedBy: input.userId,
     });
   });
@@ -290,9 +313,9 @@ export async function cancelOrder(input: CancelOrderInput): Promise<void> {
       throw new OrderTransactionError('order/not-owned', `Order ${input.orderId} does not belong to ${input.userId}`);
     }
 
-    const now = Timestamp.now();
+    const nowForCheck = Timestamp.now();
 
-    if (!canUserCancelOrder(order, now) || !canTransitionOrder(order.status, 'cancelled', 'userCancel')) {
+    if (!canUserCancelOrder(order, nowForCheck) || !canTransitionOrder(order.status, 'cancelled', 'userCancel')) {
       throw new OrderDomainError(
         'order/cancel-not-allowed',
         `Order ${input.orderId} (kind: ${order.kind}, status: ${order.status}) cannot be cancelled now`,
@@ -331,14 +354,14 @@ export async function cancelOrder(input: CancelOrderInput): Promise<void> {
         availableQuantity: nextAvailable,
         reservedQuantity: nextReserved,
         status: nextStatus,
-        updatedAt: now,
+        updatedAt: serverTimestamp(),
         updatedBy: input.userId,
       });
     });
 
     transaction.update(orderRef, {
       status: 'cancelled',
-      updatedAt: now,
+      updatedAt: serverTimestamp(),
       updatedBy: input.userId,
     });
   });
@@ -381,7 +404,7 @@ async function runSimpleOrderTransition(
 
     transaction.update(orderRef, {
       status: toStatus,
-      updatedAt: Timestamp.now(),
+      updatedAt: serverTimestamp(),
       updatedBy: adminUid,
       ...extraPatch,
     });
@@ -490,7 +513,7 @@ export async function startCooking(orderId: string, adminUid: string): Promise<v
 
     transaction.update(orderRef, {
       status: 'cooking',
-      updatedAt: Timestamp.now(),
+      updatedAt: serverTimestamp(),
       updatedBy: adminUid,
     });
   });
@@ -565,6 +588,10 @@ export async function completeCooking(input: CompleteCookingInput): Promise<stri
       );
     }
 
+    // Counter read must happen before any write in this transaction
+    // (Firestore requires all reads before all writes).
+    const { counterRef, next: batchNumber } = await readNextBatchNumber(db, transaction);
+
     const dishRef = doc(db, DISHES_COLLECTION, order.dishId).withConverter(dishConverter);
     const dishSnapshot = await transaction.get(dishRef);
 
@@ -611,8 +638,6 @@ export async function completeCooking(input: CompleteCookingInput): Promise<stri
       );
     }
 
-    const now = Timestamp.now();
-
     dish.recipeItems.forEach(item => {
       if (item.requiresPresence === true || item.requiredQuantity === null) {
         // Presence-tracked ingredients are checked above but never
@@ -631,7 +656,7 @@ export async function completeCooking(input: CompleteCookingInput): Promise<stri
 
       transaction.update(ingredientRef, {
         quantity: balanceAfter,
-        updatedAt: now,
+        updatedAt: serverTimestamp(),
         updatedBy: input.adminUid,
       });
 
@@ -647,16 +672,20 @@ export async function completeCooking(input: CompleteCookingInput): Promise<stri
         cookingRequestId: input.orderId,
         preparedBatchId: batchRef.id,
         note: null,
-        createdAt: now,
+        createdAt: serverTimestamp(),
         createdBy: input.adminUid,
       });
     });
 
     const availableQuantity = input.actualYield - order.quantity;
 
+    // `createdAt`/`updatedAt` below are placeholders satisfying the domain
+    // type for `assertBatchConservation` (which never reads them); the
+    // actual write anchors both to `request.time` via `serverTimestamp()`.
     const batch: PreparedBatchDoc = {
       dishId: order.dishId,
       dishName: dish.name,
+      batchNumber,
       producedQuantity: input.actualYield,
       availableQuantity,
       reservedQuantity: order.quantity,
@@ -666,9 +695,9 @@ export async function completeCooking(input: CompleteCookingInput): Promise<stri
       expiresAt: input.expiresAtMillis !== null ? Timestamp.fromMillis(input.expiresAtMillis) : null,
       status: availableQuantity === 0 ? 'depleted' : 'available',
       sourceCookingRequestId: input.orderId,
-      createdAt: now,
+      createdAt: Timestamp.now(),
       createdBy: input.adminUid,
-      updatedAt: now,
+      updatedAt: Timestamp.now(),
       updatedBy: input.adminUid,
     };
 
@@ -676,13 +705,15 @@ export async function completeCooking(input: CompleteCookingInput): Promise<stri
     // conservation invariant before it is ever written.
     assertBatchConservation(batch);
 
-    transaction.set(batchRef, batch);
+    transaction.set(batchRef, { ...batch, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    transaction.set(counterRef, { value: batchNumber } satisfies PreparedBatchNumberCounter);
 
     transaction.update(orderRef, {
       status: 'prepared',
       preparedBatchId: batchRef.id,
+      preparedBatchNumber: batchNumber,
       allocations: [{ batchId: batchRef.id, quantity: order.quantity }],
-      updatedAt: now,
+      updatedAt: serverTimestamp(),
       updatedBy: input.adminUid,
     });
   });
@@ -738,7 +769,7 @@ export async function correctOrder(input: CorrectOrderInput): Promise<void> {
     );
     const batchSnapshots = await Promise.all(batchRefs.map(batchRef => transaction.get(batchRef)));
 
-    const now = Timestamp.now();
+    const now = serverTimestamp();
 
     batchSnapshots.forEach((batchSnapshot, index) => {
       /* istanbul ignore next -- defensive: an allocated batch is created in the same transaction that wrote the order and is never physically deleted */
@@ -813,7 +844,7 @@ async function normalizeOneOrder(orderId: string, nowMillis: number, adminUid: s
     );
     const batchSnapshots = await Promise.all(batchRefs.map(batchRef => transaction.get(batchRef)));
 
-    const now = Timestamp.now();
+    const now = serverTimestamp();
 
     batchSnapshots.forEach((batchSnapshot, index) => {
       /* istanbul ignore next -- defensive: an allocated batch is created in the same transaction that wrote the order and is never physically deleted */
@@ -882,6 +913,92 @@ export async function normalizeConsumedOrders(nowMillis: number, adminUid: strin
   await Promise.allSettled(snapshot.docs.map(orderDoc => normalizeOneOrder(orderDoc.id, nowMillis, adminUid)));
 }
 
+export interface ConsumeOrderInput {
+  orderId: string;
+  adminUid: string;
+}
+
+/**
+ * Implements the admin "mark reserved consumed" capability (SPEC Goal 14,
+ * `docs/specifications/mvp-audit-remediation/PLAN.md` T5.8): re-reads a
+ * single order and applies `computeManualConsumption`, which — unlike
+ * `computeConsumedNormalization` — has no `scheduledFor` time gate, so an
+ * admin can mark a `reserved` or `prepared` order consumed at any time.
+ * Mirrors `normalizeOneOrder`'s shape: moves each allocation's quantity from
+ * `reservedQuantity` to `consumedQuantity` on its batch and sets the order to
+ * `consumed`, asserting the batch conservation invariant before every write.
+ * An order in any other status throws `order/invalid-transition`, matching
+ * the error other simple order transitions raise.
+ *
+ * All reads (order + every allocated batch) happen before any write inside
+ * the transaction, so the whole operation fails atomically on a missing
+ * order, an ineligible status, or a concurrent conflict.
+ */
+export async function consumeOrder(input: ConsumeOrderInput): Promise<void> {
+  const db = getDb();
+
+  await runTransaction(db, async transaction => {
+    const orderRef = doc(db, ORDERS_COLLECTION, input.orderId).withConverter(orderConverter);
+    const orderSnapshot = await transaction.get(orderRef);
+
+    if (!orderSnapshot.exists()) {
+      throw new OrderTransactionError('order/not-found', `Order ${input.orderId} does not exist`);
+    }
+
+    const order = orderSnapshot.data();
+    const result = computeManualConsumption(order);
+
+    if (!result.shouldNormalize || !result.orderPatch) {
+      throw new OrderDomainError(
+        'order/invalid-transition',
+        `Order ${input.orderId} (status: ${order.status}) cannot be marked consumed`,
+      );
+    }
+
+    // All reads (order + every allocated batch) happen before any write.
+    const batchRefs = result.batchPatches.map(patch =>
+      doc(db, BATCHES_COLLECTION, patch.batchId).withConverter(preparedBatchConverter),
+    );
+    const batchSnapshots = await Promise.all(batchRefs.map(batchRef => transaction.get(batchRef)));
+
+    const now = serverTimestamp();
+
+    batchSnapshots.forEach((batchSnapshot, index) => {
+      /* istanbul ignore next -- defensive: an allocated batch is created in the same transaction that wrote the order and is never physically deleted */
+      if (!batchSnapshot.exists()) {
+        return;
+      }
+
+      const batchData = batchSnapshot.data();
+      const patch = result.batchPatches[index];
+      const nextReserved = batchData.reservedQuantity + patch.reservedDelta;
+      const nextConsumed = batchData.consumedQuantity + patch.consumedDelta;
+
+      // Defensive: assert the patched batch satisfies the docs/03
+      // conservation invariant before it is ever written.
+      const patchedBatch: PreparedBatchDoc = {
+        ...batchData,
+        reservedQuantity: nextReserved,
+        consumedQuantity: nextConsumed,
+      };
+      assertBatchConservation(patchedBatch);
+
+      transaction.update(batchRefs[index], {
+        reservedQuantity: nextReserved,
+        consumedQuantity: nextConsumed,
+        updatedAt: now,
+        updatedBy: input.adminUid,
+      });
+    });
+
+    transaction.update(orderRef, {
+      status: result.orderPatch.status,
+      updatedAt: now,
+      updatedBy: input.adminUid,
+    });
+  });
+}
+
 export interface DiscardBatchInput {
   batchId: string;
   adminUid: string;
@@ -918,7 +1035,7 @@ export async function discardBatch(input: DiscardBatchInput): Promise<void> {
     }
 
     const batchData = batchSnapshot.data();
-    const now = Timestamp.now();
+    const now = serverTimestamp();
     const nextDiscarded = batchData.discardedQuantity + batchData.availableQuantity;
 
     // Defensive: assert the patched batch satisfies the docs/03 conservation
@@ -988,6 +1105,10 @@ export async function registerBatch(input: RegisterBatchInput): Promise<string> 
       throw new OrderTransactionError('order/dish-not-configured', `Dish ${input.dishId} has no recipe`);
     }
 
+    // Counter read must happen before any write in this transaction
+    // (Firestore requires all reads before all writes).
+    const { counterRef, next: batchNumber } = await readNextBatchNumber(db, transaction);
+
     // All reads (dish, every recipe ingredient) happen before any write.
     const ingredientRefs = dish.recipeItems.map(item =>
       doc(db, INGREDIENTS_COLLECTION, item.ingredientId).withConverter(ingredientConverter),
@@ -1021,8 +1142,6 @@ export async function registerBatch(input: RegisterBatchInput): Promise<string> 
       );
     }
 
-    const now = Timestamp.now();
-
     // Deduct ingredients and create movements
     dish.recipeItems.forEach(item => {
       if (item.requiresPresence === true || item.requiredQuantity === null) {
@@ -1042,7 +1161,7 @@ export async function registerBatch(input: RegisterBatchInput): Promise<string> 
 
       transaction.update(ingredientRef, {
         quantity: balanceAfter,
-        updatedAt: now,
+        updatedAt: serverTimestamp(),
         updatedBy: input.adminUid,
       });
 
@@ -1058,14 +1177,18 @@ export async function registerBatch(input: RegisterBatchInput): Promise<string> 
         cookingRequestId: null, // No request for ad-hoc cooking
         preparedBatchId: batchRef.id,
         note: null,
-        createdAt: now,
+        createdAt: serverTimestamp(),
         createdBy: input.adminUid,
       });
     });
 
+    // `createdAt`/`updatedAt` below are placeholders satisfying the domain
+    // type for `assertBatchConservation` (which never reads them); the
+    // actual write anchors both to `request.time` via `serverTimestamp()`.
     const batch: PreparedBatchDoc = {
       dishId: input.dishId,
       dishName: dish.name,
+      batchNumber,
       producedQuantity: input.actualYield,
       availableQuantity: input.actualYield, // Full yield available (no reserved quantity)
       reservedQuantity: 0,
@@ -1075,9 +1198,9 @@ export async function registerBatch(input: RegisterBatchInput): Promise<string> 
       expiresAt: input.expiresAtMillis !== null ? Timestamp.fromMillis(input.expiresAtMillis) : null,
       status: 'available',
       sourceCookingRequestId: null, // Ad-hoc cooking has no request
-      createdAt: now,
+      createdAt: Timestamp.now(),
       createdBy: input.adminUid,
-      updatedAt: now,
+      updatedAt: Timestamp.now(),
       updatedBy: input.adminUid,
     };
 
@@ -1085,7 +1208,8 @@ export async function registerBatch(input: RegisterBatchInput): Promise<string> 
     // conservation invariant before it is ever written.
     assertBatchConservation(batch);
 
-    transaction.set(batchRef, batch);
+    transaction.set(batchRef, { ...batch, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    transaction.set(counterRef, { value: batchNumber } satisfies PreparedBatchNumberCounter);
   });
 
   return batchRef.id;

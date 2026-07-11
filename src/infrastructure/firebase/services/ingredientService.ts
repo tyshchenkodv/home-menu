@@ -8,10 +8,12 @@ import {
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   updateDoc,
   where,
   type QuerySnapshot,
   type Unsubscribe,
+  type WithFieldValue,
 } from 'firebase/firestore';
 
 import { InventoryDomainError } from '../../../domain/inventory/errors';
@@ -72,7 +74,6 @@ function toDomainDraft(
 export const createIngredient = async (input: CreateIngredientInput, uid: string): Promise<string> => {
   validateIngredient(toDomainDraft(input));
 
-  const now = Timestamp.now();
   const docRef = await addDoc(getIngredientsCollection(), {
     name: input.name,
     trackingMode: input.trackingMode,
@@ -81,11 +82,11 @@ export const createIngredient = async (input: CreateIngredientInput, uid: string
     isPresent: input.isPresent,
     lowStockThreshold: input.lowStockThreshold,
     archivedAt: null,
-    createdAt: now,
+    createdAt: serverTimestamp(),
     createdBy: uid,
-    updatedAt: now,
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
-  } satisfies IngredientDoc);
+  } satisfies WithFieldValue<IngredientDoc>);
 
   return docRef.id;
 };
@@ -123,7 +124,7 @@ export const updateIngredient = async (
   await updateDoc(ingredientDocRef, {
     name: input.name,
     lowStockThreshold: input.lowStockThreshold,
-    updatedAt: Timestamp.now(),
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
   });
 };
@@ -134,11 +135,10 @@ export const updateIngredient = async (
  */
 export const archiveIngredient = async (ingredientId: string, uid: string): Promise<void> => {
   const ingredientDocRef = doc(getIngredientsCollection(), ingredientId);
-  const now = Timestamp.now();
 
   await updateDoc(ingredientDocRef, {
-    archivedAt: now,
-    updatedAt: now,
+    archivedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
   });
 };
@@ -152,7 +152,7 @@ export const restoreIngredient = async (ingredientId: string, uid: string): Prom
 
   await updateDoc(ingredientDocRef, {
     archivedAt: null,
-    updatedAt: Timestamp.now(),
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
   });
 };

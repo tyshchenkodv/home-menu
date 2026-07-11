@@ -39,6 +39,7 @@ export const BatchesPage = () => {
     if (result.status === 'error') {
       return (
         <ErrorState
+          title={t('batches.error.title')}
           message={t('batches.error.body')}
           retryLabel={t('common.retry')}
           onRetry={() => {
@@ -49,7 +50,7 @@ export const BatchesPage = () => {
     }
 
     if (result.batches.length === 0) {
-      return <EmptyState message={t('batches.empty.body')} />;
+      return <EmptyState title={t('batches.empty.title')} message={t('batches.empty.body')} />;
     }
 
     const now = new Date();

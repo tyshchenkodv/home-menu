@@ -53,6 +53,27 @@ and `en` translation resources.
   (`background.default`/`background.paper` from the dark palette,
   `cssVariables: true`, both schemes defined in `createTheme()`). No
   dashboard-specific dark mockup exists; apply the global scheme.
+
+> **Implementation note (`mvp-audit-remediation`, T4.3/T5.5; superseded in
+> part by `navigation-drawer-signout`).** Shipped body, top to bottom: a page
+> header (`dashboard.adminOverline` "Admin" overline in `secondary`, the
+> `dashboard.title` heading, and the `idle` CatArt mascot at the right over a
+> divider); a **2×2 grid of four summary tiles** (Pending requests / In
+> progress / Low-stock items / Expired batch — the expired tile carries a "⚠"
+> glyph; every tile navigates on tap); the **"Portions ready to reserve"
+> banner** (success-tinted, big `readyPortionsTotal`, `idle` mascot, taps
+> through to `/menu`); and a single **"Review cooking requests" quick-action
+> row** badged with the pending count, linking to `/admin/orders`.
+>
+> Not shipped from the older mockup: the "Manage" / "Admin sections"
+> navigation grid, the "Restock ingredients" quick action, and the
+> "⚠ Needs attention" counts panel. `navigation-drawer-signout` made the left
+> Drawer the single navigation surface on every viewport, so the dashboard
+> renders no navigation block of its own — every admin destination
+> (Dishes / Inventory / Batches / Settings) is reachable from the drawer,
+> including on mobile. The desktop "Pending cooking requests" item-level list
+> with inline per-row Approve is likewise not shipped; per-item action stays
+> on the Cooking-requests board (`admin-orders.md`).
 - **Primary action**: none (dashboard is navigational); quick actions and
   inline "Approve" are the actionable elements. No FAB.
 
@@ -84,7 +105,8 @@ From data-states row "6 · Панель адміна · Admin dashboard":
   primary.light background / primary.dark text.
 - Needs-attention panel (desktop): error-tinted Paper; row per issue with
   error.dark value text.
-- Bottom navigation (mobile) / persistent Drawer (desktop) — shared shell.
+- Left navigation Drawer (permanent on desktop, temporary hamburger-triggered
+  overlay on mobile) — shared shell, see `shared-patterns.md`.
 
 ## Actions and dialogs
 

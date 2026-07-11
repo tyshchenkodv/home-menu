@@ -145,6 +145,7 @@ type BatchStatus = 'available' | 'depleted' | 'discarded';
 interface PreparedBatch {
   dishId: string;
   dishName: string;
+  batchNumber: number | null;
   producedQuantity: number;
   availableQuantity: number;
   reservedQuantity: number;
@@ -173,6 +174,31 @@ producedQuantity =
 
 An expired batch displays a warning but remains available until the
 administrator discards it.
+
+`batchNumber` is a global, monotonically increasing, gap-tolerant sequential
+number allocated atomically inside the batch-creation transaction (both the
+cooking-request completion writer and the ad-hoc admin cooking writer read
+and advance the counter document below before writing the batch). It is
+immutable once set. Legacy batches written before this field existed have
+`batchNumber: null`; the UI falls back to an id-derived display code for
+those and never backfills a number onto them.
+
+## `counters/preparedBatchNumber`
+
+```ts
+interface PreparedBatchNumberCounter {
+  value: number;
+}
+```
+
+A single top-level document holding the highest `batchNumber` allocated so
+far (absent = no batch created yet, effectively 0). Both batch-creation
+transactions read this document before any write and set it to `value + 1` in
+the same transaction as the batch write, which forces a Firestore retry on
+any concurrent conflict — guaranteeing every batch gets a unique, ordered
+number without a Cloud Function or dedicated index. Numbers are never reused,
+even when a batch is later discarded. Readable by any active user; writable
+only by an admin, and only to a strictly increasing `{ value: int }`.
 
 ## `orders/{orderId}`
 
@@ -206,12 +232,17 @@ interface Order {
   allocations: OrderAllocation[];
   rejectionReason: string | null;
   preparedBatchId: string | null;
+  preparedBatchNumber: number | null;
   createdAt: Timestamp;
   createdBy: string;
   updatedAt: Timestamp;
   updatedBy: string;
 }
 ```
+
+`preparedBatchNumber` mirrors the prepared batch's `batchNumber` onto the
+order at the same time `preparedBatchId` is set, so the admin board can
+render `#NNN` directly from the order without an extra join.
 
 For `ready` orders, quantity must not exceed total available prepared portions.
 Allocations may reference several batches because FIFO can span batches.

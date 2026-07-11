@@ -7,20 +7,25 @@ rules_version = '2';
 // else.
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Authorization is carried entirely on the Firebase Auth ID token as
+    // custom claims (`role`, `isActive`), set by the local `firebase-admin`
+    // provisioning script — never by a client. Absence of a `role` claim
+    // means the account was never provisioned (no self-signup); it is
+    // denied everywhere. See docs/06-auth-and-security.md.
     function signedIn() {
       return request.auth != null;
     }
 
-    function profile() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    function claims() {
+      return request.auth.token;
     }
 
     function activeUser() {
-      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && profile().active == true;
+      return signedIn() && ('role' in claims()) && claims().isActive == true;
     }
 
     function isAdmin() {
-      return activeUser() && profile().role == 'admin';
+      return activeUser() && claims().role == 'admin';
     }
 
     // ---------------------------------------------------------------------
@@ -93,6 +98,8 @@ service cloud.firestore {
       allow create: if isAdmin()
         && isValidIngredientPayload(request.resource.data)
         && request.resource.data.archivedAt == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid;
 
@@ -100,6 +107,7 @@ service cloud.firestore {
         && isValidIngredientPayload(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.updatedBy == request.auth.uid;
 
       allow delete: if false;
@@ -146,6 +154,7 @@ service cloud.firestore {
 
       allow create: if isAdmin()
         && isValidMovementPayload(request.resource.data)
+        && request.resource.data.createdAt == request.time
         && exists(/databases/$(database)/documents/ingredients/$(request.resource.data.ingredientId));
 
       allow update, delete: if false;
@@ -203,6 +212,8 @@ service cloud.firestore {
       allow create: if isAdmin()
         && isValidDishPayload(request.resource.data)
         && request.resource.data.archivedAt == null
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid;
 
@@ -210,6 +221,7 @@ service cloud.firestore {
         && isValidDishPayload(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.updatedBy == request.auth.uid;
 
       allow delete: if false;
@@ -235,7 +247,7 @@ service cloud.firestore {
     // ---------------------------------------------------------------------
     function hasOnlyBatchFields(data) {
       return data.keys().hasOnly([
-        'dishId', 'dishName', 'producedQuantity', 'availableQuantity',
+        'dishId', 'dishName', 'batchNumber', 'producedQuantity', 'availableQuantity',
         'reservedQuantity', 'consumedQuantity', 'discardedQuantity',
         'preparedAt', 'expiresAt', 'status', 'sourceCookingRequestId',
         'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
@@ -245,6 +257,7 @@ service cloud.firestore {
     function hasRequiredBatchTypes(data) {
       return data.dishId is string && data.dishId.size() > 0
         && data.dishName is string && data.dishName.size() > 0
+        && data.batchNumber is int && data.batchNumber > 0
         && data.producedQuantity is number && data.producedQuantity >= 0
         && data.availableQuantity is number && data.availableQuantity >= 0
         && data.reservedQuantity is number && data.reservedQuantity >= 0
@@ -272,12 +285,13 @@ service cloud.firestore {
     }
 
     // The exact shape of `orderTransactions.reserveReadyOrder`'s per-batch
-    // update: `availableQuantity` moves down by the same amount
-    // `reservedQuantity` moves up, every other field is byte-for-byte
-    // unchanged, and the actor stamps their own uid.
+    // update: `availableQuantity` strictly decreases by the same amount
+    // `reservedQuantity` moves up (a zero-delta "move" is not a real
+    // reservation and is rejected), every other field is byte-for-byte
+    // unchanged, and the actor stamps their own uid and `request.time`.
     function isUserReservationMove(before, after) {
       return after.keys().hasOnly([
-        'dishId', 'dishName', 'producedQuantity', 'availableQuantity',
+        'dishId', 'dishName', 'batchNumber', 'producedQuantity', 'availableQuantity',
         'reservedQuantity', 'consumedQuantity', 'discardedQuantity',
         'preparedAt', 'expiresAt', 'status', 'sourceCookingRequestId',
         'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
@@ -285,12 +299,13 @@ service cloud.firestore {
         && after.availableQuantity is number
         && after.reservedQuantity is number
         && after.availableQuantity >= 0
-        && after.availableQuantity <= before.availableQuantity
+        && after.availableQuantity < before.availableQuantity
         && (before.availableQuantity - after.availableQuantity) == (after.reservedQuantity - before.reservedQuantity)
         && after.status == (after.availableQuantity == 0 ? 'depleted' : 'available')
         && before.status != 'discarded'
         && after.dishId == before.dishId
         && after.dishName == before.dishName
+        && after.batchNumber == before.batchNumber
         && after.producedQuantity == before.producedQuantity
         && after.consumedQuantity == before.consumedQuantity
         && after.discardedQuantity == before.discardedQuantity
@@ -299,7 +314,7 @@ service cloud.firestore {
         && after.sourceCookingRequestId == before.sourceCookingRequestId
         && after.createdAt == before.createdAt
         && after.createdBy == before.createdBy
-        && after.updatedAt is timestamp
+        && after.updatedAt == request.time
         && after.updatedBy == request.auth.uid;
     }
 
@@ -318,7 +333,7 @@ service cloud.firestore {
     // produced; it never grants any user broader batch-write access.
     function isUserCancellationMove(before, after) {
       return after.keys().hasOnly([
-        'dishId', 'dishName', 'producedQuantity', 'availableQuantity',
+        'dishId', 'dishName', 'batchNumber', 'producedQuantity', 'availableQuantity',
         'reservedQuantity', 'consumedQuantity', 'discardedQuantity',
         'preparedAt', 'expiresAt', 'status', 'sourceCookingRequestId',
         'createdAt', 'createdBy', 'updatedAt', 'updatedBy'
@@ -326,12 +341,13 @@ service cloud.firestore {
         && after.availableQuantity is number
         && after.reservedQuantity is number
         && after.reservedQuantity >= 0
-        && after.reservedQuantity <= before.reservedQuantity
+        && after.reservedQuantity < before.reservedQuantity
         && (after.availableQuantity - before.availableQuantity) == (before.reservedQuantity - after.reservedQuantity)
         && after.status == (after.availableQuantity == 0 ? 'depleted' : 'available')
         && before.status != 'discarded'
         && after.dishId == before.dishId
         && after.dishName == before.dishName
+        && after.batchNumber == before.batchNumber
         && after.producedQuantity == before.producedQuantity
         && after.consumedQuantity == before.consumedQuantity
         && after.discardedQuantity == before.discardedQuantity
@@ -340,7 +356,7 @@ service cloud.firestore {
         && after.sourceCookingRequestId == before.sourceCookingRequestId
         && after.createdAt == before.createdAt
         && after.createdBy == before.createdBy
-        && after.updatedAt is timestamp
+        && after.updatedAt == request.time
         && after.updatedBy == request.auth.uid;
     }
 
@@ -349,6 +365,8 @@ service cloud.firestore {
 
       allow create: if isAdmin()
         && isValidBatchPayload(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid;
 
@@ -357,12 +375,42 @@ service cloud.firestore {
         && isValidBatchPayload(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.updatedBy == request.auth.uid
+        && request.resource.data.batchNumber == resource.data.batchNumber
       ) || (
         activeUser() && isUserReservationMove(resource.data, request.resource.data)
       ) || (
         activeUser() && isUserCancellationMove(resource.data, request.resource.data)
       );
+
+      allow delete: if false;
+    }
+
+    // ---------------------------------------------------------------------
+    // counters/{counterId}
+    //
+    // A single top-level collection for global monotonic counters (today,
+    // only `preparedBatchNumber` — see
+    // `docs/specifications/batch-sequence-number/SPEC.md`). Only an admin may
+    // write, and only through the exact `{ value: int }` shape a real
+    // batch-creation transaction would produce: create starts at >= 1;
+    // update must strictly increase the value (numbers are allocated once
+    // and never reused or decreased). Never deleted.
+    // ---------------------------------------------------------------------
+    match /counters/{counterId} {
+      allow read: if activeUser();
+
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['value'])
+        && request.resource.data.value is int
+        && request.resource.data.value >= 1;
+
+      allow update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['value'])
+        && request.resource.data.value is int
+        && request.resource.data.value >= 1
+        && request.resource.data.value > resource.data.value;
 
       allow delete: if false;
     }
@@ -389,7 +437,7 @@ service cloud.firestore {
       return data.keys().hasOnly([
         'userId', 'userDisplayName', 'dishId', 'dishName', 'kind', 'status',
         'quantity', 'mealType', 'scheduledFor', 'allocations',
-        'rejectionReason', 'preparedBatchId', 'createdAt', 'createdBy',
+        'rejectionReason', 'preparedBatchId', 'preparedBatchNumber', 'createdAt', 'createdBy',
         'updatedAt', 'updatedBy'
       ]);
     }
@@ -409,6 +457,7 @@ service cloud.firestore {
         && data.allocations is list
         && (data.rejectionReason == null || data.rejectionReason is string)
         && (data.preparedBatchId == null || data.preparedBatchId is string)
+        && (data.preparedBatchNumber == null || (data.preparedBatchNumber is int && data.preparedBatchNumber > 0))
         && data.createdAt is timestamp
         && data.createdBy is string
         && data.updatedAt is timestamp
@@ -420,8 +469,8 @@ service cloud.firestore {
     // in by the same transaction) or a pending cooking request (no
     // allocations yet).
     function isValidNewOrderShape(data) {
-      return (data.kind == 'ready' && data.status == 'reserved' && data.preparedBatchId == null)
-        || (data.kind == 'cook' && data.status == 'pending' && data.allocations.size() == 0 && data.preparedBatchId == null);
+      return (data.kind == 'ready' && data.status == 'reserved' && data.preparedBatchId == null && data.preparedBatchNumber == null)
+        || (data.kind == 'cook' && data.status == 'pending' && data.allocations.size() == 0 && data.preparedBatchId == null && data.preparedBatchNumber == null);
     }
 
     function isValidOrderPayload(data) {
@@ -450,9 +499,10 @@ service cloud.firestore {
         && after.allocations == before.allocations
         && after.rejectionReason == before.rejectionReason
         && after.preparedBatchId == before.preparedBatchId
+        && after.preparedBatchNumber == before.preparedBatchNumber
         && after.createdAt == before.createdAt
         && after.createdBy == before.createdBy
-        && after.updatedAt is timestamp
+        && after.updatedAt == request.time
         && after.updatedBy == request.auth.uid;
     }
 
@@ -463,6 +513,8 @@ service cloud.firestore {
         && request.resource.data.userId == request.auth.uid
         && isValidOrderPayload(request.resource.data)
         && isValidNewOrderShape(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.createdBy == request.auth.uid
         && request.resource.data.updatedBy == request.auth.uid;
 
@@ -474,6 +526,7 @@ service cloud.firestore {
         && request.resource.data.kind == resource.data.kind
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.updatedAt == request.time
         && request.resource.data.updatedBy == request.auth.uid
       ) || (
         activeUser()
@@ -499,14 +552,26 @@ service cloud.firestore {
       return value is string && value.matches('^([0-1][0-9]|2[0-3]):[0-5][0-9]$');
     }
 
+    // Any non-empty IANA-shaped zone name is accepted: this repository is
+    // reused by any household, not just the maintainer's, so the rule must
+    // not pin a single deployment's timezone (docs/06 "Public Firebase
+    // configuration" — the same "no maintainer-specific values" principle
+    // applied to a data field instead of a config value). This only rejects
+    // an empty or malformed string a direct write could otherwise smuggle in;
+    // it does not by itself let a client change the app's timezone, since
+    // that also depends on what the UI layer sends.
+    function isValidTimezone(value) {
+      return value is string && value.size() > 0 && value.matches('^[A-Za-z0-9_+/-]+$');
+    }
+
     function isValidSettingsPayload(data) {
       return hasOnlySettingsFields(data)
-        && data.timezone == 'Europe/Kyiv'
+        && isValidTimezone(data.timezone)
         && data.defaultMealTimes.keys().hasOnly(['breakfast', 'lunch', 'dinner'])
         && isValidMealTime(data.defaultMealTimes.breakfast)
         && isValidMealTime(data.defaultMealTimes.lunch)
         && isValidMealTime(data.defaultMealTimes.dinner)
-        && data.updatedAt is timestamp
+        && data.updatedAt == request.time
         && data.updatedBy == request.auth.uid;
     }
 

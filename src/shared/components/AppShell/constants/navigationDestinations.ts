@@ -10,8 +10,7 @@ import type { NavigationDestination } from '../types/navigationDestination';
 
 /**
  * Every navigation destination in declared display order. `selectDestinations`
- * filters this list by role; order is preserved for both the drawer and the
- * bottom navigation.
+ * filters this list by role; order is preserved for the drawer.
  */
 export const navigationDestinations: NavigationDestination[] = [
   {
@@ -20,15 +19,21 @@ export const navigationDestinations: NavigationDestination[] = [
     labelKey: 'nav.menu',
     Icon: RestaurantMenu,
     roles: ['admin', 'user'],
-    mobilePrimary: true,
+  },
+  {
+    key: 'admin',
+    path: '/admin',
+    labelKey: 'nav.dashboard',
+    Icon: Dashboard,
+    roles: ['admin'],
   },
   {
     key: 'orders',
     path: '/admin/orders',
-    labelKey: 'nav.orders',
+    labelKey: 'nav.cookingRequests',
     Icon: ReceiptLong,
     roles: ['admin'],
-    mobilePrimary: true,
+    badgeKey: 'pendingRequests',
   },
   {
     key: 'myOrders',
@@ -36,31 +41,6 @@ export const navigationDestinations: NavigationDestination[] = [
     labelKey: 'nav.myOrders',
     Icon: ReceiptLong,
     roles: ['user'],
-    mobilePrimary: true,
-  },
-  {
-    key: 'admin',
-    path: '/admin',
-    labelKey: 'nav.admin',
-    Icon: Dashboard,
-    roles: ['admin'],
-    mobilePrimary: true,
-  },
-  {
-    key: 'inventory',
-    path: '/admin/inventory',
-    labelKey: 'nav.inventory',
-    Icon: Inventory2,
-    roles: ['admin'],
-    mobilePrimary: false,
-  },
-  {
-    key: 'batches',
-    path: '/admin/batches',
-    labelKey: 'nav.batches',
-    Icon: SoupKitchen,
-    roles: ['admin'],
-    mobilePrimary: false,
   },
   {
     key: 'dishes',
@@ -68,14 +48,27 @@ export const navigationDestinations: NavigationDestination[] = [
     labelKey: 'nav.dishes',
     Icon: LocalDining,
     roles: ['admin'],
-    mobilePrimary: false,
+  },
+  {
+    key: 'inventory',
+    path: '/admin/inventory',
+    labelKey: 'nav.inventory',
+    Icon: Inventory2,
+    roles: ['admin'],
+    badgeKey: 'lowStock',
+  },
+  {
+    key: 'batches',
+    path: '/admin/batches',
+    labelKey: 'nav.batches',
+    Icon: SoupKitchen,
+    roles: ['admin'],
   },
   {
     key: 'settings',
     path: '/settings',
     labelKey: 'nav.settings',
     Icon: Settings,
-    roles: ['admin', 'user'],
-    mobilePrimary: false,
+    roles: ['admin'],
   },
 ];

@@ -68,6 +68,7 @@ export const OrdersPage = () => {
     if (result.status === 'error') {
       return (
         <ErrorState
+          title={t('orders.error.title')}
           message={t('orders.error.body')}
           retryLabel={t('common.retry')}
           onRetry={() => {
@@ -80,6 +81,7 @@ export const OrdersPage = () => {
     if (result.orders.length === 0) {
       return (
         <EmptyState
+          title={t('orders.empty.title')}
           message={t('orders.empty.body')}
           actionLabel={t('orders.empty.action')}
           onAction={() => {

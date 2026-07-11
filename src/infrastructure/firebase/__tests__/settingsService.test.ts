@@ -15,12 +15,14 @@ const mockDoc = vi.fn((...args: unknown[]) => {
 });
 const mockGetFirestore = vi.fn(() => ({ __db: true }));
 const mockTimestampNow = vi.fn(() => ({ __timestamp: true }));
+const mockServerTimestamp = vi.fn(() => ({ __serverTimestamp: true }));
 
 vi.mock('firebase/firestore', () => ({
   getFirestore: mockGetFirestore,
   doc: mockDoc,
   getDoc: mockGetDoc,
   updateDoc: mockUpdateDoc,
+  serverTimestamp: mockServerTimestamp,
   Timestamp: { now: mockTimestampNow },
 }));
 
@@ -86,7 +88,7 @@ describe('updateGeneralSettings', () => {
       dinner: '18:00',
     });
     expect(updatePayload?.updatedBy).toBe(adminUid);
-    expect(updatePayload?.updatedAt).toEqual({ __timestamp: true });
-    expect(mockTimestampNow).toHaveBeenCalled();
+    expect(updatePayload?.updatedAt).toEqual({ __serverTimestamp: true });
+    expect(mockServerTimestamp).toHaveBeenCalled();
   });
 });

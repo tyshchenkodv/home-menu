@@ -8,4 +8,7 @@ export interface AdminOrderCardProps {
   onStartCooking?: (order: OrderWithId) => void;
   onMarkPrepared?: (order: OrderWithId) => void;
   onCorrect?: (order: OrderWithId) => void;
+  /** Only present where a `reserved` order needs admin action (the History tab row). */
+  onConsume?: (order: OrderWithId) => void;
+  onCancel?: (order: OrderWithId) => void;
 }

@@ -19,6 +19,7 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     ],
     rejectionReason: null,
     preparedBatchId: null,
+    preparedBatchNumber: null,
     createdAt: { toMillis: () => 0 },
     createdBy: 'user-1',
     updatedAt: { toMillis: () => 0 },

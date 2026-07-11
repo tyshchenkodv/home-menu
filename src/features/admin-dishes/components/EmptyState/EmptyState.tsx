@@ -1,5 +1,12 @@
 import { StatePlaceholder } from '../../../../shared/components/StatePlaceholder/StatePlaceholder';
 import type { EmptyStateProps } from '../../types/emptyStateProps';
 
-/** Generic centered empty-state message for a feed with no items. */
-export const EmptyState = ({ message }: EmptyStateProps) => <StatePlaceholder variant="empty" message={message} />;
+/** Empty-state headline, body, and "+ Add dish" CTA per `admin-dishes.md`. */
+export const EmptyState = ({ title, message, actionLabel, onAction }: EmptyStateProps) => (
+  <StatePlaceholder
+    variant="empty"
+    title={title}
+    message={message}
+    action={{ label: actionLabel, onClick: onAction, variant: 'contained' }}
+  />
+);

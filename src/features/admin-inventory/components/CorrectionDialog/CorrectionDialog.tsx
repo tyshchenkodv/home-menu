@@ -2,6 +2,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -10,9 +11,9 @@ import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { convertToBaseUnit } from '../../../../domain/inventory/convertToBaseUnit';
-import { InventoryDomainError } from '../../../../domain/inventory/errors';
 import { inputUnitsForBaseUnit } from '../../../../domain/inventory/inputUnitsForBaseUnit';
 import type { InputUnit } from '../../../../domain/inventory/types';
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
 import { UNIT_LABEL_KEY } from '../../constants/unitLabelKey';
 import { resolveErrorTranslationKey } from '../../errorMessages';
 import type { CorrectionDialogProps } from '../../types/correctionDialogProps';
@@ -20,13 +21,20 @@ import { styles } from './styles';
 
 /**
  * Correction dialog: an exact observed balance (amount + unit, same family
- * as the ingredient's base unit) plus a required reason. The reason is
- * validated client-side before the service is ever called, reusing the
- * domain `INVALID_REASON` code so the message matches the infrastructure
- * layer's own re-validation.
+ * as the ingredient's base unit) plus a required reason. Save stays disabled
+ * until the reason is non-empty, matching the append-only movement-log
+ * pattern used by `admin-orders`' own correction dialog.
  */
-export const CorrectionDialog = ({ open, ingredientName, baseUnit, onCancel, onSubmit }: CorrectionDialogProps) => {
+export const CorrectionDialog = ({
+  open,
+  ingredientName,
+  currentQuantityLabel,
+  baseUnit,
+  onCancel,
+  onSubmit,
+}: CorrectionDialogProps) => {
   const { t } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
   const units = inputUnitsForBaseUnit(baseUnit);
   const [amountText, setAmountText] = useState('');
   const [inputUnit, setInputUnit] = useState<InputUnit>(units[0] ?? 'g');
@@ -35,21 +43,19 @@ export const CorrectionDialog = ({ open, ingredientName, baseUnit, onCancel, onS
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
 
+  const trimmedReason = reason.trim();
+  const isReasonValid = trimmedReason.length > 0;
+
   const handleSubmit = async () => {
-    if (isSubmittingRef.current) {
+    if (isSubmittingRef.current || !isReasonValid) {
       return;
     }
 
     setErrorKey(null);
 
     let exactBalance: number;
-    let trimmedReason: string;
     try {
       exactBalance = convertToBaseUnit(Number(amountText.trim()), inputUnit).quantity;
-      trimmedReason = reason.trim();
-      if (trimmedReason.length === 0) {
-        throw new InventoryDomainError('INVALID_REASON');
-      }
     } catch (error) {
       setErrorKey(resolveErrorTranslationKey(error));
       return;
@@ -69,15 +75,23 @@ export const CorrectionDialog = ({ open, ingredientName, baseUnit, onCancel, onS
   };
 
   return (
-    <Dialog open={open} onClose={onCancel} fullWidth maxWidth="xs" aria-labelledby="correction-dialog-title">
-      <DialogTitle id="correction-dialog-title">
-        {t('inventory.correctionDialog.title', { name: ingredientName })}
-      </DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      fullWidth
+      maxWidth="xs"
+      aria-labelledby="correction-dialog-title"
+      slotProps={{ paper: paperProps }}
+    >
+      <DialogTitle id="correction-dialog-title">{t('inventory.correction.title')}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={styles.content}>
+          <DialogContentText>
+            {t('inventory.correction.context', { name: ingredientName, current: currentQuantityLabel })}
+          </DialogContentText>
           <Stack direction="row" spacing={2}>
             <TextField
-              label={t('inventory.correctionDialog.amountLabel')}
+              label={t('inventory.correction.newQuantityLabel')}
               value={amountText}
               onChange={event => {
                 setAmountText(event.target.value);
@@ -102,11 +116,18 @@ export const CorrectionDialog = ({ open, ingredientName, baseUnit, onCancel, onS
             </TextField>
           </Stack>
           <TextField
-            label={t('inventory.correctionDialog.reasonLabel')}
+            label={t('inventory.correction.reasonLabel')}
+            placeholder={t('inventory.correction.reasonPlaceholder')}
             value={reason}
             onChange={event => {
               setReason(event.target.value);
             }}
+            helperText={
+              reason.length > 0 && !isReasonValid
+                ? t('validation.correctionReasonRequired')
+                : t('inventory.correction.helper')
+            }
+            error={reason.length > 0 && !isReasonValid}
             fullWidth
             multiline
           />
@@ -115,10 +136,10 @@ export const CorrectionDialog = ({ open, ingredientName, baseUnit, onCancel, onS
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel} disabled={isSubmitting}>
-          {t('inventory.actions.cancel')}
+          {t('common.cancel')}
         </Button>
-        <Button onClick={() => void handleSubmit()} variant="contained" disabled={isSubmitting}>
-          {t('inventory.correctionDialog.submit')}
+        <Button onClick={() => void handleSubmit()} variant="contained" disabled={isSubmitting || !isReasonValid}>
+          {isSubmitting ? t('common.saving') : t('common.save')}
         </Button>
       </DialogActions>
     </Dialog>

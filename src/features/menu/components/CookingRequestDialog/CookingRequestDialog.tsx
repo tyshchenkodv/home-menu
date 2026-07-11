@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
 import { resolveErrorTranslationKey } from '../../errorMessages';
 import type { CookingRequestDialogProps } from '../../types/cookingRequestDialogProps';
 import { formatCalendarDateLabel } from '../../utils/formatCalendarDate';
@@ -36,6 +37,7 @@ export const CookingRequestDialog = ({
   onConfirm,
 }: CookingRequestDialogProps) => {
   const { t, i18n } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
   const [quantity, setQuantity] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -59,7 +61,12 @@ export const CookingRequestDialog = ({
   };
 
   return (
-    <Dialog open={open} onClose={onCancel} aria-labelledby="cooking-request-dialog-title">
+    <Dialog
+      open={open}
+      onClose={onCancel}
+      aria-labelledby="cooking-request-dialog-title"
+      slotProps={{ paper: paperProps }}
+    >
       <DialogTitle id="cooking-request-dialog-title">{t('requests.dialog.title')}</DialogTitle>
       <DialogContent>
         <Stack spacing={2}>

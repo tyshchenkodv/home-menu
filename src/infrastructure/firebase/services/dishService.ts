@@ -7,10 +7,12 @@ import {
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   updateDoc,
   where,
   type QuerySnapshot,
   type Unsubscribe,
+  type WithFieldValue,
 } from 'firebase/firestore';
 
 import { validateDish } from '../../../domain/dishes/validateDish';
@@ -60,18 +62,17 @@ function toDomainDraft(input: CreateDishInput): Parameters<typeof validateDish>[
 export const createDish = async (input: CreateDishInput, uid: string): Promise<string> => {
   validateDish(toDomainDraft(input));
 
-  const now = Timestamp.now();
   const docRef = await addDoc(getDishesCollection(), {
     name: input.name,
     description: input.description,
     mealTypes: input.mealTypes,
     recipeItems: input.recipeItems,
     archivedAt: null,
-    createdAt: now,
+    createdAt: serverTimestamp(),
     createdBy: uid,
-    updatedAt: now,
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
-  } satisfies DishDoc);
+  } satisfies WithFieldValue<DishDoc>);
 
   return docRef.id;
 };
@@ -90,7 +91,7 @@ export const updateDish = async (dishId: string, input: UpdateDishInput, uid: st
     description: input.description,
     mealTypes: input.mealTypes,
     recipeItems: input.recipeItems,
-    updatedAt: Timestamp.now(),
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
   });
 };
@@ -101,11 +102,10 @@ export const updateDish = async (dishId: string, input: UpdateDishInput, uid: st
  */
 export const archiveDish = async (dishId: string, uid: string): Promise<void> => {
   const dishDocRef = doc(getDishesCollection(), dishId);
-  const now = Timestamp.now();
 
   await updateDoc(dishDocRef, {
-    archivedAt: now,
-    updatedAt: now,
+    archivedAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
   });
 };
@@ -116,7 +116,7 @@ export const restoreDish = async (dishId: string, uid: string): Promise<void> =>
 
   await updateDoc(dishDocRef, {
     archivedAt: null,
-    updatedAt: Timestamp.now(),
+    updatedAt: serverTimestamp(),
     updatedBy: uid,
   });
 };

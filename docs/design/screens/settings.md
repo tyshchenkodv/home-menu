@@ -115,9 +115,10 @@ From data-state row "11 · Налаштування · Settings" (four variants)
 
 ## Resolved decisions
 
-- **Theme control**: the theme toggle (light/dark) lives ONLY in the
-  AppHeader. Settings has NO theme row. This supersedes the currently
-  implemented Settings theme row, which must be removed.
+- **Theme control**: the theme toggle (light/dark) lives ONLY in the app
+  navigation drawer footer (as a full-width labeled row). Settings has NO theme
+  row. This supersedes the currently implemented Settings theme row, which must
+  be removed.
 - **Time control**: default meal times use a time-picker field (native
   `type="time"` / MUI TimeField), not a stepper.
 

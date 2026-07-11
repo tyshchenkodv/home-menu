@@ -49,7 +49,7 @@ describe('IngredientCard', () => {
   it('renders a status chip for the ingredient', () => {
     renderCard();
 
-    expect(screen.getByText('У наявності')).toBeInTheDocument();
+    expect(screen.getByText('Є')).toBeInTheDocument();
   });
 
   it('renders a low-stock status chip when the ingredient is low on stock', () => {
@@ -57,7 +57,16 @@ describe('IngredientCard', () => {
       ingredient: { ...baseIngredient, quantity: 1, lowStockThreshold: 5 },
     });
 
-    expect(screen.getByText('Низький запас')).toBeInTheDocument();
+    expect(screen.getByText('Мало')).toBeInTheDocument();
+  });
+
+  it('shows the zero-quantity "ran out" copy instead of a plain amount when quantity is 0', () => {
+    renderCard({
+      ingredient: { ...baseIngredient, quantity: 0 },
+    });
+
+    expect(screen.getByText('0 г — закінчилися')).toBeInTheDocument();
+    expect(screen.queryByText('0 г')).not.toBeInTheDocument();
   });
 
   it('does not render inline action buttons', () => {

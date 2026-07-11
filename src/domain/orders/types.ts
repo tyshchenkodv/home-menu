@@ -39,6 +39,14 @@ export interface Order<TTimestamp = DomainTimestamp> {
   allocations: OrderAllocation[];
   rejectionReason: string | null;
   preparedBatchId: string | null;
+  /**
+   * The prepared batch's sequential `batchNumber`, mirrored onto the order
+   * at the same time `preparedBatchId` is set so the admin board can render
+   * it without an extra join (see
+   * `docs/specifications/batch-sequence-number/SPEC.md`). `null` until
+   * prepared, and for orders prepared from a legacy (pre-numbering) batch.
+   */
+  preparedBatchNumber: number | null;
   createdAt: TTimestamp;
   createdBy: string;
   updatedAt: TTimestamp;

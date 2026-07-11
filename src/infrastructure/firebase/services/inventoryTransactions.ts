@@ -1,4 +1,4 @@
-import { Timestamp, collection, doc, getFirestore, runTransaction } from 'firebase/firestore';
+import { Timestamp, collection, doc, getFirestore, runTransaction, serverTimestamp } from 'firebase/firestore';
 
 import { InventoryDomainError } from '../../../domain/inventory/errors';
 import { correctQuantity, markAbsent, markPresent, restockQuantity } from '../../../domain/inventory/movementCommands';
@@ -18,8 +18,8 @@ const getDb = () => getFirestore(getFirebaseApp());
  * and `updatedBy`. Extracted since `IngredientPatch` is a union of
  * `{ quantity }` or `{ isPresent }` and both branches need the same stamp.
  */
-function toUpdatePayload(patch: IngredientPatch, uid: string, now: Timestamp) {
-  return { ...patch, updatedAt: now, updatedBy: uid };
+function toUpdatePayload(patch: IngredientPatch, uid: string) {
+  return { ...patch, updatedAt: serverTimestamp(), updatedBy: uid };
 }
 
 /**
@@ -48,15 +48,13 @@ async function runIngredientTransaction(
     const ingredient = snapshot.data();
     const { movement, ingredientPatch } = buildResult(ingredient);
 
-    const now = Timestamp.now();
-
-    transaction.update(ingredientRef, toUpdatePayload(ingredientPatch, uid, now));
+    transaction.update(ingredientRef, toUpdatePayload(ingredientPatch, uid));
 
     const movementRef = doc(collection(getDb(), MOVEMENTS_COLLECTION)).withConverter(inventoryMovementConverter);
     transaction.set(movementRef, {
       ingredientId,
       ...movement,
-      createdAt: now,
+      createdAt: serverTimestamp(),
       createdBy: uid,
     });
   });

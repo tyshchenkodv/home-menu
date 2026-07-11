@@ -4,24 +4,29 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { buildScheduledForMillis } from '../../../domain/orders/scheduledFor';
+import { summarizeOwnSlotHoldings } from '../../../domain/orders/summarizeOwnSlotHoldings';
 import type { CalendarDate, MealType } from '../../../domain/orders/types';
 import { getGeneralSettings } from '../../../infrastructure/firebase/services/settingsService';
 import type { DefaultMealTimes } from '../../../shared/types/generalSettings';
+import { useAuth } from '../../auth/useAuth';
 import { CookingRequestDialog } from '../components/CookingRequestDialog/CookingRequestDialog';
 import { DateMealSelector } from '../components/DateMealSelector/DateMealSelector';
 import { DishAvailabilityCard } from '../components/DishAvailabilityCard/DishAvailabilityCard';
 import { EmptyState } from '../components/EmptyState/EmptyState';
 import { ErrorState } from '../components/ErrorState/ErrorState';
+import { ExpiredBatchBanner } from '../components/ExpiredBatchBanner/ExpiredBatchBanner';
 import { LoadingState } from '../components/LoadingState/LoadingState';
 import { ReserveDialog } from '../components/ReserveDialog/ReserveDialog';
 import { useDishAvailability } from '../hooks/useDishAvailability';
 import { useMenuCommands } from '../hooks/useMenuCommands';
 import { useMenuDishes } from '../hooks/useMenuDishes';
+import { useOwnSlotHoldings } from '../hooks/useOwnSlotHoldings';
 import type { MenuDishView } from '../types/menuDishView';
 import { buildDateOptions, calendarDateKey, toCalendarDate } from '../utils/buildDateOptions';
+import { formatCalendarDateLabel } from '../utils/formatCalendarDate';
+import { buildSlotKey, KYIV_TIME_ZONE } from '../utils/slotKey';
 
 const MEAL_ORDER: MealType[] = ['breakfast', 'lunch', 'dinner'];
-const KYIV_TIME_ZONE = 'Europe/Kyiv';
 
 type DialogState = { kind: 'reserve'; view: MenuDishView } | { kind: 'request'; view: MenuDishView } | null;
 
@@ -36,7 +41,9 @@ interface ClockSnapshot {
 }
 
 export const MenuPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { user, role, isActive } = useAuth();
+  const isAdmin = role === 'admin' && isActive === true;
 
   const [mealTimes, setMealTimes] = useState<DefaultMealTimes | null>(null);
   // Lazy initializer: read once on mount, not on every render (React's
@@ -60,9 +67,11 @@ export const MenuPage = () => {
   const dishesResult = useMenuDishes(mealType);
   const availabilityResult = useDishAvailability(dishesResult.dishes);
   const commands = useMenuCommands();
+  const ownHoldings = useOwnSlotHoldings(user?.uid ?? '');
 
   const dateOptions = useMemo(() => buildDateOptions(clock.today), [clock]);
   const selectedDate = dateOptions.find(option => option.key === selectedDateKey)?.date ?? dateOptions[0].date;
+  const selectedSlotKey = buildSlotKey(selectedDate, mealType);
 
   const pastMeals = useMemo(() => {
     if (!mealTimes) {
@@ -93,6 +102,7 @@ export const MenuPage = () => {
     if (status === 'error') {
       return (
         <ErrorState
+          title={t('menu.error.title')}
           message={t('menu.error.body')}
           retryLabel={t('common.retry')}
           onRetry={() => {
@@ -105,6 +115,7 @@ export const MenuPage = () => {
     if (availabilityResult.views.length === 0) {
       return (
         <EmptyState
+          title={t('menu.empty.title')}
           message={t('menu.empty.body')}
           actionLabel={t('menu.empty.action')}
           onAction={() => {
@@ -116,18 +127,27 @@ export const MenuPage = () => {
 
     return (
       <Stack spacing={1.5}>
-        {availabilityResult.views.map(view => (
-          <DishAvailabilityCard
-            key={view.dish.id}
-            view={view}
-            onReserve={selected => {
-              setDialogState({ kind: 'reserve', view: selected });
-            }}
-            onRequestCooking={selected => {
-              setDialogState({ kind: 'request', view: selected });
-            }}
-          />
-        ))}
+        {availabilityResult.views.map(view => {
+          const expiredBatches = availabilityResult.expiredBatchesByDishId[view.dish.id] ?? [];
+          const holdings = summarizeOwnSlotHoldings(ownHoldings, { dishId: view.dish.id, slotKey: selectedSlotKey });
+
+          return (
+            <Stack key={view.dish.id} spacing={1.5}>
+              {isAdmin && expiredBatches.length > 0 && <ExpiredBatchBanner batches={expiredBatches} />}
+              <DishAvailabilityCard
+                view={view}
+                reservedQuantity={holdings.reservedQuantity}
+                requestedQuantity={holdings.requestedQuantity}
+                onReserve={selected => {
+                  setDialogState({ kind: 'reserve', view: selected });
+                }}
+                onRequestCooking={selected => {
+                  setDialogState({ kind: 'request', view: selected });
+                }}
+              />
+            </Stack>
+          );
+        })}
       </Stack>
     );
   };
@@ -152,6 +172,8 @@ export const MenuPage = () => {
           open
           dishName={dialogState.view.dish.name}
           availableQuantity={dialogState.view.availability.readyQuantity}
+          mealType={mealType}
+          dateLabel={formatCalendarDateLabel(selectedDate, i18n.language)}
           onCancel={() => {
             setDialogState(null);
           }}

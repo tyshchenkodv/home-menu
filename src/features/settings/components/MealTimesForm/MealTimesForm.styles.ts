@@ -1,5 +1,7 @@
 import type { SxProps, Theme } from '@mui/material/styles';
 
+import { lightSchemeInk } from '../../../../shared/theme/pastelInk';
+
 export const styles: Record<string, SxProps<Theme>> = {
   card: {
     borderRadius: 2,
@@ -47,12 +49,14 @@ export const styles: Record<string, SxProps<Theme>> = {
   savingSpinner: {
     mr: 1,
   },
+  // `info.light` stays a light blue in both schemes; pin the text to the
+  // light-scheme `info.dark` so it never flips to a too-light tone in dark mode.
   banner: {
     p: 2,
     mb: 2,
     borderRadius: 1,
     backgroundColor: 'var(--mui-palette-info-light)',
-    color: 'var(--mui-palette-info-dark)',
+    color: (theme: Theme) => lightSchemeInk(theme, palette => palette.info.dark, 'rgb(62, 118, 161)'),
   },
   helper: {
     mt: 1.5,

@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useBottomSheetDialogPaperProps } from '../../../../shared/components/ResponsiveDialog/bottomSheetDialogPaperProps';
 import { styles } from './styles';
 
 interface RegisterBatchDialogProps {
@@ -35,6 +36,7 @@ export const RegisterBatchDialog = ({
   onConfirm,
 }: RegisterBatchDialogProps) => {
   const { t } = useTranslation();
+  const paperProps = useBottomSheetDialogPaperProps();
   const [actualYield, setActualYield] = useState<string>(() => String(plannedQuantity));
   const [preparedAt, setPreparedAt] = useState<string>(currentDatetimeLocal);
   const [expiresAt, setExpiresAt] = useState<string>('');
@@ -94,7 +96,7 @@ export const RegisterBatchDialog = ({
   const showActualBelowPlan = actualNum > 0 && actualNum < plannedQuantity;
 
   return (
-    <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth slotProps={{ paper: paperProps }}>
       <DialogTitle>{t('batches.registration.title')}</DialogTitle>
 
       <DialogContent sx={styles.content}>

@@ -24,6 +24,7 @@ import { LoadingState } from '../components/LoadingState/LoadingState';
 import { RestockDialog } from '../components/RestockDialog/RestockDialog';
 import { useIngredients } from '../hooks/useIngredients';
 import { useInventoryCommands } from '../hooks/useInventoryCommands';
+import { formatIngredientQuantity } from '../utils/formatIngredientQuantity';
 import type { IngredientFormSubmitPayload } from '../types/ingredientFormSubmitPayload';
 import type { InventoryTab } from '../types/inventoryTab';
 import { styles } from './InventoryPage.styles';
@@ -36,7 +37,8 @@ export const InventoryPage = () => {
   const uid = user?.uid ?? '';
 
   const [tab, setTab] = useState<InventoryTab>('active');
-  const { status, ingredients } = useIngredients(tab);
+  const [reloadKey, setReloadKey] = useState(0);
+  const { status, ingredients } = useIngredients(tab, reloadKey);
   const [dialogState, setDialogState] = useState<DialogState | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<IngredientWithId | null>(null);
   const [restockTarget, setRestockTarget] = useState<IngredientWithId | null>(null);
@@ -80,7 +82,16 @@ export const InventoryPage = () => {
     }
 
     if (status === 'error') {
-      return <ErrorState message={t('inventory.error')} />;
+      return (
+        <ErrorState
+          message={t('inventory.error')}
+          body={t('inventory.errorBody')}
+          retryLabel={t('common.retry')}
+          onRetry={() => {
+            setReloadKey(key => key + 1);
+          }}
+        />
+      );
     }
 
     if (ingredients.length === 0) {
@@ -88,6 +99,17 @@ export const InventoryPage = () => {
         <EmptyState
           title={tab === 'active' ? t('inventory.empty.activeTitle') : undefined}
           message={t(tab === 'active' ? 'inventory.empty.active' : 'inventory.empty.archived')}
+          action={
+            tab === 'active'
+              ? {
+                  label: `+ ${t('inventory.actions.create')}`,
+                  onClick: () => {
+                    setDialogState({ mode: 'create' });
+                  },
+                  variant: 'contained' as const,
+                }
+              : undefined
+          }
         />
       );
     }
@@ -180,20 +202,30 @@ export const InventoryPage = () => {
         />
       )}
 
-      {correctTarget && (
-        <CorrectionDialog
-          open
-          ingredientName={correctTarget.name}
-          baseUnit={correctTarget.baseUnit}
-          onCancel={() => {
-            setCorrectTarget(null);
-          }}
-          onSubmit={async (exactBalance, reason) => {
-            await commands.correct(correctTarget.id, exactBalance, reason, uid);
-            setCorrectTarget(null);
-          }}
-        />
-      )}
+      {correctTarget &&
+        (() => {
+          const display = formatIngredientQuantity(correctTarget);
+          const currentQuantityLabel =
+            display.kind === 'quantity'
+              ? t('inventory.quantityWithUnit', { amount: display.amount, unit: t(`inventory.units.${display.unit}`) })
+              : '';
+
+          return (
+            <CorrectionDialog
+              open
+              ingredientName={correctTarget.name}
+              currentQuantityLabel={currentQuantityLabel}
+              baseUnit={correctTarget.baseUnit}
+              onCancel={() => {
+                setCorrectTarget(null);
+              }}
+              onSubmit={async (exactBalance, reason) => {
+                await commands.correct(correctTarget.id, exactBalance, reason, uid);
+                setCorrectTarget(null);
+              }}
+            />
+          );
+        })()}
     </Stack>
   );
 };

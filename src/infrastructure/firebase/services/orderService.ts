@@ -6,8 +6,10 @@ import {
   onSnapshot,
   orderBy,
   query,
+  serverTimestamp,
   where,
   type Unsubscribe,
+  type WithFieldValue,
 } from 'firebase/firestore';
 
 import { OrderDomainError } from '../../../domain/orders/errors';
@@ -49,7 +51,6 @@ export const createCookingRequest = async (
     );
   }
 
-  const now = Timestamp.now();
   const docRef = await addDoc(getOrdersCollection(), {
     userId,
     userDisplayName,
@@ -63,11 +64,12 @@ export const createCookingRequest = async (
     allocations: [],
     rejectionReason: null,
     preparedBatchId: null,
-    createdAt: now,
+    preparedBatchNumber: null,
+    createdAt: serverTimestamp(),
     createdBy: userId,
-    updatedAt: now,
+    updatedAt: serverTimestamp(),
     updatedBy: userId,
-  } satisfies OrderDoc);
+  } satisfies WithFieldValue<OrderDoc>);
 
   return docRef.id;
 };

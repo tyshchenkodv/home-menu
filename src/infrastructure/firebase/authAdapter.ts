@@ -1,8 +1,7 @@
 import {
-  GoogleAuthProvider,
   getAuth,
   onAuthStateChanged,
-  signInWithPopup,
+  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
   signOut as firebaseSignOut,
   type User,
 } from 'firebase/auth';
@@ -12,12 +11,12 @@ import { getFirebaseApp } from './firebaseApp';
 const getFirebaseAuth = () => getAuth(getFirebaseApp());
 
 /**
- * Signs the current visitor in with a Google popup and returns the
- * resulting Firebase Auth user.
+ * Signs the current visitor in with an email and password and returns the
+ * resulting Firebase Auth user. The account must already exist in Firebase
+ * Auth — the client never creates accounts or resets passwords.
  */
-export const signInWithGoogle = async (): Promise<User> => {
-  const provider = new GoogleAuthProvider();
-  const credential = await signInWithPopup(getFirebaseAuth(), provider);
+export const signInWithEmailAndPassword = async (email: string, password: string): Promise<User> => {
+  const credential = await firebaseSignInWithEmailAndPassword(getFirebaseAuth(), email, password);
 
   return credential.user;
 };
