@@ -197,8 +197,11 @@ beforeEach(() => {
   mockedSubscribeAvailableBatches.mockReturnValue(vi.fn());
   mockedSubscribeOwnOrders.mockReturnValue(vi.fn());
   mockedGetGeneralSettings.mockResolvedValue({
-    timezone: 'Europe/Kyiv',
-    defaultMealTimes: { breakfast: '08:00', lunch: '13:00', dinner: '19:00' },
+    settings: {
+      timezone: 'Europe/Kyiv',
+      defaultMealTimes: { breakfast: '08:00', lunch: '13:00', dinner: '19:00' },
+    },
+    exists: true,
   });
   mockedReserveReadyOrder.mockResolvedValue('order-1');
   mockedCreateCookingRequest.mockResolvedValue('order-2');

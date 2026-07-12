@@ -53,8 +53,11 @@ vi.mock('../../../infrastructure/firebase/services/orderTransactions', () => ({
 vi.mock('../../../infrastructure/firebase/services/settingsService', () => ({
   getGeneralSettings: vi.fn(() =>
     Promise.resolve({
-      timezone: 'Europe/Kyiv',
-      defaultMealTimes: { breakfast: '08:00', lunch: '13:00', dinner: '19:00' },
+      settings: {
+        timezone: 'Europe/Kyiv',
+        defaultMealTimes: { breakfast: '08:00', lunch: '13:00', dinner: '19:00' },
+      },
+      exists: true,
     }),
   ),
 }));

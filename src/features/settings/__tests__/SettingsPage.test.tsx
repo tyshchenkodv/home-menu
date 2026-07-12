@@ -15,8 +15,11 @@ vi.mock('../../auth/useAuth', () => ({
 
 vi.mock('../../../infrastructure/firebase/services/settingsService', () => ({
   getGeneralSettings: vi.fn().mockResolvedValue({
-    timezone: 'Europe/Kyiv',
-    defaultMealTimes: { breakfast: '08:00', lunch: '13:00', dinner: '19:00' },
+    settings: {
+      timezone: 'Europe/Kyiv',
+      defaultMealTimes: { breakfast: '08:00', lunch: '13:00', dinner: '19:00' },
+    },
+    exists: true,
   }),
   updateGeneralSettings: vi.fn().mockResolvedValue(undefined),
   DEFAULT_GENERAL_SETTINGS: {
@@ -26,8 +29,10 @@ vi.mock('../../../infrastructure/firebase/services/settingsService', () => ({
 }));
 
 import { useAuth } from '../../auth/useAuth';
+import { getGeneralSettings } from '../../../infrastructure/firebase/services/settingsService';
 
 const mockedUseAuth = vi.mocked(useAuth);
+const mockedGetGeneralSettings = vi.mocked(getGeneralSettings);
 
 const renderPage = () => {
   return render(
@@ -72,5 +77,23 @@ describe('SettingsPage', () => {
     // Wait for the form to load
     expect(await screen.findByText(i18n.t('settings.mealTimes.title'))).toBeInTheDocument();
     expect(screen.getByLabelText(i18n.t('common.meals.breakfast'))).toBeInTheDocument();
+  });
+
+  it('shows the persisted meal times once they load, not the defaults', async () => {
+    // The form first mounts during loading with the defaults; when the read
+    // resolves with different persisted times the form must reflect them.
+    mockedGetGeneralSettings.mockResolvedValueOnce({
+      settings: {
+        timezone: 'Europe/Kyiv',
+        defaultMealTimes: { breakfast: '09:45', lunch: '12:30', dinner: '20:15' },
+      },
+      exists: true,
+    });
+
+    renderPage();
+
+    expect(await screen.findByDisplayValue('09:45')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('12:30')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('20:15')).toBeInTheDocument();
   });
 });

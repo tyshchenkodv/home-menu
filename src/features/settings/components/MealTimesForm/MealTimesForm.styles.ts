@@ -41,11 +41,6 @@ export const styles: Record<string, SxProps<Theme>> = {
       fontSize: '1rem',
     },
   },
-  loadingStack: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    py: 3,
-  },
   savingSpinner: {
     mr: 1,
   },

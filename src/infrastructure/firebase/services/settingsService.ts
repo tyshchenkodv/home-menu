@@ -22,24 +22,34 @@ export const DEFAULT_GENERAL_SETTINGS: GeneralSettings = {
   },
 };
 
+export interface GeneralSettingsRead {
+  settings: GeneralSettings;
+  /**
+   * `false` when `settings/general` has never been created — the returned
+   * `settings` are then `DEFAULT_GENERAL_SETTINGS`. Lets the UI show a
+   * "using defaults" hint without a second read.
+   */
+  exists: boolean;
+}
+
 /**
  * Reads `settings/general`, falling back to `DEFAULT_GENERAL_SETTINGS` when
  * the document does not exist yet (an administrator has never saved the
  * meal-times form). Never throws for a missing document — only a genuine
  * Firestore read failure propagates.
  */
-export const getGeneralSettings = async (): Promise<GeneralSettings> => {
+export const getGeneralSettings = async (): Promise<GeneralSettingsRead> => {
   const settingsRef = doc(getFirestore(getFirebaseApp()), COLLECTION, DOCUMENT_ID).withConverter(
     generalSettingsConverter,
   );
   const snapshot = await getDoc(settingsRef);
 
   if (!snapshot.exists()) {
-    return DEFAULT_GENERAL_SETTINGS;
+    return { settings: DEFAULT_GENERAL_SETTINGS, exists: false };
   }
 
   const data = snapshot.data();
-  return { timezone: data.timezone, defaultMealTimes: data.defaultMealTimes };
+  return { settings: { timezone: data.timezone, defaultMealTimes: data.defaultMealTimes }, exists: true };
 };
 
 /**

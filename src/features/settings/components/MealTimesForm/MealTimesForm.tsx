@@ -17,18 +17,10 @@ export interface MealTimesFormProps {
   hasNeverBeenSaved: boolean;
   isSaving: boolean;
   error: Error | null;
-  isLoading: boolean;
   onSave: (times: DefaultMealTimes) => Promise<void>;
 }
 
-export const MealTimesForm = ({
-  initialTimes,
-  hasNeverBeenSaved,
-  isSaving,
-  error,
-  isLoading,
-  onSave,
-}: MealTimesFormProps) => {
+export const MealTimesForm = ({ initialTimes, hasNeverBeenSaved, isSaving, error, onSave }: MealTimesFormProps) => {
   const { t } = useTranslation();
   const [breakfast, setBreakfast] = useState(initialTimes.breakfast);
   const [lunch, setLunch] = useState(initialTimes.lunch);
@@ -57,17 +49,6 @@ export const MealTimesForm = ({
       setLocalError(err instanceof Error ? err.message : String(err));
     }
   };
-
-  if (isLoading) {
-    return (
-      <Paper sx={styles.card}>
-        <Stack spacing={1} sx={styles.loadingStack}>
-          <CircularProgress size={40} />
-          <Typography>{t('settings.loading')}</Typography>
-        </Stack>
-      </Paper>
-    );
-  }
 
   return (
     <Stack spacing={2}>
